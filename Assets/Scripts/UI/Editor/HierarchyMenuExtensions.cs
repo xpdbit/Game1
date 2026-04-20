@@ -346,18 +346,16 @@ namespace Game1.Editor
             selectAllRect.sizeDelta = new Vector2(80, 30);
             selectAllRect.offsetMin = Vector2.zero;
             selectAllRect.offsetMax = Vector2.zero;
-            Button selectAllButton = selectAllBtn.AddComponent<Button>();
-            selectAllButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
             Image selectAllImage = selectAllBtn.AddComponent<Image>();
             selectAllImage.color = new Color(0.3f, 0.5f, 0.3f, 1f);
             GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
-
-            TMPro.TextMeshProUGUI selectAllText = selectAllBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            selectAllText.text = "全选";
-            selectAllText.fontSize = 14;
-            selectAllText.alignment = TMPro.TextAlignmentOptions.Center;
-            selectAllText.color = Color.white;
-            GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
+            TMPro.TextMeshProUGUI selectAllTmp = selectAllBtn.AddComponent<TMPro.TextMeshProUGUI>();
+            selectAllTmp.text = "全选";
+            selectAllTmp.fontSize = 14;
+            selectAllTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            selectAllTmp.color = Color.white;
+            Button selectAllButton = selectAllBtn.AddComponent<Button>();
+            selectAllButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
             // 取消全选按钮
             GameObject deselectBtn = new GameObject("DeselectButton");
@@ -367,16 +365,16 @@ namespace Game1.Editor
             deselectRect.sizeDelta = new Vector2(80, 30);
             deselectRect.offsetMin = Vector2.zero;
             deselectRect.offsetMax = Vector2.zero;
-            Button deselectButton = deselectBtn.AddComponent<Button>();
             Image deselectImage = deselectBtn.AddComponent<Image>();
             deselectImage.color = new Color(0.5f, 0.3f, 0.3f, 1f);
             GameObjectUtility.SetParentAndAlign(deselectBtn, topBar);
-
-            TMPro.TextMeshProUGUI deselectText = deselectBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            deselectText.text = "取消";
-            deselectText.fontSize = 14;
-            deselectText.alignment = TMPro.TextAlignmentOptions.Center;
-            deselectText.color = Color.white;
+            TMPro.TextMeshProUGUI deselectTmp = deselectBtn.AddComponent<TMPro.TextMeshProUGUI>();
+            deselectTmp.text = "取消";
+            deselectTmp.fontSize = 14;
+            deselectTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            deselectTmp.color = Color.white;
+            Button deselectButton = deselectBtn.AddComponent<Button>();
+            deselectButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
             // 已选择数量文本
             GameObject selectedCountObj = new GameObject("SelectedCountText");
@@ -385,13 +383,13 @@ namespace Game1.Editor
             selectedCountRect.anchorMax = new Vector2(1, 1);
             selectedCountRect.offsetMin = Vector2.zero;
             selectedCountRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(selectedCountObj, topBar);
             TMPro.TextMeshProUGUI selectedCountTmp = selectedCountObj.AddComponent<TMPro.TextMeshProUGUI>();
             selectedCountTmp.text = "已选择: 0";
             selectedCountTmp.fontSize = 16;
             selectedCountTmp.alignment = TMPro.TextAlignmentOptions.Center;
             selectedCountTmp.color = Color.white;
-            Game1.UIText selectedCountText = selectedCountObj.AddComponent<Game1.UIText>();
-            GameObjectUtility.SetParentAndAlign(selectedCountObj, topBar);
+            selectedCountObj.AddComponent<Game1.UIText>();
         }
 
         private static void CreateInventoryBottomBar(GameObject parent)
@@ -412,16 +410,16 @@ namespace Game1.Editor
             useRect.sizeDelta = new Vector2(80, 30);
             useRect.offsetMin = Vector2.zero;
             useRect.offsetMax = Vector2.zero;
-            Button useButton = useBtn.AddComponent<Button>();
             Image useImage = useBtn.AddComponent<Image>();
             useImage.color = new Color(0.2f, 0.6f, 0.2f, 1f);
             GameObjectUtility.SetParentAndAlign(useBtn, bottomBar);
-
-            TMPro.TextMeshProUGUI useText = useBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            useText.text = "使用";
-            useText.fontSize = 14;
-            useText.alignment = TMPro.TextAlignmentOptions.Center;
-            useText.color = Color.white;
+            TMPro.TextMeshProUGUI useTmp = useBtn.AddComponent<TMPro.TextMeshProUGUI>();
+            useTmp.text = "使用";
+            useTmp.fontSize = 14;
+            useTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            useTmp.color = Color.white;
+            Button useButton = useBtn.AddComponent<Button>();
+            useButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
             // 丢弃按钮
             GameObject discardBtn = new GameObject("DiscardButton");
@@ -431,16 +429,16 @@ namespace Game1.Editor
             discardRect.sizeDelta = new Vector2(80, 30);
             discardRect.offsetMin = Vector2.zero;
             discardRect.offsetMax = Vector2.zero;
-            Button discardButton = discardBtn.AddComponent<Button>();
             Image discardImage = discardBtn.AddComponent<Image>();
             discardImage.color = new Color(0.6f, 0.2f, 0.2f, 1f);
             GameObjectUtility.SetParentAndAlign(discardBtn, bottomBar);
-
-            TMPro.TextMeshProUGUI discardText = discardBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            discardText.text = "丢弃";
-            discardText.fontSize = 14;
-            discardText.alignment = TMPro.TextAlignmentOptions.Center;
-            discardText.color = Color.white;
+            TMPro.TextMeshProUGUI discardTmp = discardBtn.AddComponent<TMPro.TextMeshProUGUI>();
+            discardTmp.text = "丢弃";
+            discardTmp.fontSize = 14;
+            discardTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            discardTmp.color = Color.white;
+            Button discardButton = discardBtn.AddComponent<Button>();
+            discardButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
             // 总物品数量文本
             GameObject totalObj = new GameObject("TotalItemsText");
@@ -449,13 +447,13 @@ namespace Game1.Editor
             totalRect.anchorMax = new Vector2(1, 1);
             totalRect.offsetMin = Vector2.zero;
             totalRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(totalObj, bottomBar);
             TMPro.TextMeshProUGUI totalTmp = totalObj.AddComponent<TMPro.TextMeshProUGUI>();
             totalTmp.text = "共 0 个物品";
             totalTmp.fontSize = 16;
             totalTmp.alignment = TMPro.TextAlignmentOptions.Center;
             totalTmp.color = Color.white;
-            Game1.UIText totalText = totalObj.AddComponent<Game1.UIText>();
-            GameObjectUtility.SetParentAndAlign(totalObj, bottomBar);
+            totalObj.AddComponent<Game1.UIText>();
         }
     }
 }
