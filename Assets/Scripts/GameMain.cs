@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Kirurobo;
+using UnityEngine;
 
 namespace Game1
 {
@@ -9,7 +10,7 @@ namespace Game1
     public GameConfig config { get; private set; } = new GameConfig();
 
     public Player player;
-
+    
     /// <summary>
     /// 日志管理器组件引用
     /// </summary>
