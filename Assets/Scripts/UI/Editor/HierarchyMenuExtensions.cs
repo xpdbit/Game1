@@ -346,9 +346,9 @@ namespace Game1.Editor
             selectAllRect.sizeDelta = new Vector2(80, 30);
             selectAllRect.offsetMin = Vector2.zero;
             selectAllRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
             Image selectAllImage = selectAllBtn.AddComponent<Image>();
             selectAllImage.color = new Color(0.3f, 0.5f, 0.3f, 1f);
-            GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
             TMPro.TextMeshProUGUI selectAllTmp = selectAllBtn.AddComponent<TMPro.TextMeshProUGUI>();
             selectAllTmp.text = "全选";
             selectAllTmp.fontSize = 14;
@@ -365,9 +365,9 @@ namespace Game1.Editor
             deselectRect.sizeDelta = new Vector2(80, 30);
             deselectRect.offsetMin = Vector2.zero;
             deselectRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(deselectBtn, topBar);
             Image deselectImage = deselectBtn.AddComponent<Image>();
             deselectImage.color = new Color(0.5f, 0.3f, 0.3f, 1f);
-            GameObjectUtility.SetParentAndAlign(deselectBtn, topBar);
             TMPro.TextMeshProUGUI deselectTmp = deselectBtn.AddComponent<TMPro.TextMeshProUGUI>();
             deselectTmp.text = "取消";
             deselectTmp.fontSize = 14;
