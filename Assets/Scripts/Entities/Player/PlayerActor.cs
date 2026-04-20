@@ -151,7 +151,7 @@ namespace Game1
         string moduleId { get; }
         string moduleName { get; }
         string GetBonus(string bonusType);
-        void OnTick(float deltaTime);
+        void Tick(float deltaTime);
         void OnActivate();
         void OnDeactivate();
     }

@@ -60,7 +60,7 @@ namespace Game1
             }
         }
 
-        public void OnTick(float deltaTime)
+        public void Tick(float deltaTime)
         {
             if (!_isActive) return;
             _accumulatedTime += deltaTime;
@@ -98,7 +98,7 @@ namespace Game1
             return "0";
         }
 
-        public void OnTick(float deltaTime) { }
+        public void Tick(float deltaTime) { }
         public void OnActivate() { }
         public void OnDeactivate() { }
     }
