@@ -368,7 +368,7 @@ namespace Game1
                 }
                 else
                 {
-                    // 普通点击：如果是单选模式则先清空
+                    // 普通点击：单选模式清空后选择，多选模式直接选择
                     if (selectionMode == InventorySelectionMode.Single)
                     {
                         DeselectAll();
@@ -376,7 +376,7 @@ namespace Game1
                     }
                     else
                     {
-                        DeselectAll();
+                        // 多选模式：直接选中该项（不清空其他选择）
                         SelectItem(item.GetData());
                     }
                 }
