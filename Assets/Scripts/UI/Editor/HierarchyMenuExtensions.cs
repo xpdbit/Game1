@@ -179,9 +179,6 @@ namespace Game1.Editor
             // 添加UIInventory组件
             Game1.UIInventory inventory = inventoryRoot.AddComponent<Game1.UIInventory>();
 
-            // 创建模板物品行（隐藏）
-            GameObject templateItem = CreateInventoryItemTemplate(inventoryRoot);
-
             // 创建物品列表容器
             GameObject itemsContainer = new GameObject("ItemsContainer");
             RectTransform containerRect = itemsContainer.AddComponent<RectTransform>();
@@ -190,6 +187,9 @@ namespace Game1.Editor
             containerRect.offsetMin = new Vector2(10, 10);
             containerRect.offsetMax = new Vector2(-10, -10);
             GameObjectUtility.SetParentAndAlign(itemsContainer, inventoryRoot);
+
+            // 创建模板物品行（隐藏）
+            GameObject templateItem = CreateInventoryItemTemplate(inventoryRoot);
 
             // 添加UILayout组件到容器
             UILayout layout = itemsContainer.AddComponent<UILayout>();
@@ -205,11 +205,11 @@ namespace Game1.Editor
             listItems.layout = layout;
             inventory.listItems = listItems;
 
-            // 创建顶部操作栏
-            CreateInventoryTopBar(inventoryRoot);
+            // 创建顶部操作栏（简化版）
+            CreateInventoryTopBarSimple(inventoryRoot, inventory);
 
-            // 创建底部操作栏
-            CreateInventoryBottomBar(inventoryRoot);
+            // 创建底部操作栏（简化版）
+            CreateInventoryBottomBarSimple(inventoryRoot, inventory);
 
             // 隐藏模板
             templateItem.SetActive(false);
@@ -258,19 +258,18 @@ namespace Game1.Editor
             itemImage.color = Color.gray;
             GameObjectUtility.SetParentAndAlign(imageObj, leftSide);
 
-            // Name Text
+            // Name Text - 只用TextMeshPro不用UIText避免空引用
             GameObject nameObj = new GameObject("NameText");
             RectTransform nameRect = nameObj.AddComponent<RectTransform>();
             nameRect.anchorMin = new Vector2(0, 0);
             nameRect.anchorMax = new Vector2(1, 1);
             nameRect.offsetMin = new Vector2(55, 0);
-            nameRect.offsetMax = new Vector2(0, 0);
+            nameRect.offsetMax = Vector2.zero;
             TMPro.TextMeshProUGUI nameTmp = nameObj.AddComponent<TMPro.TextMeshProUGUI>();
             nameTmp.text = "Item Name";
             nameTmp.fontSize = 16;
             nameTmp.alignment = TMPro.TextAlignmentOptions.Left;
             nameTmp.color = Color.white;
-            nameObj.AddComponent<Game1.UIText>();
             GameObjectUtility.SetParentAndAlign(nameObj, leftSide);
 
             // 右侧：Amount
@@ -285,7 +284,6 @@ namespace Game1.Editor
             amountTmp.fontSize = 18;
             amountTmp.alignment = TMPro.TextAlignmentOptions.Right;
             amountTmp.color = Color.yellow;
-            amountObj.AddComponent<Game1.UIText>();
             GameObjectUtility.SetParentAndAlign(amountObj, template);
 
             // Checkbox (可选)
@@ -316,8 +314,9 @@ namespace Game1.Editor
             Game1.UIInventoryItem itemComponent = template.AddComponent<Game1.UIInventoryItem>();
             itemComponent.backgroundImage = bgImage;
             itemComponent.itemImage = itemImage;
-            itemComponent.itemNameText = nameObj.GetComponent<Game1.UIText>();
-            itemComponent.amountText = amountObj.GetComponent<Game1.UIText>();
+            // 延迟获取UIText组件避免空引用
+            itemComponent.itemNameText = null; // 暂时设为null，后面通过代码引用
+            itemComponent.amountText = null;
             itemComponent.checkboxBackground = checkImage;
             itemComponent.checkmarkImage = checkmarkImage;
             itemComponent.disabledOverlay = null;
@@ -328,18 +327,28 @@ namespace Game1.Editor
             return template;
         }
 
-        private static void CreateInventoryTopBar(GameObject parent)
+        private static void CreateInventoryTopBarSimple(GameObject parent, Game1.UIInventory inventory)
         {
             // 创建顶部操作栏
             GameObject topBar = new GameObject("TopBar");
-            topBar.AddComponent<RectTransform>();
+            RectTransform topRect = topBar.AddComponent<RectTransform>();
+            topRect.anchorMin = new Vector2(0, 0.85f);
+            topRect.anchorMax = new Vector2(1, 1);
+            topRect.offsetMin = Vector2.zero;
+            topRect.offsetMax = new Vector2(0, -30);
             GameObjectUtility.SetParentAndAlign(topBar, parent);
 
             // 全选按钮
             GameObject selectAllBtn = new GameObject("SelectAllButton");
-            selectAllBtn.AddComponent<RectTransform>();
+            RectTransform selectAllRect = selectAllBtn.AddComponent<RectTransform>();
+            selectAllRect.anchorMin = new Vector2(0, 0);
+            selectAllRect.anchorMax = new Vector2(0, 1);
+            selectAllRect.sizeDelta = new Vector2(80, 30);
+            selectAllRect.offsetMin = Vector2.zero;
+            selectAllRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
-            selectAllBtn.AddComponent<Image>().color = new Color(0.3f, 0.5f, 0.3f, 1f);
+            Image selectAllImage = selectAllBtn.AddComponent<Image>();
+            selectAllImage.color = new Color(0.3f, 0.5f, 0.3f, 1f);
             TMPro.TextMeshProUGUI selectAllTmp = selectAllBtn.AddComponent<TMPro.TextMeshProUGUI>();
             selectAllTmp.text = "全选";
             selectAllTmp.fontSize = 14;
@@ -350,9 +359,15 @@ namespace Game1.Editor
 
             // 取消全选按钮
             GameObject deselectBtn = new GameObject("DeselectButton");
-            deselectBtn.AddComponent<RectTransform>();
+            RectTransform deselectRect = deselectBtn.AddComponent<RectTransform>();
+            deselectRect.anchorMin = new Vector2(0.15f, 0);
+            deselectRect.anchorMax = new Vector2(0.15f, 1);
+            deselectRect.sizeDelta = new Vector2(80, 30);
+            deselectRect.offsetMin = Vector2.zero;
+            deselectRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(deselectBtn, topBar);
-            deselectBtn.AddComponent<Image>().color = new Color(0.5f, 0.3f, 0.3f, 1f);
+            Image deselectImage = deselectBtn.AddComponent<Image>();
+            deselectImage.color = new Color(0.5f, 0.3f, 0.3f, 1f);
             TMPro.TextMeshProUGUI deselectTmp = deselectBtn.AddComponent<TMPro.TextMeshProUGUI>();
             deselectTmp.text = "取消";
             deselectTmp.fontSize = 14;
@@ -363,28 +378,44 @@ namespace Game1.Editor
 
             // 已选择数量文本
             GameObject selectedCountObj = new GameObject("SelectedCountText");
-            selectedCountObj.AddComponent<RectTransform>();
+            RectTransform selectedCountRect = selectedCountObj.AddComponent<RectTransform>();
+            selectedCountRect.anchorMin = new Vector2(0.5f, 0);
+            selectedCountRect.anchorMax = new Vector2(1, 1);
+            selectedCountRect.offsetMin = Vector2.zero;
+            selectedCountRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(selectedCountObj, topBar);
             TMPro.TextMeshProUGUI selectedCountTmp = selectedCountObj.AddComponent<TMPro.TextMeshProUGUI>();
             selectedCountTmp.text = "已选择: 0";
             selectedCountTmp.fontSize = 16;
             selectedCountTmp.alignment = TMPro.TextAlignmentOptions.Center;
             selectedCountTmp.color = Color.white;
-            selectedCountObj.AddComponent<Game1.UIText>();
+
+            // 延迟设置UIText引用
+            inventory.selectedCountText = null; // 暂时设为null
         }
 
-        private static void CreateInventoryBottomBar(GameObject parent)
+        private static void CreateInventoryBottomBarSimple(GameObject parent, Game1.UIInventory inventory)
         {
             // 创建底部操作栏
             GameObject bottomBar = new GameObject("BottomBar");
-            bottomBar.AddComponent<RectTransform>();
+            RectTransform bottomRect = bottomBar.AddComponent<RectTransform>();
+            bottomRect.anchorMin = Vector2.zero;
+            bottomRect.anchorMax = new Vector2(1, 0.15f);
+            bottomRect.offsetMin = new Vector2(0, 0);
+            bottomRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(bottomBar, parent);
 
             // 使用按钮
             GameObject useBtn = new GameObject("UseButton");
-            useBtn.AddComponent<RectTransform>();
+            RectTransform useRect = useBtn.AddComponent<RectTransform>();
+            useRect.anchorMin = new Vector2(0, 0);
+            useRect.anchorMax = new Vector2(0, 1);
+            useRect.sizeDelta = new Vector2(80, 30);
+            useRect.offsetMin = Vector2.zero;
+            useRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(useBtn, bottomBar);
-            useBtn.AddComponent<Image>().color = new Color(0.2f, 0.6f, 0.2f, 1f);
+            Image useImage = useBtn.AddComponent<Image>();
+            useImage.color = new Color(0.2f, 0.6f, 0.2f, 1f);
             TMPro.TextMeshProUGUI useTmp = useBtn.AddComponent<TMPro.TextMeshProUGUI>();
             useTmp.text = "使用";
             useTmp.fontSize = 14;
@@ -395,9 +426,15 @@ namespace Game1.Editor
 
             // 丢弃按钮
             GameObject discardBtn = new GameObject("DiscardButton");
-            discardBtn.AddComponent<RectTransform>();
+            RectTransform discardRect = discardBtn.AddComponent<RectTransform>();
+            discardRect.anchorMin = new Vector2(0.15f, 0);
+            discardRect.anchorMax = new Vector2(0.15f, 1);
+            discardRect.sizeDelta = new Vector2(80, 30);
+            discardRect.offsetMin = Vector2.zero;
+            discardRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(discardBtn, bottomBar);
-            discardBtn.AddComponent<Image>().color = new Color(0.6f, 0.2f, 0.2f, 1f);
+            Image discardImage = discardBtn.AddComponent<Image>();
+            discardImage.color = new Color(0.6f, 0.2f, 0.2f, 1f);
             TMPro.TextMeshProUGUI discardTmp = discardBtn.AddComponent<TMPro.TextMeshProUGUI>();
             discardTmp.text = "丢弃";
             discardTmp.fontSize = 14;
@@ -408,14 +445,20 @@ namespace Game1.Editor
 
             // 总物品数量文本
             GameObject totalObj = new GameObject("TotalItemsText");
-            totalObj.AddComponent<RectTransform>();
+            RectTransform totalRect = totalObj.AddComponent<RectTransform>();
+            totalRect.anchorMin = new Vector2(0.5f, 0);
+            totalRect.anchorMax = new Vector2(1, 1);
+            totalRect.offsetMin = Vector2.zero;
+            totalRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(totalObj, bottomBar);
             TMPro.TextMeshProUGUI totalTmp = totalObj.AddComponent<TMPro.TextMeshProUGUI>();
             totalTmp.text = "共 0 个物品";
             totalTmp.fontSize = 16;
             totalTmp.alignment = TMPro.TextAlignmentOptions.Center;
             totalTmp.color = Color.white;
-            totalObj.AddComponent<Game1.UIText>();
+
+            // 延迟设置UIText引用
+            inventory.totalItemsText = null;
         }
     }
 }
