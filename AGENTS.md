@@ -35,6 +35,10 @@ Game1/
 │   │   ├── Roguelike/     # MapGenerator
 │   │   ├── UI/            # UI系统
 │   │   │   ├── Editor/    # Unity编辑器扩展
+│   │   │   ├── UIInventory/  # 背包系统
+│   │   │   │   ├── UIInventory.cs    # 背包主组件(List式,勾选/多选)
+│   │   │   │   ├── UIInventoryItem.cs # 物品行(Image+Name左, Amount右, 三状态)
+│   │   │   │   └── InventoryItemData.cs # 物品数据+状态
 │   │   │   ├── UIManager.cs
 │   │   │   ├── UIProgressBar.cs
 │   │   │   ├── UIText.cs
@@ -85,6 +89,9 @@ Game1/
 | EventQueue | Events/ | 事件队列 |
 | MapGenerator | Roguelike/ | 随机地图 |
 | UIManager | UI/UIManager.cs | UI状态机 |
+| UIInventory | UI/UIInventory/UIInventory.cs | 背包主组件(列表/勾选/多选) |
+| UIInventoryItem | UI/UIInventory/UIInventoryItem.cs | 物品行(高亮/默认/禁用) |
+| InventoryItemData | UI/UIInventory/InventoryItemData.cs | 物品数据+状态 |
 | UIProgressBar | UI/UIProgressBar.cs | 进度条 |
 | UIText | UI/UIText.cs | TextMeshPro封装 |
 | UILayout | UI/UILayout.cs | 布局系统 |
