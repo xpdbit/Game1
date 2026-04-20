@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace XUtilities
@@ -42,7 +43,7 @@ namespace XUtilities
                 _isRunning = true;
             }
 
-            float deltaTime = getDeltaTime?.Invoke() ?? Time.deltaTime;
+            float deltaTime = getDeltaTime?.Invoke(_accumulator) ?? Time.deltaTime;
             _accumulator += deltaTime;
 
             // 检查循环条件

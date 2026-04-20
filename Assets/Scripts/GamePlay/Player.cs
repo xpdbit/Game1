@@ -13,7 +13,7 @@ namespace Game1
     {
       if (Mouse.current.leftButton.wasPressedThisFrame)
       {
-        Debug.Log("点击");
+        
       }
     }
   }
