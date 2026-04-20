@@ -347,13 +347,7 @@ namespace Game1.Editor
             selectAllRect.offsetMin = Vector2.zero;
             selectAllRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(selectAllBtn, topBar);
-            Image selectAllImage = selectAllBtn.AddComponent<Image>();
-            selectAllImage.color = new Color(0.3f, 0.5f, 0.3f, 1f);
-            TMPro.TextMeshProUGUI selectAllTmp = selectAllBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            selectAllTmp.text = "全选";
-            selectAllTmp.fontSize = 14;
-            selectAllTmp.alignment = TMPro.TextAlignmentOptions.Center;
-            selectAllTmp.color = Color.white;
+            selectAllBtn.AddComponent<Image>().color = new Color(0.3f, 0.5f, 0.3f, 1f);
             Button selectAllButton = selectAllBtn.AddComponent<Button>();
             selectAllButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
@@ -366,13 +360,7 @@ namespace Game1.Editor
             deselectRect.offsetMin = Vector2.zero;
             deselectRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(deselectBtn, topBar);
-            Image deselectImage = deselectBtn.AddComponent<Image>();
-            deselectImage.color = new Color(0.5f, 0.3f, 0.3f, 1f);
-            TMPro.TextMeshProUGUI deselectTmp = deselectBtn.AddComponent<TMPro.TextMeshProUGUI>();
-            deselectTmp.text = "取消";
-            deselectTmp.fontSize = 14;
-            deselectTmp.alignment = TMPro.TextAlignmentOptions.Center;
-            deselectTmp.color = Color.white;
+            deselectBtn.AddComponent<Image>().color = new Color(0.5f, 0.3f, 0.3f, 1f);
             Button deselectButton = deselectBtn.AddComponent<Button>();
             deselectButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
 
@@ -384,14 +372,73 @@ namespace Game1.Editor
             selectedCountRect.offsetMin = Vector2.zero;
             selectedCountRect.offsetMax = Vector2.zero;
             GameObjectUtility.SetParentAndAlign(selectedCountObj, topBar);
-            TMPro.TextMeshProUGUI selectedCountTmp = selectedCountObj.AddComponent<TMPro.TextMeshProUGUI>();
-            selectedCountTmp.text = "已选择: 0";
-            selectedCountTmp.fontSize = 16;
-            selectedCountTmp.alignment = TMPro.TextAlignmentOptions.Center;
-            selectedCountTmp.color = Color.white;
+
+            // 使用UnityEngine.UI.Text代替TextMeshPro
+            UnityEngine.UI.Text selectedCountText = selectedCountObj.AddComponent<UnityEngine.UI.Text>();
+            selectedCountText.text = "已选择: 0";
+            selectedCountText.fontSize = 16;
+            selectedCountText.color = Color.white;
+            selectedCountText.alignment = TextAnchor.MiddleCenter;
 
             // 延迟设置UIText引用
-            inventory.selectedCountText = null; // 暂时设为null
+            inventory.selectedCountText = null;
+        }
+
+        private static void CreateInventoryBottomBarSimple(GameObject parent, Game1.UIInventory inventory)
+        {
+            // 创建底部操作栏
+            GameObject bottomBar = new GameObject("BottomBar");
+            RectTransform bottomRect = bottomBar.AddComponent<RectTransform>();
+            bottomRect.anchorMin = Vector2.zero;
+            bottomRect.anchorMax = new Vector2(1, 0.15f);
+            bottomRect.offsetMin = new Vector2(0, 0);
+            bottomRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(bottomBar, parent);
+
+            // 使用按钮
+            GameObject useBtn = new GameObject("UseButton");
+            RectTransform useRect = useBtn.AddComponent<RectTransform>();
+            useRect.anchorMin = new Vector2(0, 0);
+            useRect.anchorMax = new Vector2(0, 1);
+            useRect.sizeDelta = new Vector2(80, 30);
+            useRect.offsetMin = Vector2.zero;
+            useRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(useBtn, bottomBar);
+            useBtn.AddComponent<Image>().color = new Color(0.2f, 0.6f, 0.2f, 1f);
+            Button useButton = useBtn.AddComponent<Button>();
+            useButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
+
+            // 丢弃按钮
+            GameObject discardBtn = new GameObject("DiscardButton");
+            RectTransform discardRect = discardBtn.AddComponent<RectTransform>();
+            discardRect.anchorMin = new Vector2(0.15f, 0);
+            discardRect.anchorMax = new Vector2(0.15f, 1);
+            discardRect.sizeDelta = new Vector2(80, 30);
+            discardRect.offsetMin = Vector2.zero;
+            discardRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(discardBtn, bottomBar);
+            discardBtn.AddComponent<Image>().color = new Color(0.6f, 0.2f, 0.2f, 1f);
+            Button discardButton = discardBtn.AddComponent<Button>();
+            discardButton.colors = new ColorBlock { normalColor = Color.gray, highlightedColor = Color.white };
+
+            // 总物品数量文本
+            GameObject totalObj = new GameObject("TotalItemsText");
+            RectTransform totalRect = totalObj.AddComponent<RectTransform>();
+            totalRect.anchorMin = new Vector2(0.5f, 0);
+            totalRect.anchorMax = new Vector2(1, 1);
+            totalRect.offsetMin = Vector2.zero;
+            totalRect.offsetMax = Vector2.zero;
+            GameObjectUtility.SetParentAndAlign(totalObj, bottomBar);
+
+            // 使用UnityEngine.UI.Text代替TextMeshPro
+            UnityEngine.UI.Text totalText = totalObj.AddComponent<UnityEngine.UI.Text>();
+            totalText.text = "共 0 个物品";
+            totalText.fontSize = 16;
+            totalText.color = Color.white;
+            totalText.alignment = TextAnchor.MiddleCenter;
+
+            // 延迟设置UIText引用
+            inventory.totalItemsText = null;
         }
 
         private static void CreateInventoryBottomBarSimple(GameObject parent, Game1.UIInventory inventory)
