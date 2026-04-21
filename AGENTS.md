@@ -6,9 +6,9 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-20
+**Generated:** 2026-04-21
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** (see git)
+**Commit:** ac9b0067e8f2b66c2016b854a95421f0a94ae87b
 **Branch:** main
 
 ## OVERVIEW
@@ -79,25 +79,41 @@ Game1/
 | Class | Location | Role |
 |-------|----------|------|
 | GameMain | GameMain.cs | Unity入口，单例 |
+| GameConfig | GameMain.cs | 游戏配置（占位） |
 | GameLoopManager | Core/GameLoop/ | 主循环Tick协调 |
 | SaveManager | Core/SaveSystem/ | 存档管理 |
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
 | PlayerActor | Entities/Player/ | 玩家数据+模块 |
+| IModule | Entities/Player/PlayerActor.cs | 模块接口 |
+| TravelState | Entities/Player/PlayerActor.cs | 旅行状态 |
+| ModuleCollection | Entities/Player/PlayerActor.cs | 模块集合管理 |
 | TravelManager | Modules/Travel/ | 旅行进度 |
 | IdleRewardModule | Modules/Idle/ | 挂机收益 |
+| BonusMultiplierModule | Modules/Idle/ | 加成倍率 |
 | WorldMap | Entities/World/ | 节点地图 |
+| Location | Entities/World/ | 地点节点 |
 | EventQueue | Events/ | 事件队列 |
+| IGameEvent | Events/EventQueue.cs | 游戏事件接口 |
+| EventResult | Events/EventQueue.cs | 事件结果 |
+| CombatEvent | Events/EventQueue.cs | 战斗事件示例 |
+| TradeEvent | Events/EventQueue.cs | 交易事件示例 |
 | MapGenerator | Roguelike/ | 随机地图 |
+| UIState | UI/UIManager.cs | UI状态枚举 |
+| IUIPanel | UI/UIManager.cs | 面板接口 |
+| BaseUIPanel | UI/UIManager.cs | 面板基类 |
+| GameHUDPanel | UI/UIManager.cs | HUD面板 |
 | UIManager | UI/UIManager.cs | UI状态机 |
-| UIInventory | UI/UIInventory/UIInventory.cs | 背包主组件(列表/勾选/多选) |
-| UIInventoryItem | UI/UIInventory/UIInventoryItem.cs | 物品行(高亮/默认/禁用) |
-| InventoryItemData | UI/UIInventory/InventoryItemData.cs | 物品数据+状态 |
-| UIProgressBar | UI/UIProgressBar.cs | 进度条 |
+| UIInventory | UI/UIInventory/UIInventory.cs | 背包主组件 |
+| UIInventoryItem | UI/UIInventory/UIInventoryItem.cs | 物品行 |
+| UIProgressBar | UI/UIProgressBar.cs | 进度条（支持四方向） |
 | UIText | UI/UIText.cs | TextMeshPro封装 |
-| UILayout | UI/UILayout.cs | 布局系统 |
+| UITextLinkHandler | UI/UIText.cs | 文本链接处理（存根） |
+| UILayout | UI/UILayout.cs | 布局系统（拉伸/平铺） |
+| LayoutSender | UI/UILayout.cs | 布局参数传递 |
 | UIListItems | UI/UIListItems.cs | 列表管理 |
 | XUniTaskProgress | UI/XUtilities.cs | 任务进度 |
 | XObjectPool | UI/XUtilities.cs | 对象池 |
+| InventoryItemData | UI/UIInventory/InventoryItemData.cs | 物品数据+状态 |
 
 ## CONVENTIONS (C#)
 
@@ -158,6 +174,7 @@ unity -batchmode -runTests -testPlatform playmode
 - UniWindowController Prefab: Packages/UniWindowController/Runtime/Prefabs/
 - Editor脚本放 Assets/Scripts/UI/Editor/ (自动排除构建)
 - XUtilities为UI系统存根实现，游戏逻辑需补充
+- IModule接口定义在 PlayerActor.cs 中
 
 ## GIT WORKFLOW
 
