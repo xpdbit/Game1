@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using XUtilities;
+using Game1.UI.Utils;
 
 namespace Game1
 {

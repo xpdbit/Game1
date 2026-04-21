@@ -1,5 +1,4 @@
-﻿using Kirurobo;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Game1
 {
@@ -9,8 +8,9 @@ namespace Game1
 
     public GameConfig config { get; private set; } = new GameConfig();
 
+    public UIManager uIManager;
     public Player player;
-    
+
     /// <summary>
     /// 日志管理器组件引用
     /// </summary>
@@ -19,6 +19,7 @@ namespace Game1
     private void Awake()
     {
       instance = this;
+      ItemManager.Initialize();
     }
 
     void Start()
@@ -28,7 +29,7 @@ namespace Game1
 
     void OnDestroy()
     {
-      
+
     }
 
     void Update()
@@ -39,6 +40,6 @@ namespace Game1
 
   public class GameConfig
   {
-    
+
   }
 }

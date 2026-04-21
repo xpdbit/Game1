@@ -6,9 +6,9 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-21
+**Generated:** 2026-04-21 12:00
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** ac9b0067e8f2b66c2016b854a95421f0a94ae87b
+**Commit:** (pending)
 **Branch:** main
 
 ## OVERVIEW
@@ -111,9 +111,16 @@ Game1/
 | UILayout | UI/UILayout.cs | 布局系统（拉伸/平铺） |
 | LayoutSender | UI/UILayout.cs | 布局参数传递 |
 | UIListItems | UI/UIListItems.cs | 列表管理 |
-| XUniTaskProgress | UI/XUtilities.cs | 任务进度 |
-| XObjectPool | UI/XUtilities.cs | 对象池 |
+| XUniTaskProgress | UI/Utils/UniTaskProgress.cs | 任务进度 |
+| XObjectPool | UI/Utils/UIUtils.cs | 对象池 |
 | InventoryItemData | UI/UIInventory/InventoryItemData.cs | 物品数据+状态 |
+| ResourceManager | Managers/ResourceManager.cs | 资源加载（JSON/XML/手动解析） |
+| ItemTemplate | Managers/ItemManager.cs | 物品模板，含ParseFromXml |
+| ItemInstance | Managers/ItemManager.cs | 物品实例 |
+| ItemType | Managers/ItemManager.cs | 物品类型枚举 |
+| ItemTemplate | Managers/ItemManager.cs | 物品模板，含ParseFromXml |
+| ItemInstance | Managers/ItemManager.cs | 物品实例 |
+| ItemType | Managers/ItemManager.cs | 物品类型枚举 |
 
 ## CONVENTIONS (C#)
 
@@ -173,8 +180,11 @@ unity -batchmode -runTests -testPlatform playmode
 - 默认分辨率: 1024x768
 - UniWindowController Prefab: Packages/UniWindowController/Runtime/Prefabs/
 - Editor脚本放 Assets/Scripts/UI/Editor/ (自动排除构建)
-- XUtilities为UI系统存根实现，游戏逻辑需补充
+- XUtilities已重构为UI/Utils/UIUtils.cs，命名空间Game1.UI.Utils
 - IModule接口定义在 PlayerActor.cs 中
+- 物品配置使用XML: Resources/Data/Items/Items.xml
+- ItemTemplate.ParseFromXml使用SelectSingleNode路径解析
+- ResourceManager.Get<T>(id)提供资源查找入口
 
 ## GIT WORKFLOW
 

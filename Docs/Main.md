@@ -34,9 +34,8 @@
 ## ID规则
 任何资源的ID规则均遵循如下：
 - 采用大pascal命名法，路径使用dot分割
-- 路径规则：{Package}.{Category}.{Resource}.{Name}，例如物品“水壶”的ID为 Core.Item.ID.WaterBottle, 而它的名字文本ID为 Core.Item.NameText.WaterBottle
-- Resource 如下：
-  - ID
+- 路径规则：{Package}.{Category}.{Name}.{Extend}，例如物品“水壶”的ID为 Core.Item.WaterBottle, 而它的名字文本扩展为 Core.Item.WaterBottle.NameText
+- Extend 如下：
   - NameText
   - DescriptionText
   - Image

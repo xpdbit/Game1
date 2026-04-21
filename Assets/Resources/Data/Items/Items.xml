@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Items>
+    <Item>
+        <id>Core.Item.Bacon</id>
+        <nameTextId>Core.Item.Bacon.NameText</nameTextId>
+        <descTextId>Core.Item.Bacon.DescriptionText</descTextId>
+        <type>0</type>
+        <weight>0.5</weight>
+        <foodCalorific>1200</foodCalorific>
+        <fuelCalorific>0</fuelCalorific>
+        <damage>0</damage>
+        <armor>0</armor>
+        <moveSpeedOffset>0</moveSpeedOffset>
+        <moveSpeedFactor>1.0</moveSpeedFactor>
+    </Item>
+    <Item>
+        <id>Core.Item.Cabbage</id>
+        <nameTextId>Core.Item.Cabbage.NameText</nameTextId>
+        <descTextId>Core.Item.Cabbage.DescriptionText</descTextId>
+        <type>0</type>
+        <weight>1.0</weight>
+        <foodCalorific>400</foodCalorific>
+        <fuelCalorific>0</fuelCalorific>
+        <damage>0</damage>
+        <armor>0</armor>
+        <moveSpeedOffset>0</moveSpeedOffset>
+        <moveSpeedFactor>1.0</moveSpeedFactor>
+    </Item>
+    <Item>
+        <id>Core.Item.ShortBlade</id>
+        <nameTextId>Core.Item.ShortBlade.NameText</nameTextId>
+        <descTextId>Core.Item.ShortBlade.DescriptionText</descTextId>
+        <type>1</type>
+        <weight>2.0</weight>
+        <foodCalorific>0</foodCalorific>
+        <fuelCalorific>0</fuelCalorific>
+        <damage>5</damage>
+        <armor>0</armor>
+        <moveSpeedOffset>0</moveSpeedOffset>
+        <moveSpeedFactor>1.0</moveSpeedFactor>
+    </Item>
+</Items>

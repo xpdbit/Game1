@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using XUtilities;
+using Game1.UI.Utils;
 
 namespace Game1
 {
@@ -64,7 +64,7 @@ namespace Game1
     public struct AddItemResult
     {
       public RectTransform rectTransform;
-      public XUniTaskProgress task;
+      public UniTaskProgress task;
     }
 
     private RectTransform AddItem()
@@ -88,7 +88,7 @@ namespace Game1
       this.RemoveItem(rt, animationType);
     }
 
-    public XUniTaskProgress RemoveItem(RectTransform rt, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
+    public UniTaskProgress RemoveItem(RectTransform rt, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
     {
       children.Remove(rt);
       rt.SetParent(null);
@@ -100,7 +100,7 @@ namespace Game1
       return task;
     }
 
-    public XUniTaskProgress RemoveItems(IEnumerable<string> ids, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
+    public UniTaskProgress RemoveItems(IEnumerable<string> ids, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
     {
       HashSet<RectTransform> rtSet = new();
       foreach (var id in ids)
@@ -132,7 +132,7 @@ namespace Game1
       return new();
     }
 
-    public XUniTaskProgress AddItems(
+    public UniTaskProgress AddItems(
       int count,
       Action<int, RectTransform> action, 
       UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None,
@@ -163,7 +163,7 @@ namespace Game1
       this.layout.Distribution(rts, null);
     }
 
-    public XUniTaskProgress Layout(
+    public UniTaskProgress Layout(
       HashSet<RectTransform> newItems = null,
       HashSet<RectTransform> removeItems = null, 
       UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None
@@ -171,7 +171,7 @@ namespace Game1
     {
       var ignores = new HashSet<Transform>() { this.templateRT };
 
-      XUniTaskProgress task = new();
+      UniTaskProgress task = new();
 
       if (newItems?.Count > 0)
       {

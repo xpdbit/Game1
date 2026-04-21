@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using XUtilities;
 
 namespace Game1
 {
+  /// <summary>
+  /// UI布局组件，支持多种布局方式（拉伸、平铺）和方向（水平、垂直），可配置行内数量限制和间距，并提供动画支持。
+  /// </summary>
   public class UILayout : MonoBehaviour
   {
     public RectTransform parentRT;
@@ -19,7 +21,7 @@ namespace Game1
     public Vector2 spacing = Vector2.zero;
     public Func<RectTransform, string> layoutOrderFunc = rt =>
     {
-      return XString.FillNumberWithZero(rt.name);
+      return rt.name.PadLeft(10, '0');
     };
     public Vector2 contentSize { private set; get; }
 
@@ -38,7 +40,7 @@ namespace Game1
 
     #region Layout
 
-    public XUniTaskProgress Layout(LayoutSender sender)
+    public UniTaskProgress Layout(LayoutSender sender)
     {
       List<RectTransform> children = this.GetValidChildren(sender.ignores);
       List<RectTransform> sortedChildren;
@@ -52,7 +54,7 @@ namespace Game1
         sortedChildren = children.ToList();
       }
 
-      XUniTaskProgress task = new();
+      UniTaskProgress task = new();
 
       switch (layoutRow)
       {
@@ -72,7 +74,7 @@ namespace Game1
       return task;
     }
 
-    private XUniTaskProgress LayoutStretch(List<RectTransform> children, LayoutSender sender)
+    private UniTaskProgress LayoutStretch(List<RectTransform> children, LayoutSender sender)
     {
       Vector2 contentSize = Vector2.zero;
       Vector2 current = Vector2.zero;
@@ -140,7 +142,7 @@ namespace Game1
           : baseY + _spacing + height * pivotY;
     }
 
-    private XUniTaskProgress LayoutTile(List<RectTransform> children, LayoutSender sender)
+    private UniTaskProgress LayoutTile(List<RectTransform> children, LayoutSender sender)
     {
       Vector2 contentSize = Vector2.zero;
       Vector2 current = Vector2.zero;
@@ -295,13 +297,13 @@ namespace Game1
       }
     }
 
-    public XUniTaskProgress AnimateChildren(LayoutSender sender)
+    public UniTaskProgress AnimateChildren(LayoutSender sender)
     {
       if (sender.animationType == LayoutAnimationType.None
         || sender.animateChildren == null) 
         return new();
 
-      XUniTaskProgress task = new();
+      UniTaskProgress task = new();
 
       foreach (var child in sender.animateChildren)
       {
@@ -323,7 +325,7 @@ namespace Game1
         rt.sizeDelta = startSize;
 
         float speed = Time.fixedDeltaTime * 6.5f * sender.animationSpeedFactor;
-        XUniTaskProgress animationTask = new();
+        UniTaskProgress animationTask = new();
         animationTask.loopProgress = XUniTaskLoopProgress.Create(
           t =>
           {

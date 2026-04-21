@@ -4,7 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using XUtilities;
+using Game1.UI.Utils;
 
 namespace Game1
 {
@@ -94,7 +94,7 @@ namespace Game1
             {
                 this.textMesh.enableWordWrapping = false;
                 // 简化的异步同步
-                XUniTaskProgress task = new XUniTaskProgress();
+                UniTaskProgress task = new UniTaskProgress();
                 task.AddToEnd(0f, _ => this.SyncRectTransformTarget_Sync());
                 task.StartAsync();
             }

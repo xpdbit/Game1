@@ -62,6 +62,10 @@ namespace Game1
         [SerializeField] private UIText _goldText;
         [SerializeField] private UIText _levelText;
         [SerializeField] private UIText _stateText;
+
+        [Header("模块")]
+        public UIInventory inventory;
+
         #endregion
 
         #region Events
