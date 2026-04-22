@@ -31,13 +31,53 @@ namespace Game1
 
         public static Effect ParseFromXml(XmlElement element)
         {
-            return new Effect
+            // 解析文本内容格式，如 "gold:+100", "item:IronSword:1", "hp:-20", "flag:set:has_met_merchant"
+            var content = element.InnerText.Trim();
+
+            var effect = new Effect
             {
-                type = (EffectType)Enum.Parse(typeof(EffectType), element.GetAttribute("type") ?? "Gold", true),
-                value = element.GetAttribute("value") ?? string.Empty,
-                target = element.GetAttribute("target") ?? "player",
-                quantity = int.TryParse(element.GetAttribute("quantity"), out var q) ? q : 1
+                type = EffectType.Gold,
+                value = content,
+                target = "player",
+                quantity = 1
             };
+
+            if (string.IsNullOrEmpty(content))
+                return effect;
+
+            var parts = content.Split(':');
+            if (parts.Length >= 2)
+            {
+                var typeStr = parts[0].ToLower();
+                switch (typeStr)
+                {
+                    case "gold":
+                        effect.type = EffectType.Gold;
+                        effect.value = parts[1];
+                        if (parts.Length >= 3 && int.TryParse(parts[2], out var q))
+                            effect.quantity = q;
+                        break;
+                    case "item":
+                        effect.type = EffectType.Item;
+                        effect.value = parts[1];
+                        if (parts.Length >= 3 && int.TryParse(parts[2], out var itemQty))
+                            effect.quantity = itemQty;
+                        break;
+                    case "hp":
+                        effect.type = EffectType.HP;
+                        effect.value = parts[1];
+                        break;
+                    case "flag":
+                        effect.type = EffectType.Flag;
+                        if (parts.Length >= 2)
+                            effect.value = parts[1];
+                        if (parts.Length >= 3)
+                            effect.value += ":" + parts[2];
+                        break;
+                }
+            }
+
+            return effect;
         }
     }
 

@@ -15,6 +15,7 @@ namespace Game1
         Combat,     // 战斗节点
         Trade,      // 交易节点
         Reward,     // 奖励节点
+        Root,       // 根节点
         End         // 结束节点
     }
 
@@ -64,7 +65,53 @@ namespace Game1
                 conditions = new List<EventTreeCondition>()
             };
 
-            // 解析effects
+            // 解析平铺字段格式的effects (goldCost, setFlag, addModuleIds)
+            // goldCost -> gold effect
+            var goldCostNode = element.SelectSingleNode("goldCost");
+            if (goldCostNode != null && int.TryParse(goldCostNode.InnerText, out var goldCost) && goldCost > 0)
+            {
+                choice.effects.Add(new Effect
+                {
+                    type = EffectType.Gold,
+                    value = "-" + goldCost,
+                    target = "player",
+                    quantity = 1
+                });
+            }
+
+            // setFlag -> flag effect
+            var setFlagNode = element.SelectSingleNode("setFlag");
+            if (setFlagNode != null && !string.IsNullOrEmpty(setFlagNode.InnerText))
+            {
+                choice.effects.Add(new Effect
+                {
+                    type = EffectType.Flag,
+                    value = "set:" + setFlagNode.InnerText.Trim(),
+                    target = "player",
+                    quantity = 1
+                });
+            }
+
+            // addModuleIds/moduleId -> module effect
+            var moduleIdNodes = element.SelectNodes("addModuleIds/moduleId");
+            if (moduleIdNodes != null)
+            {
+                foreach (XmlNode moduleIdNode in moduleIdNodes)
+                {
+                    if (!string.IsNullOrEmpty(moduleIdNode.InnerText))
+                    {
+                        choice.effects.Add(new Effect
+                        {
+                            type = EffectType.Module,
+                            value = moduleIdNode.InnerText.Trim(),
+                            target = "player",
+                            quantity = 1
+                        });
+                    }
+                }
+            }
+
+            // 解析嵌套effects/Effect结构 (向后兼容)
             var effectsNodes = element.SelectNodes("effects/Effect");
             if (effectsNodes != null)
             {
