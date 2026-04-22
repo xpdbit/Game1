@@ -38,8 +38,10 @@ Game1/
 │   │   │   ├── Idle/       # IdleRewardModule
 │   │   │   └── Travel/     # TravelManager, ProgressManager
 │   │   ├── Events/         # 事件系统
-│   │   │   ├── EventQueue.cs
-│   │   │   └── EventChain.cs
+    │   │   │   ├── EventQueue.cs
+    │   │   │   ├── EventChain.cs
+    │   │   │   ├── EventManager.cs    # 事件管理器(模板加载)
+    │   │   │   └── EventTreeManager.cs # 事件树管理器(配置加载)
 │   │   ├── Roguelike/      # MapGenerator
 │   │   ├── UI/             # UI系统
 │   │   │   ├── Dialog/     # UISelectionDialog
@@ -60,7 +62,11 @@ Game1/
 │   ├── Scenes/            # Unity场景
 │   ├── Settings/          # URP设置
 │   ├── Shaders/          # 着色器
-│   └── Resources/         # 资源 (含Items.xml)
+│   └── Resources/         # 资源
+        └── Data/
+            ├── Items/         # 物品配置 (Items.xml)
+            ├── Events/       # 事件配置 (Events.xml)
+            └── EventTrees/   # 事件树配置 (EventTrees.xml)
 ├── Packages/             # Unity包 (含UniWindowController)
 ├── ProjectSettings/      # 项目配置
 ├── Docs/                 # 文档
@@ -85,6 +91,7 @@ Game1/
 | 背包系统 | Assets/Scripts/Inventory/ | InventoryDesign核心逻辑 |
 | 战斗系统 | Assets/Scripts/Combat/ | CombatSystem |
 | NPC系统 | Assets/Scripts/Entities/NPC/ | NPCSystem |
+| 事件系统 | Assets/Scripts/Events/ | EventManager, EventChain |
 | 事件链 | Assets/Scripts/Events/EventChain.cs | 事件链系统 |
 | 选择对话框 | Assets/Scripts/UI/Dialog/ | UISelectionDialog |
 | 地图路径 | Assets/Scripts/UI/Map/ | UIMapPath |
@@ -212,6 +219,9 @@ unity -batchmode -runTests -testPlatform playmode
 - InventoryDesign是纯逻辑类（非MonoBehaviour），提供背包核心操作
 - UIListItems使用对象池(XObjectPool)管理列表项实例
 - EventChain提供事件链/分支叙事功能
+- 事件配置使用XML: Resources/Data/Events/Events.xml
+- 事件树配置使用XML: Resources/Data/EventTrees/EventTrees.xml
+- EventManager管理事件模板和事件链配置加载
 
 ## GIT WORKFLOW
 
