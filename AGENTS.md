@@ -8,7 +8,7 @@
 
 **Generated:** 2026-04-22
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** 3ddd57c
+**Commit:** d387289
 **Branch:** main
 
 ## OVERVIEW
