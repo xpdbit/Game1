@@ -20,11 +20,11 @@ namespace Game1
         [Serializable]
         public class Stats
         {
-            public int maxHp = 100;
-            public int currentHp = 100;
-            public int attack = 10;
-            public int defense = 5;
-            public float speed = 1f;
+            public int maxHp = 20;      // 最大生命值
+            public int currentHp = 20;  // 当前生命值
+            public int attack = 3;      // 攻击力
+            public int defense = 5;     // 护甲值
+            public float speed = 1f;    // 速度
         }
         public Stats stats = new();
         #endregion
@@ -83,6 +83,34 @@ namespace Game1
         public void RemoveModule(string moduleId)
         {
             modules.RemoveModule(moduleId);
+        }
+
+        /// <summary>
+        /// 应用事件结果到玩家
+        /// </summary>
+        public void ApplyEventResult(EventResult result)
+        {
+            if (result == null) return;
+
+            if (result.isGameOver)
+            {
+                // 处理游戏结束
+                Debug.Log("[PlayerActor] Game Over!");
+                return;
+            }
+
+            // 应用金币变化
+            carryItems.gold += result.goldReward;
+            carryItems.gold -= result.goldCost;
+
+            // 确保金币不为负
+            if (carryItems.gold < 0) carryItems.gold = 0;
+
+            // 处理模块解锁/移除（预留接口）
+            // foreach (var moduleId in result.unlockedModuleIds) { ... }
+            // foreach (var moduleId in result.removedModuleIds) { ... }
+
+            Debug.Log($"[PlayerActor] Applied event result: +{result.goldReward}g -{result.goldCost}g, Message: {result.message}");
         }
         #endregion
     }
@@ -205,5 +233,18 @@ namespace Game1
         }
 
         public int Count => _moduleDict.Count;
+
+        /// <summary>
+        /// 获取指定类型的模块
+        /// </summary>
+        public T GetModule<T>() where T : class, IModule
+        {
+            foreach (var module in _moduleDict.Values)
+            {
+                if (module is T t)
+                    return t;
+            }
+            return null;
+        }
     }
 }

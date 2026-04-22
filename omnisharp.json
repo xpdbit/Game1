@@ -1,0 +1,25 @@
+{
+    "FormattingOptions": {
+        "organizeImports": true,
+        "indentation": "    "
+    },
+    "RoslynExtensionsOptions": {
+        "enableEditorConfigSupport": true,
+        "enableDecompilaySupport": false,
+        "enableImportCompletion": true,
+        "enablePatternSubMatching": true,
+        "enableSymbolSearch": true,
+        "enableTargetTypedShortCompletions": true
+    },
+    "SdkOptions": {
+        "includePrereleases": false
+    },
+    "ScriptOptions": {
+        "enabled": false
+    },
+    "LanguageServerPriority": {
+        "priority": 100
+    },
+    "name": "Game1",
+    "version": "1.0"
+}

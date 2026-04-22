@@ -1,42 +1,168 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Items>
+    <!-- 货币 -->
+    <Item>
+        <id>Core.Item.GoldCoin</id>
+        <nameTextId>Core.Item.GoldCoin.NameText</nameTextId>
+        <descTextId>Core.Item.GoldCoin.DescriptionText</descTextId>
+        <type>Money</type>
+        <weight>0.0</weight>
+    </Item>
+
+    <!-- 食物 -->
     <Item>
         <id>Core.Item.Bacon</id>
         <nameTextId>Core.Item.Bacon.NameText</nameTextId>
         <descTextId>Core.Item.Bacon.DescriptionText</descTextId>
-        <type>0</type>
+        <type>Food</type>
         <weight>0.5</weight>
         <foodCalorific>1200</foodCalorific>
-        <fuelCalorific>0</fuelCalorific>
-        <damage>0</damage>
-        <armor>0</armor>
-        <moveSpeedOffset>0</moveSpeedOffset>
-        <moveSpeedFactor>1.0</moveSpeedFactor>
     </Item>
     <Item>
         <id>Core.Item.Cabbage</id>
         <nameTextId>Core.Item.Cabbage.NameText</nameTextId>
         <descTextId>Core.Item.Cabbage.DescriptionText</descTextId>
-        <type>0</type>
+        <type>Food</type>
         <weight>1.0</weight>
         <foodCalorific>400</foodCalorific>
-        <fuelCalorific>0</fuelCalorific>
-        <damage>0</damage>
-        <armor>0</armor>
-        <moveSpeedOffset>0</moveSpeedOffset>
-        <moveSpeedFactor>1.0</moveSpeedFactor>
     </Item>
+    <Item>
+        <id>Core.Item.DriedMeat</id>
+        <nameTextId>Core.Item.DriedMeat.NameText</nameTextId>
+        <descTextId>Core.Item.DriedMeat.DescriptionText</descTextId>
+        <type>Food</type>
+        <weight>0.3</weight>
+        <foodCalorific>800</foodCalorific>
+    </Item>
+    <Item>
+        <id>Core.Item.Fruit</id>
+        <nameTextId>Core.Item.Fruit.NameText</nameTextId>
+        <descTextId>Core.Item.Fruit.DescriptionText</descTextId>
+        <type>Food</type>
+        <weight>0.2</weight>
+        <foodCalorific>200</foodCalorific>
+    </Item>
+
+    <!-- 武器 -->
     <Item>
         <id>Core.Item.ShortBlade</id>
         <nameTextId>Core.Item.ShortBlade.NameText</nameTextId>
         <descTextId>Core.Item.ShortBlade.DescriptionText</descTextId>
-        <type>1</type>
+        <type>Weapon</type>
         <weight>2.0</weight>
-        <foodCalorific>0</foodCalorific>
-        <fuelCalorific>0</fuelCalorific>
         <damage>5</damage>
-        <armor>0</armor>
-        <moveSpeedOffset>0</moveSpeedOffset>
-        <moveSpeedFactor>1.0</moveSpeedFactor>
+    </Item>
+    <Item>
+        <id>Core.Item.LongSword</id>
+        <nameTextId>Core.Item.LongSword.NameText</nameTextId>
+        <descTextId>Core.Item.LongSword.DescriptionText</descTextId>
+        <type>Weapon</type>
+        <weight>4.0</weight>
+        <damage>12</damage>
+    </Item>
+    <Item>
+        <id>Core.Item.Bow</id>
+        <nameTextId>Core.Item.Bow.NameText</nameTextId>
+        <descTextId>Core.Item.Bow.DescriptionText</descTextId>
+        <type>Weapon</type>
+        <weight>1.5</weight>
+        <damage>8</damage>
+    </Item>
+    <Item>
+        <id>Core.Item.Staff</id>
+        <nameTextId>Core.Item.Staff.NameText</nameTextId>
+        <descTextId>Core.Item.Staff.DescriptionText</descTextId>
+        <type>Weapon</type>
+        <weight>2.5</weight>
+        <damage>6</damage>
+    </Item>
+
+    <!-- 护甲 -->
+    <Item>
+        <id>Core.Item.LeatherArmor</id>
+        <nameTextId>Core.Item.LeatherArmor.NameText</nameTextId>
+        <descTextId>Core.Item.LeatherArmor.DescriptionText</descTextId>
+        <type>Armor</type>
+        <weight>5.0</weight>
+        <armor>3</armor>
+    </Item>
+    <Item>
+        <id>Core.Item.ChainMail</id>
+        <nameTextId>Core.Item.ChainMail.NameText</nameTextId>
+        <descTextId>Core.Item.ChainMail.DescriptionText</descTextId>
+        <type>Armor</type>
+        <weight>10.0</weight>
+        <armor>8</armor>
+    </Item>
+
+    <!-- 材料 -->
+    <Item>
+        <id>Core.Item.Wood</id>
+        <nameTextId>Core.Item.Wood.NameText</nameTextId>
+        <descTextId>Core.Item.Wood.DescriptionText</descTextId>
+        <type>Material</type>
+        <weight>3.0</weight>
+    </Item>
+    <Item>
+        <id>Core.Item.IronOre</id>
+        <nameTextId>Core.Item.IronOre.NameText</nameTextId>
+        <descTextId>Core.Item.IronOre.DescriptionText</descTextId>
+        <type>Material</type>
+        <weight>5.0</weight>
+    </Item>
+    <Item>
+        <id>Core.Item.IronIngot</id>
+        <nameTextId>Core.Item.IronIngot.NameText</nameTextId>
+        <descTextId>Core.Item.IronIngot.DescriptionText</descTextId>
+        <type>Material</type>
+        <weight>4.0</weight>
+    </Item>
+    <Item>
+        <id>Core.Item.Coal</id>
+        <nameTextId>Core.Item.Coal.NameText</nameTextId>
+        <descTextId>Core.Item.Coal.DescriptionText</descTextId>
+        <type>Material</type>
+        <weight>2.0</weight>
+    </Item>
+    <Item>
+        <id>Core.Item.Firewood</id>
+        <nameTextId>Core.Item.Firewood.NameText</nameTextId>
+        <descTextId>Core.Item.Firewood.DescriptionText</descTextId>
+        <type>Material</type>
+        <weight>1.0</weight>
+    </Item>
+
+    <!-- 消耗品 -->
+    <Item>
+        <id>Core.Item.HealthPotion</id>
+        <nameTextId>Core.Item.HealthPotion.NameText</nameTextId>
+        <descTextId>Core.Item.HealthPotion.DescriptionText</descTextId>
+        <type>Consumable</type>
+        <weight>0.5</weight>
+        <effect>恢复20HP</effect>
+    </Item>
+    <Item>
+        <id>Core.Item.SpeedPotion</id>
+        <nameTextId>Core.Item.SpeedPotion.NameText</nameTextId>
+        <descTextId>Core.Item.SpeedPotion.DescriptionText</descTextId>
+        <type>Consumable</type>
+        <weight>0.3</weight>
+        <effect>移动速度+50%，持续30秒</effect>
+    </Item>
+
+    <!-- 任务物品 -->
+    <Item>
+        <id>Core.Item.AncientArtifact</id>
+        <nameTextId>Core.Item.AncientArtifact.NameText</nameTextId>
+        <descTextId>Core.Item.AncientArtifact.DescriptionText</descTextId>
+        <type>QuestItem</type>
+        <weight>1.0</weight>
+    </Item>
+    <Item>
+        <id>Core.Item.MapFragment</id>
+        <nameTextId>Core.Item.MapFragment.NameText</nameTextId>
+        <descTextId>Core.Item.MapFragment.DescriptionText</descTextId>
+        <type>QuestItem</type>
+        <weight>0.1</weight>
     </Item>
 </Items>

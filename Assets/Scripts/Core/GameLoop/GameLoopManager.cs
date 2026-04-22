@@ -12,6 +12,7 @@ namespace Game1
         public static GameLoopManager instance { get; private set; }
 
         // 系统引用
+        private PlayerActor _player;
         private IdleRewardModule _idleModule;
         private TravelManager _travelModule;
         private EventQueue _eventQueue;
@@ -20,6 +21,11 @@ namespace Game1
         // 更新频率
         [SerializeField] private float _tickInterval = 0.1f;
         private float _tickTimer = 0f;
+
+        /// <summary>
+        /// 获取玩家数据
+        /// </summary>
+        public PlayerActor player => _player;
 
         private void Awake()
         {
@@ -46,10 +52,28 @@ namespace Game1
         /// </summary>
         private void InitializeSystems()
         {
+            // 1. 创建玩家数据
+            _player = new PlayerActor();
+
+            // 2. 初始化各模块并传入PlayerActor引用
             _idleModule = new IdleRewardModule();
+            _idleModule.Initialize(_player);
+
             _travelModule = new TravelManager();
+            _travelModule.Initialize(_player);
+
             _eventQueue = new EventQueue();
+            _travelModule.SetEventQueue(_eventQueue);
+
             _saveManager = new SaveManager();
+
+            // 3. 注册加成模块到PlayerActor
+            var bonusModule = new BonusMultiplierModule
+            {
+                multiplierType = "idle",
+                multiplierValue = 0.5f  // 默认提供50%额外挂机加成
+            };
+            _player.AddModule(bonusModule);
         }
 
         /// <summary>
@@ -75,6 +99,7 @@ namespace Game1
         /// </summary>
         public T GetSystem<T>() where T : class
         {
+            if (typeof(T) == typeof(PlayerActor)) return _player as T;
             if (typeof(T) == typeof(IdleRewardModule)) return _idleModule as T;
             if (typeof(T) == typeof(TravelManager)) return _travelModule as T;
             if (typeof(T) == typeof(EventQueue)) return _eventQueue as T;

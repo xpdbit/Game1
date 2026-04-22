@@ -82,7 +82,8 @@ namespace Game1
 
     public void RemoveItem(string id, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
     {
-      var rt = _bindings[id];
+      if (!_bindings.TryGetValue(id, out var rt))
+        return;
       _bindings.Remove(id);
       _bindingsReverse.Remove(rt);
       this.RemoveItem(rt, animationType);
@@ -90,9 +91,14 @@ namespace Game1
 
     public UniTaskProgress RemoveItem(RectTransform rt, UILayout.LayoutAnimationType animationType = UILayout.LayoutAnimationType.None)
     {
+      if (rt == null)
+        return null;
       children.Remove(rt);
       rt.SetParent(null);
       var task = this.Layout(null, new HashSet<RectTransform>() { rt }, animationType);
+      if (task == null)
+        return null;
+        
       task.AddToEnd(0f, s =>
       {
         XObjectPool.Release(rt.gameObject, this.templateRT.gameObject);

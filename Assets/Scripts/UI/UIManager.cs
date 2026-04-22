@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Game1
 {
@@ -48,23 +49,9 @@ namespace Game1
         #endregion
 
         #region UI Components
-        [Header("核心UI引用")]
-        [SerializeField] private Canvas _mainCanvas;
-        [SerializeField] private Camera _uiCamera;
-        [SerializeField] private GameObject _loadingPanel;
-        [SerializeField] private GameObject _mainMenuPanel;
-        [SerializeField] private GameObject _gameHUDPanel;
-        [SerializeField] private GameObject _eventPanel;
-        [SerializeField] private GameObject _pausePanel;
-
-        [Header("游戏信息")]
-        [SerializeField] private UIProgressBar _travelProgressBar;
-        [SerializeField] private UIText _goldText;
-        [SerializeField] private UIText _levelText;
-        [SerializeField] private UIText _stateText;
-
         [Header("模块")]
         public UIInventory inventory;
+        public UIGameDashboard gameDashboard;
 
         #endregion
 
@@ -85,7 +72,7 @@ namespace Game1
             }
             instance = this;
 
-            InitializePanels();
+            Initialize();
             SubscribeEvents();
         }
 
@@ -120,23 +107,9 @@ namespace Game1
         /// <summary>
         /// 初始化所有面板
         /// </summary>
-        private void InitializePanels()
+        private void Initialize()
         {
-            // 注册所有面板
-            if (_loadingPanel != null)
-                RegisterPanel(_loadingPanel.GetComponent<IUIPanel>());
-
-            if (_mainMenuPanel != null)
-                RegisterPanel(_mainMenuPanel.GetComponent<IUIPanel>());
-
-            if (_gameHUDPanel != null)
-                RegisterPanel(_gameHUDPanel.GetComponent<IUIPanel>());
-
-            if (_eventPanel != null)
-                RegisterPanel(_eventPanel.GetComponent<IUIPanel>());
-
-            if (_pausePanel != null)
-                RegisterPanel(_pausePanel.GetComponent<IUIPanel>());
+            gameDashboard.Initialize();
 
             // 初始关闭所有面板
             CloseAllPanels();
@@ -156,10 +129,7 @@ namespace Game1
         /// </summary>
         private void SubscribeEvents()
         {
-            EventBus.instance.Subscribe(EventType.GoldChanged, new GoldChangedHandler(this));
-            EventBus.instance.Subscribe(EventType.LevelUp, new LevelUpHandler(this));
-            EventBus.instance.Subscribe(EventType.TravelStarted, new TravelStartedHandler(this));
-            EventBus.instance.Subscribe(EventType.TravelCompleted, new TravelCompletedHandler(this));
+
         }
 
         private void UnsubscribeEvents()
@@ -346,50 +316,6 @@ namespace Game1
         {
             ChangeState(UIState.Playing);
         }
-
-        /// <summary>
-        /// 更新旅行进度
-        /// </summary>
-        public void UpdateTravelProgress(float progress)
-        {
-            if (_travelProgressBar != null)
-            {
-                _travelProgressBar.UpdateBarImmediate(progress);
-            }
-        }
-
-        /// <summary>
-        /// 更新金币显示
-        /// </summary>
-        public void UpdateGold(int gold)
-        {
-            if (_goldText != null)
-            {
-                _goldText.text = $"金币: {gold}";
-            }
-        }
-
-        /// <summary>
-        /// 更新等级显示
-        /// </summary>
-        public void UpdateLevel(int level)
-        {
-            if (_levelText != null)
-            {
-                _levelText.text = $"等级: {level}";
-            }
-        }
-
-        /// <summary>
-        /// 更新状态文本
-        /// </summary>
-        public void UpdateStateText(string text)
-        {
-            if (_stateText != null)
-            {
-                _stateText.text = text;
-            }
-        }
         #endregion
 
         #region Input Handling
@@ -422,52 +348,6 @@ namespace Game1
             ChangeState(UIState.MainMenu);
             onLoadingComplete?.Invoke();
         }
-
-        // 金币变化处理
-        private class GoldChangedHandler : IEventSubscriber
-        {
-            private readonly UIManager _ui;
-            public GoldChangedHandler(UIManager ui) { _ui = ui; }
-            public void OnEvent(GameEvent e)
-            {
-                if (e.data is int gold)
-                    _ui.UpdateGold(gold);
-            }
-        }
-
-        // 升级处理
-        private class LevelUpHandler : IEventSubscriber
-        {
-            private readonly UIManager _ui;
-            public LevelUpHandler(UIManager ui) { _ui = ui; }
-            public void OnEvent(GameEvent e)
-            {
-                if (e.data is int level)
-                    _ui.UpdateLevel(level);
-            }
-        }
-
-        // 旅行开始处理
-        private class TravelStartedHandler : IEventSubscriber
-        {
-            private readonly UIManager _ui;
-            public TravelStartedHandler(UIManager ui) { _ui = ui; }
-            public void OnEvent(GameEvent e)
-            {
-                _ui.UpdateStateText("旅行中...");
-            }
-        }
-
-        // 旅行完成处理
-        private class TravelCompletedHandler : IEventSubscriber
-        {
-            private readonly UIManager _ui;
-            public TravelCompletedHandler(UIManager ui) { _ui = ui; }
-            public void OnEvent(GameEvent e)
-            {
-                _ui.UpdateStateText("已到达");
-            }
-        }
         #endregion
     }
 
@@ -480,10 +360,29 @@ namespace Game1
         public abstract string panelId { get; }
         public bool isOpen { get; private set; }
 
+        /// <summary>
+        /// 打开面板
+        /// </summary>
+        public void Open()
+        {
+            if (isOpen) return;
+            OnOpen();
+        }
+
+        /// <summary>
+        /// 关闭面板
+        /// </summary>
+        public void Close()
+        {
+            if (!isOpen) return;
+            OnClose();
+        }
+
         public virtual void OnOpen()
         {
             isOpen = true;
             gameObject.SetActive(true);
+            
         }
 
         public virtual void OnClose()
@@ -493,22 +392,6 @@ namespace Game1
         }
 
         public virtual void OnUpdate(float deltaTime) { }
-    }
-
-    /// <summary>
-    /// 游戏HUD面板
-    /// </summary>
-    public class GameHUDPanel : BaseUIPanel
-    {
-        public override string panelId => "GameHUDPanel";
-
-        [SerializeField] private UIProgressBar _progressBar;
-        [SerializeField] private UIText _infoText;
-
-        public override void OnUpdate(float deltaTime)
-        {
-            // 更新HUD信息
-        }
     }
     #endregion
 }

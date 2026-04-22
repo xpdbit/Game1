@@ -6,7 +6,7 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-21 14:00
+**Generated:** 2026-04-22
 **Project:** Game1 - Unity 6 游戏开发项目
 **Commit:** 595c00d
 **Branch:** main
@@ -70,6 +70,9 @@ Game1/
 ├── Packages/             # Unity包 (含UniWindowController)
 ├── ProjectSettings/      # 项目配置
 ├── Docs/                 # 文档
+│   ├── Item/            # 物品文档 (ItemList.md)
+│   ├── Event/           # 事件文档 (EventList.md)
+│   └── EventTree/        # 事件树文档 (EventTreeList.md)
 └── Game1.sln            # VS解决方案
 ```
 
@@ -125,6 +128,10 @@ Game1/
 | TradeEvent | Events/EventQueue.cs | 交易事件示例 |
 | EventChainNode | Events/EventChain.cs | 事件链节点 |
 | EventChoice | Events/EventChain.cs | 事件选项 |
+| EventManager | Events/EventManager.cs | 事件模板管理器（XML加载） |
+| EventTreeManager | Events/EventTreeManager.cs | 事件树模板管理器（XML加载） |
+| EventTemplate | Events/EventManager.cs | 事件模板数据结构 |
+| EventTreeTemplate | Events/EventTreeManager.cs | 事件树模板数据结构 |
 | MapGenerator | Roguelike/ | 随机地图 |
 | UIState | UI/UIManager.cs | UI状态枚举 |
 | IUIPanel | UI/UIManager.cs | 面板接口 |
@@ -222,6 +229,9 @@ unity -batchmode -runTests -testPlatform playmode
 - 事件配置使用XML: Resources/Data/Events/Events.xml
 - 事件树配置使用XML: Resources/Data/EventTrees/EventTrees.xml
 - EventManager管理事件模板和事件链配置加载
+- EventTreeManager管理事件树模板加载，支持分支叙事
+- 事件类型枚举: Random, Choice, Combat, Trade, Discovery, Story
+- 事件树节点类型: Root, Choice, Random, End
 
 ## GIT WORKFLOW
 

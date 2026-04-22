@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Events>
+    <!-- 战斗事件 -->
+    <Event>
+        <id>combat_001</id>
+        <name>遭遇战斗</name>
+        <type>Combat</type>
+        <description>路上遇到了强盗！</description>
+        <effects>
+            <effect>gold:+20</effect>
+        </effects>
+    </Event>
+    <Event>
+        <id>combat_002</id>
+        <name>丛林伏击</name>
+        <type>Combat</type>
+        <description>丛林中突然冲出野兽！</description>
+        <effects>
+            <effect>gold:+35</effect>
+            <effect>hp:-15</effect>
+        </effects>
+    </Event>
+    <Event>
+        <id>combat_003</id>
+        <name>山贼袭击</name>
+        <type>Combat</type>
+        <description>山贼拦路抢劫！</description>
+        <effects>
+            <effect>gold:+50</effect>
+        </effects>
+    </Event>
+
+    <!-- 交易事件 -->
+    <Event>
+        <id>trade_001</id>
+        <name>路遇商队</name>
+        <type>Trade</type>
+        <description>遇到了一支商队，可以进行交易。</description>
+        <effects>
+            <effect>gold:-30</effect>
+            <effect>flag:set:has_traded_with_merchant</effect>
+        </effects>
+    </Event>
+    <Event>
+        <id>trade_002</id>
+        <name>集市贸易</name>
+        <type>Trade</type>
+        <description>来到了热闹的集市！</description>
+        <effects>
+            <effect>gold:-50</effect>
+            <effect>item:HealthPotion:2</effect>
+        </effects>
+    </Event>
+
+    <!-- 发现事件 -->
+    <Event>
+        <id>discovery_001</id>
+        <name>古旧宝箱</name>
+        <type>Discovery</type>
+        <description>路边发现了一个古旧的宝箱！</description>
+        <effects>
+            <effect>gold:+100</effect>
+            <effect>item:AncientArtifact:1</effect>
+        </effects>
+    </Event>
+    <Event>
+        <id>discovery_002</id>
+        <name>草药丛</name>
+        <type>Discovery</type>
+        <description>发现了一片茂密的草药丛！</description>
+        <effects>
+            <effect>item:HealthPotion:3</effect>
+        </effects>
+    </Event>
+
+    <!-- 随机事件 -->
+    <Event>
+        <id>random_001</id>
+        <name>随机遭遇</name>
+        <type>Random</type>
+        <description>旅途中发生了意想不到的事情...</description>
+        <effects>
+            <effect>gold:+25</effect>
+        </effects>
+    </Event>
+    <Event>
+        <id>random_002</id>
+        <name>好心人</name>
+        <type>Random</type>
+        <description>遇到好心人送了一些盘缠！</description>
+        <effects>
+            <effect>gold:+40</effect>
+        </effects>
+    </Event>
+
+    <!-- 故事事件 -->
+    <Event>
+        <id>story_001</id>
+        <name>神秘遗迹</name>
+        <type>Story</type>
+        <description>发现了一处被遗忘的神秘遗迹...</description>
+        <effects>
+            <effect>flag:set:found_ancient_ruins</effect>
+            <effect>gold:+80</effect>
+        </effects>
+    </Event>
+</Events>

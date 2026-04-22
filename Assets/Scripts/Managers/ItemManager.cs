@@ -15,10 +15,11 @@ namespace Game1
         Armor,
         Consumable,
         Material,
-        QuestItem
+        QuestItem,
+        Money
     }
 
-/// <summary>
+    /// <summary>
     /// 物品模板数据（配置）
     /// </summary>
     [Serializable]
@@ -35,6 +36,7 @@ namespace Game1
         public int armor;               // 护甲值
         public float moveSpeedOffset;   // 移动速度偏移
         public float moveSpeedFactor;   // 移动速度因子
+        public int maxStack = 99;       // 最大堆叠数量，默认99
 
         /// <summary>
         /// 从 XML 元素解析（使用路径解析）
@@ -46,14 +48,15 @@ namespace Game1
                 id = element.SelectSingleNode("id")?.InnerText ?? string.Empty,
                 nameTextId = element.SelectSingleNode("nameTextId")?.InnerText ?? string.Empty,
                 descTextId = element.SelectSingleNode("descTextId")?.InnerText ?? string.Empty,
-                type = (ItemType)int.Parse(element.SelectSingleNode("type")?.InnerText ?? "0"),
+                type = (ItemType)Enum.Parse(typeof(ItemType), element.SelectSingleNode("type")?.InnerText ?? "Food"),
                 weight = float.Parse(element.SelectSingleNode("weight")?.InnerText ?? "0"),
                 foodCalorific = float.Parse(element.SelectSingleNode("foodCalorific")?.InnerText ?? "0"),
                 fuelCalorific = float.Parse(element.SelectSingleNode("fuelCalorific")?.InnerText ?? "0"),
                 damage = int.Parse(element.SelectSingleNode("damage")?.InnerText ?? "0"),
                 armor = int.Parse(element.SelectSingleNode("armor")?.InnerText ?? "0"),
                 moveSpeedOffset = float.Parse(element.SelectSingleNode("moveSpeedOffset")?.InnerText ?? "0"),
-                moveSpeedFactor = float.Parse(element.SelectSingleNode("moveSpeedFactor")?.InnerText ?? "1")
+                moveSpeedFactor = float.Parse(element.SelectSingleNode("moveSpeedFactor")?.InnerText ?? "1"),
+                maxStack = int.Parse(element.SelectSingleNode("maxStack")?.InnerText ?? "99")
             };
         }
     }
@@ -64,13 +67,29 @@ namespace Game1
     [Serializable]
     public class ItemInstance
     {
-        public string templateId;      // 模板ID
+        public ItemTemplate itemTemplate;      // 模板
         public int amount;             // 数量（堆叠）
         public int instanceId;         // 实例唯一ID
 
+        public ItemInstance(ItemTemplate template, int amount = 1)
+        {
+            Init(template, amount);
+        }
+
         public ItemInstance(string templateId, int amount = 1)
         {
-            this.templateId = templateId;
+            var template = ItemManager.GetTemplate(templateId);
+            if (template == null)
+            {
+                Debug.LogError($"[ItemInstance] Invalid templateId: {templateId}");
+                template = new ItemTemplate { id = templateId, nameTextId = "Unknown" };
+            }
+            Init(template, amount);
+        }
+
+        private void Init(ItemTemplate template, int amount)
+        {
+            this.itemTemplate = template;
             this.amount = amount;
             this.instanceId = GenerateInstanceId();
         }
@@ -85,6 +104,7 @@ namespace Game1
     /// <summary>
     /// 物品管理器
     /// 负责物品模板加载和背包实例管理
+    /// 委托给 InventoryDesign 处理背包逻辑
     /// </summary>
     public static class ItemManager
     {
@@ -92,11 +112,6 @@ namespace Game1
         /// 物品模板字典（只读配置）
         /// </summary>
         private static readonly Dictionary<string, ItemTemplate> _templates = new();
-
-        /// <summary>
-        /// 玩家背包（实例列表）
-        /// </summary>
-        private static readonly List<ItemInstance> _inventory = new();
 
         /// <summary>
         /// 模板是否已加载
@@ -174,54 +189,22 @@ namespace Game1
             return _templates.Keys;
         }
 
+        #region Inventory Delegation (委托给 InventoryDesign)
+
         /// <summary>
         /// 添加物品到背包
         /// </summary>
-        /// <param name="templateId">模板ID</param>
-        /// <param name="amount">数量</param>
-        /// <returns>是否成功</returns>
-        public static bool AddItem(string templateId, int amount = 1)
+        public static InventoryOperationResult AddItem(string templateId, int amount = 1)
         {
-            if (!_templates.ContainsKey(templateId))
-            {
-                Debug.LogWarning($"[ItemManager] Unknown template: {templateId}");
-                return false;
-            }
-
-            if (amount <= 0) return false;
-
-            _inventory.Add(new ItemInstance(templateId, amount));
-            return true;
+            return InventoryDesign.instance.AddItem(templateId, amount);
         }
 
         /// <summary>
-        /// 从背包移除物品
+        /// 移除物品
         /// </summary>
-        /// <param name="instanceId">实例ID</param>
-        /// <param name="amount">数量</param>
-        /// <returns>是否成功</returns>
-        public static bool RemoveItem(int instanceId, int amount = 1)
+        public static InventoryOperationResult RemoveItem(int instanceId, int amount = 0)
         {
-            var item = _inventory.Find(i => i.instanceId == instanceId);
-            if (item == null) return false;
-
-            if (amount >= item.amount)
-            {
-                _inventory.Remove(item);
-            }
-            else
-            {
-                item.amount -= amount;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// 获取背包所有物品
-        /// </summary>
-        public static IReadOnlyList<ItemInstance> GetInventory()
-        {
-            return _inventory;
+            return InventoryDesign.instance.RemoveItem(instanceId, amount);
         }
 
         /// <summary>
@@ -229,7 +212,15 @@ namespace Game1
         /// </summary>
         public static void ClearInventory()
         {
-            _inventory.Clear();
+            InventoryDesign.instance.Clear();
+        }
+
+        /// <summary>
+        /// 获取背包所有物品
+        /// </summary>
+        public static IReadOnlyList<ItemInstance> GetInventory()
+        {
+            return InventoryDesign.instance.GetAllItems();
         }
 
         /// <summary>
@@ -237,23 +228,113 @@ namespace Game1
         /// </summary>
         public static int GetInventoryCount()
         {
-            return _inventory.Count;
+            return InventoryDesign.instance.slotCount;
         }
 
         /// <summary>
-        /// 获取指定模板的物品数量
+        /// 获取物品实例
         /// </summary>
-        public static int GetItemCount(string templateId)
+        public static ItemInstance GetItem(int instanceId)
         {
-            int count = 0;
-            foreach (var item in _inventory)
-            {
-                if (item.templateId == templateId)
-                {
-                    count += item.amount;
-                }
-            }
-            return count;
+            return InventoryDesign.instance.GetItem(instanceId);
         }
+
+        /// <summary>
+        /// 按模板ID获取所有实例
+        /// </summary>
+        public static List<ItemInstance> GetItemsByTemplateId(string templateId)
+        {
+            return InventoryDesign.instance.GetItemsByTemplateId(templateId);
+        }
+
+        /// <summary>
+        /// 按类型获取所有物品
+        /// </summary>
+        public static List<ItemInstance> GetItemsByType(ItemType type)
+        {
+            return InventoryDesign.instance.GetItemsByType(type);
+        }
+
+        /// <summary>
+        /// 检查是否可以添加物品
+        /// </summary>
+        public static bool CanAddItem(string templateId, int amount = 1)
+        {
+            return InventoryDesign.instance.CanAddItem(templateId, amount);
+        }
+
+        /// <summary>
+        /// 获取总重量
+        /// </summary>
+        public static float GetTotalWeight()
+        {
+            return InventoryDesign.instance.GetTotalWeight();
+        }
+
+        /// <summary>
+        /// 获取剩余槽位数
+        /// </summary>
+        public static int RemainingSlotCount()
+        {
+            return InventoryDesign.instance.RemainingSlotCount();
+        }
+
+        /// <summary>
+        /// 获取剩余重量
+        /// </summary>
+        public static float RemainingWeight()
+        {
+            return InventoryDesign.instance.RemainingWeight();
+        }
+
+        /// <summary>
+        /// 批量添加物品
+        /// </summary>
+        public static List<InventoryOperationResult> AddItems(IEnumerable<(string templateId, int amount)> items)
+        {
+            return InventoryDesign.instance.AddItems(items);
+        }
+
+        /// <summary>
+        /// 导出背包数据用于存档
+        /// </summary>
+        public static List<InventorySaveData> ExportInventory()
+        {
+            return InventoryDesign.instance.Export();
+        }
+
+        /// <summary>
+        /// 从存档恢复背包数据
+        /// </summary>
+        public static void ImportInventory(List<InventorySaveData> saveData)
+        {
+            InventoryDesign.instance.Import(saveData);
+        }
+
+        /// <summary>
+        /// 设置背包容量
+        /// </summary>
+        public static void SetInventoryCapacity(int maxSlotCount, float maxWeight)
+        {
+            InventoryDesign.instance.capacity = new InventoryCapacity(maxSlotCount, maxWeight);
+        }
+
+        /// <summary>
+        /// 订阅背包变化事件
+        /// </summary>
+        public static void SubscribeInventoryChanged(Action<InventoryEventData> callback)
+        {
+            InventoryDesign.instance.onInventoryChanged += callback;
+        }
+
+        /// <summary>
+        /// 取消订阅背包变化事件
+        /// </summary>
+        public static void UnsubscribeInventoryChanged(Action<InventoryEventData> callback)
+        {
+            InventoryDesign.instance.onInventoryChanged -= callback;
+        }
+
+        #endregion
     }
 }

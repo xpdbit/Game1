@@ -214,31 +214,6 @@ namespace Game1
         }
 
         /// <summary>
-        /// 根据ID获取资源（需先调用LoadXmlArray加载到缓存）
-        /// </summary>
-        /// <typeparam name="T">资源类型</typeparam>
-        /// <param name="id">资源ID</param>
-        /// <returns>资源对象，不存在返回null</returns>
-        public static T Get<T>(string id) where T : class
-        {
-            var cacheKey = $"XmlArray_{typeof(T).Name}_Data/Items/Items";
-            if (_cache.TryGetValue(cacheKey, out var cached))
-            {
-                if (cached is T[] array)
-                {
-                    foreach (var item in array)
-                    {
-                        if (item is ItemTemplate template && template.id == id)
-                        {
-                            return item;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
         /// 加载 XML 文件内容
         /// </summary>
         /// <param name="path">资源路径</param>

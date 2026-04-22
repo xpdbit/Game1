@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game1
 {
@@ -102,21 +103,47 @@ namespace Game1
             _currentEvent = null;
         }
 
-        /// <summary>
+/// <summary>
         /// 生成积压事件（上线时）
         /// </summary>
         public void GeneratePendingEvents(float offlineTime)
         {
-            // TODO: 根据离线时间生成积压事件
-            // 例如：每X分钟可能触发一个事件
+            // 根据离线时间生成积压事件
+            // 假设每60秒可能触发一个事件
+            float eventInterval = 60f;
+            int eventCount = Mathf.FloorToInt(offlineTime / eventInterval);
+
+            for (int i = 0; i < eventCount; i++)
+            {
+                // 随机生成战斗事件
+                var combatEvent = new CombatEvent
+                {
+                    enemyCount = UnityEngine.Random.Range(1, 4),
+                    enemyStrength = UnityEngine.Random.Range(10, 50)
+                };
+                _pendingEvents.Enqueue(combatEvent);
+            }
+
+            Debug.Log($"[EventQueue] Generated {eventCount} pending events for {offlineTime}s offline time");
         }
 
         /// <summary>
-        /// Tick - 检查是否需要生成新事件
+        /// Tick - 检查是否需要生成新随机事件
         /// </summary>
         public void Tick(float deltaTime)
         {
-            // TODO: 根据概率检测是否生成新随机事件
+            // 1%概率生成随机事件（每tick约100ms，所以大约每10秒可能触发一次）
+            float eventChance = 0.01f;
+            if (UnityEngine.Random.value < eventChance)
+            {
+                var randomEvent = new CombatEvent
+                {
+                    enemyCount = UnityEngine.Random.Range(1, 3),
+                    enemyStrength = UnityEngine.Random.Range(5, 30)
+                };
+                _pendingEvents.Enqueue(randomEvent);
+                Debug.Log("[EventQueue] Random combat event triggered");
+            }
         }
 
         /// <summary>
@@ -154,10 +181,17 @@ namespace Game1
         {
             var result = new EventResult();
 
-            // TODO: 战斗逻辑
+            // 战斗逻辑：根据敌人数量和强度计算奖励
+            int baseReward = 20;
+            int rewardPerEnemy = 15;
+            float strengthMultiplier = 1f + (enemyStrength / 50f);
+
+            // 计算总奖励
+            int totalReward = (int)((baseReward + enemyCount * rewardPerEnemy) * strengthMultiplier);
+
             result.success = true;
-            result.goldReward = 50;
-            result.message = "击退了强盗，获得了50金币！";
+            result.goldReward = totalReward;
+            result.message = $"击败了{enemyCount}个敌人（强度{enemyStrength}），获得了{totalReward}金币！";
 
             return result;
         }
@@ -182,8 +216,18 @@ namespace Game1
         public EventResult Execute()
         {
             var result = new EventResult();
+
+            // 交易逻辑：玩家消耗金币换取增益
+            int tradeCost = 30;  // 基础交易成本
+            float tradeBonus = 0.2f;  // 交易提供20%额外收益加成
+
             result.success = true;
-            result.message = "交易完成！";
+            result.goldCost = tradeCost;
+            result.message = $"与商队交易，消耗{tradeCost}金币，获得{tradeBonus * 100}%收益加成！";
+
+            // 注意：实际的加成效果需要在事件完成后通过其他机制应用
+            // 这里只返回结果，TravelManager或UI层负责应用具体效果
+
             return result;
         }
     }
