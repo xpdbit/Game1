@@ -280,6 +280,7 @@ namespace Game1
         private Button _button;
         private UIText _nameText;
         private UIText _amountText;
+        private UIText _descText;
         private Image _iconImage;
         private Image _backgroundImage;
         private Toggle _toggle;
@@ -287,6 +288,7 @@ namespace Game1
         public Button button => _button ??= listItemRect.Find("Button")?.GetComponent<Button>();
         private UIText nameText => _nameText ??= listItemRect.Find("Button/NameText")?.GetComponentInChildren<UIText>();
         private UIText amountText => _amountText ??= listItemRect.Find("Button/AmountText")?.GetComponentInChildren<UIText>();
+        private UIText descText => _descText ??= listItemRect.Find("Button/DescText")?.GetComponentInChildren<UIText>();
         private Image iconImage => _iconImage ??= listItemRect.Find("Button/Icon")?.GetComponent<Image>();
         private Image backgroundImage => _backgroundImage ??= listItemRect.Find("Button/Background")?.GetComponent<Image>();
         private Toggle toggle => _toggle ??= listItemRect.Find("Toggle")?.GetComponent<Toggle>();
@@ -304,6 +306,9 @@ namespace Game1
 
             if (amountText != null)
                 amountText.text = "x" + itemInstance.amount.ToString();
+
+            if (descText != null)
+                descText.text = itemInstance.itemTemplate.descTextId;
 
             // 更新选中状态视觉
             UpdateSelectionVisual();

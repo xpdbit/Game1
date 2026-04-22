@@ -1,0 +1,27 @@
+## 这是用于记录和准备与AGENT对话的文本
+## 任意AGENT、AI不需要阅读，请跳过该文件!
+
+/init-deep 更新AGENTS，推送至GITHUB
+
+
+1. 重新完全解读当前项目，更新AGENTS，推送至GITHUB
+2. 完成ItemList.md，EventList.md，EventTreeList.md，编写一些测试用的物品、事件、事件树（物品按照已有的编写）
+3. 参考Items.xml、ItemManager.cs，依照Events.md、EventTrees.md
+- 构建Data/Events/Events.xml和Data/EventTrees/EventTrees.xml
+- 构建EventManager和EventTreeManager
+
+FInally： 再次更新AGENTS，推送至GITHUB
+
+
+1. 仔细理解项目与代码
+2. GameTest.cs要求实现每1000点Travel Score获得一个积压事件（积压事件是事件树），每200点触发一次事件（普通事件）。
+3. 每秒获得1点Travel Score，每次键盘或鼠标输入获得10点，在后台也监听鼠标和键盘
+
+
+1. 将TravelScore替换为TravelPoint，并应用至TravelManager.cs
+2. 将UIGameDashboard的TravelProgressBar同步TravelPoint
+
+
+1. TravelPoint超出TravelPointSize时将归0，TravelPointSize默认为0
+2. 构建Core/Debug/GameDebug.cs，并提供接口UIText DebugText用于显示必要的调试信息
+3. 

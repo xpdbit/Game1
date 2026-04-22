@@ -8,7 +8,7 @@
 
 **Generated:** 2026-04-22
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** 311b7e8
+**Commit:** e8a5b895
 **Branch:** main
 
 ## OVERVIEW
@@ -25,6 +25,7 @@ Game1/
 │   │   │   ├── GameLoop/   # GameLoopManager
 │   │   │   ├── SaveSystem/ # SaveManager
 │   │   │   ├── EventBus/   # 事件总线
+│   │   │   ├── Input/      # 后台输入管理（UniWindowController）
 │   │   │   └── Utils/      # 工具类
 │   │   ├── Combat/         # 战斗系统
 │   │   │   └── CombatSystem.cs
@@ -38,10 +39,11 @@ Game1/
 │   │   │   ├── Idle/       # IdleRewardModule
 │   │   │   └── Travel/     # TravelManager, ProgressManager
 │   │   ├── Events/         # 事件系统
-    │   │   │   ├── EventQueue.cs
-    │   │   │   ├── EventChain.cs
-    │   │   │   ├── EventManager.cs    # 事件管理器(模板加载)
-    │   │   │   └── EventTreeManager.cs # 事件树管理器(配置加载)
+│   │   │   ├── EventQueue.cs
+│   │   │   ├── EventChain.cs
+│   │   │   ├── EventManager.cs    # 事件管理器(模板加载)
+│   │   │   ├── EventTreeManager.cs # 事件树管理器(配置加载)
+│   │   │   └── EventTreeRunner.cs  # 事件树运行器(分支叙事)
 │   │   ├── Roguelike/      # MapGenerator
 │   │   ├── UI/             # UI系统
 │   │   │   ├── Dialog/     # UISelectionDialog
@@ -110,6 +112,7 @@ Game1/
 | GameLoopManager | Core/GameLoop/ | 主循环Tick协调 |
 | SaveManager | Core/SaveSystem/ | 存档管理 |
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
+| BackgroundInputManager | Core/Input/ | 后台输入管理（UniWindowController） |
 | PlayerActor | Entities/Player/ | 玩家数据+模块 |
 | IModule | Entities/Player/PlayerActor.cs | 模块接口 |
 | TravelState | Entities/Player/PlayerActor.cs | 旅行状态 |
@@ -130,6 +133,8 @@ Game1/
 | EventChoice | Events/EventChain.cs | 事件选项 |
 | EventManager | Events/EventManager.cs | 事件模板管理器（XML加载） |
 | EventTreeManager | Events/EventTreeManager.cs | 事件树模板管理器（XML加载） |
+| EventTreeRunner | Events/EventTreeRunner.cs | 事件树运行器（分支叙事执行） |
+| EventTreeState | Events/EventTreeRunner.cs | 事件树运行状态枚举 |
 | EventTemplate | Events/EventManager.cs | 事件模板数据结构 |
 | EventTreeTemplate | Events/EventTreeManager.cs | 事件树模板数据结构 |
 | MapGenerator | Roguelike/ | 随机地图 |
@@ -216,6 +221,7 @@ unity -batchmode -runTests -testPlatform playmode
 - Camera: HDR=Off, PostProcessing=Off, Background=(0,0,0,0)
 - 默认分辨率: 1024x768
 - UniWindowController Prefab: Packages/UniWindowController/Runtime/Prefabs/
+- 后台输入使用 UniWindowController 静态API（UniWinCore为internal不可直接访问）
 - Editor脚本放 Assets/Scripts/UI/Editor/ (自动排除构建)
 - XUtilities已重构为UI/Utils/UIUtils.cs，命名空间Game1.UI.Utils
 - IModule接口定义在 PlayerActor.cs 中
@@ -230,8 +236,10 @@ unity -batchmode -runTests -testPlatform playmode
 - 事件树配置使用XML: Resources/Data/EventTrees/EventTrees.xml
 - EventManager管理事件模板和事件链配置加载
 - EventTreeManager管理事件树模板加载，支持分支叙事
+- EventTreeRunner执行事件树，支持分支选择、历史返回、随机开始
 - 事件类型枚举: Random, Choice, Combat, Trade, Discovery, Story
 - 事件树节点类型: Root, Choice, Random, End
+- ProgressManager提供进度点系统，每200点触发普通事件，每1000点触发事件树
 
 ## GIT WORKFLOW
 

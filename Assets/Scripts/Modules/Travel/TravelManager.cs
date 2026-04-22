@@ -240,10 +240,13 @@ namespace Game1
         /// </summary>
         public void OnPlayerInteract()
         {
-            if (status == TravelStatus.Traveling || status == TravelStatus.Idle)
+            // 允许在大多数状态下增加进度点，除了正在处理需要玩家专注选择的情况
+            if (status == TravelStatus.AwaitingChoice)
             {
-                ProgressManager.instance.AddPointsClick();
+                // 等待选择时不增加进度点，需要玩家专注当前选择
+                return;
             }
+            ProgressManager.instance.AddPointsClick();
         }
 
         #endregion

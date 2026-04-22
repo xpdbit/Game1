@@ -20,9 +20,14 @@ namespace Game1
         public int pointsPerClick = 10;
 
         /// <summary>
-        /// 触发事件的进度阈值
+        /// 触发普通事件的进度阈值（每200点触发一次）
         /// </summary>
-        public int pointsPerEvent = 1000;
+        public int pointsPerNormalEvent = 200;
+
+        /// <summary>
+        /// 触发事件树的进度阈值（每1000点触发一次）
+        /// </summary>
+        public int pointsPerEventTree = 1000;
 
         /// <summary>
         /// 最大进度点上限
@@ -59,14 +64,15 @@ namespace Game1
 
         // 事件
         public event Action<ProgressEventData> onProgressChanged;
-        public event Action<int> onMilestoneReached;  // 触发事件时
-        public event Action onPointsOverflow;          // 进度溢出时
+        public event Action<int> onNormalEventTriggered;  // 触发普通事件时（每200点）
+        public event Action<int> onEventTreeTriggered;     // 触发事件树时（每1000点）
+        public event Action onPointsOverflow;              // 进度溢出时
 
         // 属性
         public int currentPoints => _currentPoints;
         public int totalEarnedPoints => _totalEarnedPoints;
         public int milestoneCount => _milestoneCount;
-        public float progressPercent => (float)_currentPoints / _config.pointsPerEvent;
+        public float progressPercent => (float)_currentPoints / _config.pointsPerEventTree;
 
         public ProgressConfig config
         {
@@ -126,16 +132,29 @@ namespace Game1
                 onPointsOverflow?.Invoke();
             }
 
-            // 检查里程碑
-            int oldMilestone = oldPoints / _config.pointsPerEvent;
-            int newMilestone = _currentPoints / _config.pointsPerEvent;
+            // 检查普通事件阈值（每200点触发一次）
+            int oldNormalEvent = oldPoints / _config.pointsPerNormalEvent;
+            int newNormalEvent = _currentPoints / _config.pointsPerNormalEvent;
 
-            if (newMilestone > oldMilestone)
+            if (newNormalEvent > oldNormalEvent)
             {
-                _milestoneCount += (newMilestone - oldMilestone);
-                for (int i = oldMilestone + 1; i <= newMilestone; i++)
+                int eventsTriggered = newNormalEvent - oldNormalEvent;
+                for (int i = 0; i < eventsTriggered; i++)
                 {
-                    onMilestoneReached?.Invoke(i);
+                    onNormalEventTriggered?.Invoke(oldNormalEvent + i + 1);
+                }
+            }
+
+            // 检查事件树阈值（每1000点触发一次）
+            int oldEventTree = oldPoints / _config.pointsPerEventTree;
+            int newEventTree = _currentPoints / _config.pointsPerEventTree;
+
+            if (newEventTree > oldEventTree)
+            {
+                _milestoneCount += (newEventTree - oldEventTree);
+                for (int i = oldEventTree + 1; i <= newEventTree; i++)
+                {
+                    onEventTreeTriggered?.Invoke(i);
                 }
             }
 
@@ -174,7 +193,7 @@ namespace Game1
             {
                 currentPoints = _currentPoints,
                 milestoneReached = _milestoneCount,
-                isMilestone = _currentPoints >= _config.pointsPerEvent
+                isMilestone = _currentPoints >= _config.pointsPerEventTree
             };
             onProgressChanged?.Invoke(data);
         }

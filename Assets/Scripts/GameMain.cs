@@ -36,6 +36,9 @@ namespace Game1
         [Header("战斗系统")]
         public CombatSystem combatSystem;
 
+        // 事件
+        public event System.Action onPlayerInput;
+
         private void Awake()
         {
             instance = this;
@@ -62,6 +65,7 @@ namespace Game1
             if (Keyboard.current.anyKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame)
             {
                 travelManager?.OnPlayerInteract();
+                onPlayerInput?.Invoke();
             }
         }
 
