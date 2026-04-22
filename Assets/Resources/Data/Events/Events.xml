@@ -1,20 +1,20 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Events>
-    <!-- 鎴樻枟浜嬩欢 -->
+    <!-- 战斗事件 -->
     <Event>
         <id>combat_001</id>
-        <name>閬亣鎴樻枟</name>
+        <name>遭遇战斗</name>
         <type>Combat</type>
-        <description>璺笂閬囧埌浜嗗己鐩楋紒</description>
+        <description>路上遇到了强盗！</description>
         <effects>
             <Effect>gold:+20</Effect>
         </effects>
     </Event>
     <Event>
         <id>combat_002</id>
-        <name>涓涙灄浼忓嚮</name>
+        <name>丛林伏击</name>
         <type>Combat</type>
-        <description>涓涙灄涓獊鐒跺啿鍑洪噹鍏斤紒</description>
+        <description>丛林中突然冲出野兽！</description>
         <effects>
             <Effect>gold:+35</Effect>
             <Effect>hp:-15</Effect>
@@ -22,20 +22,20 @@
     </Event>
     <Event>
         <id>combat_003</id>
-        <name>灞辫醇琚嚮</name>
+        <name>山贼袭击</name>
         <type>Combat</type>
-        <description>灞辫醇鎷﹁矾鎶㈠姭锛?/description>
+        <description>山贼拦路抢劫！</description>
         <effects>
             <Effect>gold:+50</Effect>
         </effects>
     </Event>
 
-    <!-- 浜ゆ槗浜嬩欢 -->
+    <!-- 交易事件 -->
     <Event>
         <id>trade_001</id>
-        <name>璺亣鍟嗛槦</name>
+        <name>路遇商队</name>
         <type>Trade</type>
-        <description>閬囧埌浜嗕竴鏀晢闃燂紝鍙互杩涜浜ゆ槗銆?/description>
+        <description>遇到了一支商队，可以进行交易。</description>
         <effects>
             <Effect>gold:-30</Effect>
             <Effect>flag:set:has_traded_with_merchant</Effect>
@@ -43,21 +43,21 @@
     </Event>
     <Event>
         <id>trade_002</id>
-        <name>闆嗗競璐告槗</name>
+        <name>集市贸易</name>
         <type>Trade</type>
-        <description>鏉ュ埌浜嗙儹闂圭殑闆嗗競锛?/description>
+        <description>来到了热闹的集市！</description>
         <effects>
             <Effect>gold:-50</Effect>
             <Effect>item:HealthPotion:2</Effect>
         </effects>
     </Event>
 
-    <!-- 鍙戠幇浜嬩欢 -->
+    <!-- 发现事件 -->
     <Event>
         <id>discovery_001</id>
-        <name>鍙ゆ棫瀹濈</name>
+        <name>古旧宝箱</name>
         <type>Discovery</type>
-        <description>璺竟鍙戠幇浜嗕竴涓彜鏃х殑瀹濈锛?/description>
+        <description>路边发现了一个古旧的宝箱！</description>
         <effects>
             <Effect>gold:+100</Effect>
             <Effect>item:AncientArtifact:1</Effect>
@@ -65,40 +65,40 @@
     </Event>
     <Event>
         <id>discovery_002</id>
-        <name>鑽夎嵂涓?/name>
+        <name>草药丛</name>
         <type>Discovery</type>
-        <description>鍙戠幇浜嗕竴鐗囪寕瀵嗙殑鑽夎嵂涓涳紒</description>
+        <description>发现了一片茂密的草药丛！</description>
         <effects>
             <Effect>item:HealthPotion:3</Effect>
         </effects>
     </Event>
 
-    <!-- 闅忔満浜嬩欢 -->
+    <!-- 随机事件 -->
     <Event>
         <id>random_001</id>
-        <name>闅忔満閬亣</name>
+        <name>随机遭遇</name>
         <type>Random</type>
-        <description>鏃呴€斾腑鍙戠敓浜嗘剰鎯充笉鍒扮殑浜嬫儏...</description>
+        <description>旅途中发生了意想不到的事情...</description>
         <effects>
             <Effect>gold:+25</Effect>
         </effects>
     </Event>
     <Event>
         <id>random_002</id>
-        <name>濂藉績浜?/name>
+        <name>好心人</name>
         <type>Random</type>
-        <description>閬囧埌濂藉績浜洪€佷簡涓€浜涚洏缂狅紒</description>
+        <description>遇到好心人送了一些盘缠！</description>
         <effects>
             <Effect>gold:+40</Effect>
         </effects>
     </Event>
 
-    <!-- 鏁呬簨浜嬩欢 -->
+    <!-- 故事事件 -->
     <Event>
         <id>story_001</id>
-        <name>绁炵閬楄抗</name>
+        <name>神秘遗迹</name>
         <type>Story</type>
-        <description>鍙戠幇浜嗕竴澶勮閬楀繕鐨勭绉橀仐杩?..</description>
+        <description>发现了一处被遗忘的神秘遗迹...</description>
         <effects>
             <Effect>flag:set:found_ancient_ruins</Effect>
             <Effect>gold:+80</Effect>
