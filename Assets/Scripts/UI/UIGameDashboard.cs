@@ -13,8 +13,11 @@ namespace Game1
         public Button inventoryButton;
 
         [Header("挂机信息")]
-        public UIText idleRateText;
+        public UIText travelRateText;
         public UIText goldText;
+
+        [Header("调试信息")]
+        public UIText debugText;
 
         private IdleRewardModule _idleModule;
 
@@ -39,6 +42,12 @@ namespace Game1
             {
                 travelProgressBar.UpdateBarImmediate(ProgressManager.instance.progressPercent);
             }
+
+            // 初始化调试信息
+            if (debugText != null)
+            {
+                GameDebug.instance.debugText = debugText;
+            }
         }
 
         private void OnDestroy()
@@ -58,16 +67,17 @@ namespace Game1
 
         private void Update()
         {
-            if (_idleModule == null) return;
+            // 更新调试信息
+            GameDebug.instance?.Update();
 
-            // 更新挂机金币显示
-            float rate = _idleModule.GetCurrentRewardRate();
-            if (idleRateText != null)
+            // 更新TravelPoint平均速率（过去60秒）
+            if (travelRateText != null)
             {
-                idleRateText.text = $"{rate:F1} 金币/秒";
+                float travelPointRate = ProgressManager.instance.travelRate;
+                travelRateText.text = $"{travelPointRate:F1} TP/s";
             }
 
-            // 更新当前金币显示
+            // 更新当前金币显示（始终尝试获取玩家数据）
             if (goldText != null)
             {
                 var player = GameMain.instance?.GetPlayerActor();

@@ -8,7 +8,7 @@
 
 **Generated:** 2026-04-22
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** e8a5b895
+**Commit:** 17ada358
 **Branch:** main
 
 ## OVERVIEW
@@ -26,6 +26,7 @@ Game1/
 │   │   │   ├── SaveSystem/ # SaveManager
 │   │   │   ├── EventBus/   # 事件总线
 │   │   │   ├── Input/      # 后台输入管理（UniWindowController）
+│   │   │   ├── Debug/      # GameDebug调试信息
 │   │   │   └── Utils/      # 工具类
 │   │   ├── Combat/         # 战斗系统
 │   │   │   └── CombatSystem.cs
@@ -86,6 +87,7 @@ Game1/
 | UI管理器 | Assets/Scripts/UI/UIManager.cs | 面板状态管理 |
 | UI组件 | Assets/Scripts/UI/*.cs | ProgressBar, Text, Layout等 |
 | 游戏循环 | Assets/Scripts/Core/GameLoop/ | Tick协调 |
+| 调试信息 | Assets/Scripts/Core/Debug/ | GameDebug运行时显示 |
 | 事件系统 | Assets/Scripts/Core/EventBus/ | 发布-订阅 |
 | 存档系统 | Assets/Scripts/Core/SaveSystem/ | JSON持久化 |
 | 玩家数据 | Assets/Scripts/Entities/Player/ | PlayerActor |
@@ -113,6 +115,7 @@ Game1/
 | SaveManager | Core/SaveSystem/ | 存档管理 |
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
 | BackgroundInputManager | Core/Input/ | 后台输入管理（UniWindowController） |
+| GameDebug | Core/Debug/ | 调试信息管理器（运行时显示） |
 | PlayerActor | Entities/Player/ | 玩家数据+模块 |
 | IModule | Entities/Player/PlayerActor.cs | 模块接口 |
 | TravelState | Entities/Player/PlayerActor.cs | 旅行状态 |
@@ -240,6 +243,8 @@ unity -batchmode -runTests -testPlatform playmode
 - 事件类型枚举: Random, Choice, Combat, Trade, Discovery, Story
 - 事件树节点类型: Root, Choice, Random, End
 - ProgressManager提供进度点系统，每200点触发普通事件，每1000点触发事件树
+- ProgressManager.travelRate使用滑动窗口计算过去60秒的平均TP/s
+- TravelPoint超出travelPointSize(默认1000)时归零重新累计
 
 ## GIT WORKFLOW
 

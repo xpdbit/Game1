@@ -30,9 +30,9 @@ namespace Game1
         public int pointsPerEventTree = 1000;
 
         /// <summary>
-        /// 最大进度点上限
+        /// 进度点尺寸上限，超出时归零重新累计
         /// </summary>
-        public int maxPoints = 9999;
+        public int travelPointSize = 1000;
     }
 
     /// <summary>
@@ -62,6 +62,14 @@ namespace Game1
         private int _milestoneCount = 0;
         private float _accumulatedTime = 0f;  // 累积时间，用于精确计算
 
+        // TravelRate计算：使用滑动窗口记录过去60秒的每秒点数
+        private const int TRAVEL_RATE_SECONDS = 60;
+        private readonly float[] _pointsPerSecond = new float[TRAVEL_RATE_SECONDS];  // 每秒的点数
+        private int _currentSecondIndex = 0;  // 当前秒对应的索引
+        private float _lastRecordTime = 0f;  // 上次记录的时间（秒）
+        private float _travelRate = 0f;  // 过去60秒平均每秒获得的TravelPoint
+        private float _accumulatedPointsThisSecond = 0f;  // 当前秒累积的点数
+
         // 事件
         public event Action<ProgressEventData> onProgressChanged;
         public event Action<int> onNormalEventTriggered;  // 触发普通事件时（每200点）
@@ -72,7 +80,8 @@ namespace Game1
         public int currentPoints => _currentPoints;
         public int totalEarnedPoints => _totalEarnedPoints;
         public int milestoneCount => _milestoneCount;
-        public float progressPercent => (float)_currentPoints / _config.pointsPerEventTree;
+        public float progressPercent => (float)_currentPoints / _config.travelPointSize;
+        public float travelRate => _travelRate;  // 过去60秒平均TravelPoint/秒
 
         public ProgressConfig config
         {
@@ -110,7 +119,7 @@ namespace Game1
         /// </summary>
         public void SetPoints(int points)
         {
-            _currentPoints = Mathf.Clamp(points, 0, _config.maxPoints);
+            _currentPoints = Mathf.Clamp(points, 0, _config.travelPointSize);
             PublishProgressChange();
         }
 
@@ -125,10 +134,13 @@ namespace Game1
             _currentPoints += amount;
             _totalEarnedPoints += amount;
 
-            // 检查溢出
-            if (_currentPoints > _config.maxPoints)
+            // 记录每秒点数用于IdleRate计算
+            RecordPointsPerSecond(amount);
+
+            // 检查溢出，归零重新累计
+            if (_currentPoints >= _config.travelPointSize)
             {
-                _currentPoints = _config.maxPoints;
+                _currentPoints = _currentPoints % _config.travelPointSize;
                 onPointsOverflow?.Invoke();
             }
 
@@ -169,6 +181,18 @@ namespace Game1
             _currentPoints = 0;
             _totalEarnedPoints = 0;
             _milestoneCount = 0;
+            _accumulatedTime = 0f;
+
+            // 重置TravelRate计算
+            for (int i = 0; i < TRAVEL_RATE_SECONDS; i++)
+            {
+                _pointsPerSecond[i] = 0f;
+            }
+            _currentSecondIndex = 0;
+            _lastRecordTime = 0f;
+            _accumulatedPointsThisSecond = 0f;
+            _travelRate = 0f;
+
             PublishProgressChange();
         }
 
@@ -186,6 +210,47 @@ namespace Game1
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// 记录点数（按秒累加）
+        /// </summary>
+        private void RecordPointsPerSecond(int points)
+        {
+            float currentTime = Time.time;
+            int currentSecond = Mathf.FloorToInt(currentTime);
+            int lastSecond = Mathf.FloorToInt(_lastRecordTime);
+
+            // 检查是否进入新的一秒
+            if (currentSecond != lastSecond)
+            {
+                // 新的一秒开始，将上一秒的点数存入数组
+                _pointsPerSecond[_currentSecondIndex] = _accumulatedPointsThisSecond;
+
+                // 移动到下一个槽位
+                _currentSecondIndex = (_currentSecondIndex + 1) % TRAVEL_RATE_SECONDS;
+                _accumulatedPointsThisSecond = 0f;
+                _lastRecordTime = currentTime;
+
+                // 更新TravelRate
+                UpdateTravelRate();
+            }
+
+            // 累加当前秒的点数
+            _accumulatedPointsThisSecond += points;
+        }
+
+        /// <summary>
+        /// 更新TravelRate（过去60秒平均每秒点数）
+        /// </summary>
+        private void UpdateTravelRate()
+        {
+            float total = 0f;
+            for (int i = 0; i < TRAVEL_RATE_SECONDS; i++)
+            {
+                total += _pointsPerSecond[i];
+            }
+            _travelRate = total / TRAVEL_RATE_SECONDS;
+        }
 
         private void PublishProgressChange()
         {

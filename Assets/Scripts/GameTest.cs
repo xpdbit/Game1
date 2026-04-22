@@ -179,15 +179,13 @@ namespace Game1
 
         /// <summary>
         /// 后台输入检测回调
-        /// 后台鼠标输入也触发加分（+10点）
-        /// 注意：由于UniWinCore限制，后台只能检测鼠标，不能检测普通键盘按键
+        /// 注意：由于UniWinCore限制，后台只能检测鼠标
+        /// 这里只统计后台输入次数，不重复加分（加分由GameMain处理）
         /// </summary>
         private void OnBackgroundInputDetected()
         {
             _backgroundInputCount++;
-            // 后台鼠标输入也触发加分（每次+10点）
-            ProgressManager.instance.AddPointsClick();
-            Debug.Log($"[GameTest] Background input detected via UniWinCore (Count: {_backgroundInputCount}, Points now: {ProgressManager.instance.currentPoints})");
+            Debug.Log($"[GameTest] Background input detected via UniWinCore (Count: {_backgroundInputCount})");
         }
 
         /// <summary>
