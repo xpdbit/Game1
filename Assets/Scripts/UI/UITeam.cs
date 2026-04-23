@@ -220,19 +220,19 @@ namespace Game1
         {
             switch (data.eventType)
             {
-                case TeamEventType.MemberAdded:
+                case TeamEventData.TeamEventType.MemberAdded:
                     OnMemberAdded(data);
                     break;
-                case TeamEventType.MemberRemoved:
+                case TeamEventData.TeamEventType.MemberRemoved:
                     OnMemberRemoved(data);
                     break;
-                case TeamEventType.MemberUpdated:
+                case TeamEventData.TeamEventType.MemberUpdated:
                     OnMemberUpdated(data);
                     break;
-                case TeamEventType.TeamCleared:
+                case TeamEventData.TeamEventType.TeamCleared:
                     OnTeamCleared();
                     break;
-                case TeamEventType.CapacityChanged:
+                case TeamEventData.TeamEventType.CapacityChanged:
                     UpdateTeamInfo();
                     break;
             }
