@@ -323,7 +323,7 @@ namespace Game1
                 _keystrokeCount++;
 
                 // 连击加成：每10次连击+0.1，最高1.5
-                float newMultiplier = Mathf.Min(MAX_COMBO_MULTIPLIER, 1.0f + _keystrokeCount / 100f);
+                float newMultiplier = Mathf.Min(MAX_COMBO_MULTIPLIER, 1.0f + _keystrokeCount / 10f);
 
                 if (newMultiplier > _comboMultiplier)
                 {

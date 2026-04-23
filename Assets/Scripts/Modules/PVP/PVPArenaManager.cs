@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game1
 {
@@ -330,7 +331,7 @@ namespace Game1
                 int playerDamage = playerUnit.damage;
                 int enemyDamage = enemyUnit.damage;
 
-                bool playerWon = playerDamage >= enemy.damage;
+                bool playerWon = playerDamage >= enemyDamage;
 
                 var laneResult = new LaneResult
                 {
