@@ -6,14 +6,16 @@ using UnityEngine;
 namespace Game1
 {
     /// <summary>
-    /// 角色类型枚举
+    /// 角色归属阵营枚举
     /// </summary>
-    public enum ActorType
+    public enum Affiliation
     {
+        None,
         Player,
-        Enemy,
-        NPC,
-        Boss
+        Friendly,
+        Neutral,
+        Hostile,
+        Authority
     }
 
     /// <summary>
@@ -33,20 +35,21 @@ namespace Game1
     [Serializable]
     public class ActorTemplate
     {
-        public string id;              // 唯一标识，如 Enemy.Bandit
-        public string nameTextId;      // 名称文本ID
-        public string descTextId;       // 描述文本ID
-        public ActorType type;          // 角色类型
-        public int maxHp;              // 最大生命值
-        public int attack;             // 攻击力
-        public int defense;            // 护甲值
-        public float speed;            // 速度
+        public string id;                  // 唯一标识，如 Core.Actor.Bandit
+        public string nameTextId;         // 名称文本ID
+        public string descTextId;          // 描述文本ID
+        public Affiliation affiliation;    // 阵营归属
+        public bool isBoss;               // 是否为Boss
+        public int maxHp;                 // 最大生命值
+        public int attack;                // 攻击力
+        public int defense;               // 护甲值
+        public float speed;                // 速度
 
-        // 敌人特有属性
-        public int goldReward;         // 金币奖励
-        public int expReward;          // 经验奖励
+        // 可选属性（敌人/野兽可能有）
+        public int goldReward;             // 金币奖励
+        public int expReward;              // 经验奖励
 
-        // NPC特有属性
+        // 交互属性（NPC/商人可能有）
         public InteractionType interactionType;  // 交互类型
 
         /// <summary>
@@ -59,7 +62,8 @@ namespace Game1
                 id = element.GetAttribute("id"),
                 nameTextId = element.SelectSingleNode("nameTextId")?.InnerText ?? string.Empty,
                 descTextId = element.SelectSingleNode("descTextId")?.InnerText ?? string.Empty,
-                type = ParseActorType(element.SelectSingleNode("type")?.InnerText),
+                affiliation = ParseAffiliation(element.SelectSingleNode("affiliation")?.InnerText),
+                isBoss = ParseBool(element.SelectSingleNode("isBoss")),
                 maxHp = ParseInt(element.SelectSingleNode("maxHp"), 20),
                 attack = ParseInt(element.SelectSingleNode("attack"), 0),
                 defense = ParseInt(element.SelectSingleNode("defense"), 0),
@@ -72,17 +76,25 @@ namespace Game1
             return template;
         }
 
-        private static ActorType ParseActorType(string value)
+        private static Affiliation ParseAffiliation(string value)
         {
-            if (string.IsNullOrEmpty(value)) return ActorType.Enemy;
+            if (string.IsNullOrEmpty(value)) return Affiliation.Neutral;
             return value switch
             {
-                "Player" => ActorType.Player,
-                "Enemy" => ActorType.Enemy,
-                "NPC" => ActorType.NPC,
-                "Boss" => ActorType.Boss,
-                _ => ActorType.Enemy
+                "Player" => Affiliation.Player,
+                "Friendly" => Affiliation.Friendly,
+                "Neutral" => Affiliation.Neutral,
+                "Hostile" => Affiliation.Hostile,
+                "Authority" => Affiliation.Authority,
+                _ => Affiliation.Neutral
             };
+        }
+
+        private static bool ParseBool(XmlNode node)
+        {
+            if (node == null || string.IsNullOrEmpty(node.InnerText))
+                return false;
+            return node.InnerText.Equals("true", StringComparison.OrdinalIgnoreCase);
         }
 
         private static InteractionType ParseInteractionType(string value)
@@ -167,7 +179,7 @@ namespace Game1
                     }
 
                     _templates[template.id] = template;
-                    Debug.Log($"[ActorManager] Loaded actor: {template.id} ({template.type})");
+                    Debug.Log($"[ActorManager] Loaded actor: {template.id} ({template.affiliation})");
                 }
 
                 Debug.Log($"[ActorManager] Total actors loaded: {_templates.Count}");
@@ -203,30 +215,35 @@ namespace Game1
         }
 
         /// <summary>
-        /// 按类型获取模板
+        /// 按阵营获取模板
         /// </summary>
-        public static List<ActorTemplate> GetTemplatesByType(ActorType type)
+        public static List<ActorTemplate> GetTemplatesByAffiliation(Affiliation affiliation)
         {
             var result = new List<ActorTemplate>();
             foreach (var template in _templates.Values)
             {
-                if (template.type == type)
+                if (template.affiliation == affiliation)
                     result.Add(template);
             }
             return result;
         }
 
         /// <summary>
-        /// 获取敌人模板（用于战斗）
+        /// 获取敌对阵营模板（用于战斗）
         /// </summary>
-        public static ActorTemplate GetEnemyTemplate(int difficulty)
+        public static ActorTemplate GetHostileTemplate(int difficulty)
         {
-            var enemies = GetTemplatesByType(ActorType.Enemy);
-            if (enemies.Count == 0) return null;
+            var hostiles = GetTemplatesByAffiliation(Affiliation.Hostile);
+            if (hostiles.Count == 0) return null;
+
+            // 过滤掉Boss
+            hostiles.RemoveAll(t => t.isBoss);
+
+            if (hostiles.Count == 0) return null;
 
             // 根据难度选择
-            int index = Mathf.Clamp(difficulty - 1, 0, enemies.Count - 1);
-            return enemies[index];
+            int index = Mathf.Clamp(difficulty - 1, 0, hostiles.Count - 1);
+            return hostiles[index];
         }
 
         /// <summary>
@@ -234,8 +251,34 @@ namespace Game1
         /// </summary>
         public static ActorTemplate GetBossTemplate()
         {
-            var bosses = GetTemplatesByType(ActorType.Boss);
-            return bosses.Count > 0 ? bosses[0] : null;
+            foreach (var template in _templates.Values)
+            {
+                if (template.isBoss)
+                    return template;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 获取可交互NPC模板（商人、村民等）
+        /// </summary>
+        public static List<ActorTemplate> GetInteractableTemplates()
+        {
+            var result = new List<ActorTemplate>();
+            foreach (var template in _templates.Values)
+            {
+                if (template.interactionType != InteractionType.None)
+                    result.Add(template);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 获取玩家模板
+        /// </summary>
+        public static ActorTemplate GetPlayerTemplate()
+        {
+            return GetTemplate("Core.Actor.Player");
         }
     }
 }

@@ -2,7 +2,7 @@
 <EventTrees>
     <!-- 商队事件 -->
     <EventTree>
-        <id>merchant_001</id>
+        <id>Core.EventTree.MerchantEncounter</id>
         <name>路遇商队</name>
         <description>旅行途中遇到一支商队，可以选择交易或聊天</description>
         <rootNodeId>node_1</rootNodeId>
@@ -53,7 +53,7 @@
                         <nextNodeId>node_4</nextNodeId>
                         <goldCost>40</goldCost>
                         <addModuleIds>
-                            <moduleId>Module.ShortBlade</moduleId>
+                            <moduleId>Core.Item.ShortBlade</moduleId>
                         </addModuleIds>
                     </Choice>
                     <Choice>
@@ -106,7 +106,7 @@
 
     <!-- 遗迹探索事件 -->
     <EventTree>
-        <id>ruins_001</id>
+        <id>Core.EventTree.AncientRuins</id>
         <name>神秘遗迹</name>
         <description>发现了一处被遗忘的神秘遗迹，可以选择探索或离开</description>
         <rootNodeId>node_1</rootNodeId>
@@ -188,7 +188,7 @@
                 <description>你获得了一件古老的神秘遗物！它散发着温暖的光芒...</description>
                 <rewards>
                     <Effect>gold:+100</Effect>
-                    <Effect>item:AncientArtifact:1</Effect>
+                    <Effect>item:Core.Item.AncientArtifact:1</Effect>
                 </rewards>
             </Node>
             <Node>
@@ -215,7 +215,7 @@
 
     <!-- 旅店休息事件 -->
     <EventTree>
-        <id>inn_001</id>
+        <id>Core.EventTree.InnRest</id>
         <name>路旁旅店</name>
         <description>天色渐晚，发现了一家路边旅店，可以选择休息或继续赶路</description>
         <rootNodeId>node_1</rootNodeId>

@@ -2,7 +2,7 @@
 <Events>
     <!-- 战斗事件 -->
     <Event>
-        <id>combat_001</id>
+        <id>Core.Event.Combat.EncounterBandit</id>
         <name>遭遇战斗</name>
         <type>Combat</type>
         <description>路上遇到了强盗！</description>
@@ -11,7 +11,7 @@
         </effects>
     </Event>
     <Event>
-        <id>combat_002</id>
+        <id>Core.Event.Combat.JungleAmbush</id>
         <name>丛林伏击</name>
         <type>Combat</type>
         <description>丛林中突然冲出野兽！</description>
@@ -21,7 +21,7 @@
         </effects>
     </Event>
     <Event>
-        <id>combat_003</id>
+        <id>Core.Event.Combat.MountainBanditRaid</id>
         <name>山贼袭击</name>
         <type>Combat</type>
         <description>山贼拦路抢劫！</description>
@@ -32,7 +32,7 @@
 
     <!-- 交易事件 -->
     <Event>
-        <id>trade_001</id>
+        <id>Core.Event.Trade.EncounterCaravan</id>
         <name>路遇商队</name>
         <type>Trade</type>
         <description>遇到了一支商队，可以进行交易。</description>
@@ -42,40 +42,40 @@
         </effects>
     </Event>
     <Event>
-        <id>trade_002</id>
+        <id>Core.Event.Trade.MarketTrading</id>
         <name>集市贸易</name>
         <type>Trade</type>
         <description>来到了热闹的集市！</description>
         <effects>
             <Effect>gold:-50</Effect>
-            <Effect>item:HealthPotion:2</Effect>
+            <Effect>item:Core.Item.HealthPotion:2</Effect>
         </effects>
     </Event>
 
     <!-- 发现事件 -->
     <Event>
-        <id>discovery_001</id>
+        <id>Core.Event.Discovery.AncientChest</id>
         <name>古旧宝箱</name>
         <type>Discovery</type>
         <description>路边发现了一个古旧的宝箱！</description>
         <effects>
             <Effect>gold:+100</Effect>
-            <Effect>item:AncientArtifact:1</Effect>
+            <Effect>item:Core.Item.AncientArtifact:1</Effect>
         </effects>
     </Event>
     <Event>
-        <id>discovery_002</id>
+        <id>Core.Event.Discovery.HerbPatch</id>
         <name>草药丛</name>
         <type>Discovery</type>
         <description>发现了一片茂密的草药丛！</description>
         <effects>
-            <Effect>item:HealthPotion:3</Effect>
+            <Effect>item:Core.Item.HealthPotion:3</Effect>
         </effects>
     </Event>
 
     <!-- 随机事件 -->
     <Event>
-        <id>random_001</id>
+        <id>Core.Event.Random.UnexpectedEncounter</id>
         <name>随机遭遇</name>
         <type>Random</type>
         <description>旅途中发生了意想不到的事情...</description>
@@ -84,7 +84,7 @@
         </effects>
     </Event>
     <Event>
-        <id>random_002</id>
+        <id>Core.Event.Random.KindStranger</id>
         <name>好心人</name>
         <type>Random</type>
         <description>遇到好心人送了一些盘缠！</description>
@@ -95,7 +95,7 @@
 
     <!-- 故事事件 -->
     <Event>
-        <id>story_001</id>
+        <id>Core.Event.Story.AncientRuins</id>
         <name>神秘遗迹</name>
         <type>Story</type>
         <description>发现了一处被遗忘的神秘遗迹...</description>

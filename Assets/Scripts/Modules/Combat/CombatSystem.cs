@@ -230,13 +230,13 @@ namespace Game1
             }
             else
             {
-                // 通过 ActorManager 查找合适的敌人模板
-                var enemyTemplate = ActorManager.GetEnemyTemplate(enemyCount);
-                if (enemyTemplate != null)
+                // 通过 ActorManager 查找敌对阵营模板
+                var hostileTemplate = ActorManager.GetHostileTemplate(enemyCount);
+                if (hostileTemplate != null)
                 {
-                    enemyHp = enemyTemplate.maxHp + enemyStrength / 10;
-                    enemyArmor = enemyTemplate.defense;
-                    enemyDamage = enemyTemplate.attack;
+                    enemyHp = hostileTemplate.maxHp + enemyStrength / 10;
+                    enemyArmor = hostileTemplate.defense;
+                    enemyDamage = hostileTemplate.attack;
                 }
             }
 

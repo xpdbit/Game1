@@ -8,7 +8,7 @@
 
 **Generated:** 2026-04-23
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** e9be3b5
+**Commit:** (待提交)
 **Branch:** main
 
 ## OVERVIEW
@@ -35,7 +35,8 @@ Game1/
 │   │   ├── Entities/       # 实体
 │   │   │   ├── Player/     # PlayerActor
 │   │   │   ├── World/      # WorldMap
-│   │   │   └── NPC/        # NPCSystem
+│   │   │   ├── NPC/        # NPCSystem
+│   │   │   └── Actor/      # ActorManager, ActorTemplate
 │   │   ├── Inventory/      # 背包系统 (已废弃，请使用 Modules/Inventory/)
 │   │   ├── Modules/        # 游戏模块
 │   │   │   ├── Idle/       # IdleRewardModule
@@ -75,6 +76,7 @@ Game1/
 │   └── Resources/         # 资源
         └── Data/
             ├── Items/         # 物品配置 (Items.xml)
+            ├── Actors/       # 角色配置 (Actors.xml) - 统一Actor设计
             ├── Events/       # 事件配置 (Events.xml)
             └── EventTrees/   # 事件树配置 (EventTrees.xml)
 ├── Packages/             # Unity包 (含UniWindowController)
@@ -137,6 +139,7 @@ Game1/
 | WorldMap | Entities/World/ | 节点地图 |
 | Location | Entities/World/ | 地点节点 |
 | NPCSystem | Entities/NPC/ | NPC系统 |
+| ActorManager | Entities/Actor/ | 角色模板管理器（统一Actor设计） |
 | CombatSystem | Modules/Combat/ | 战斗系统 |
 | CombatEventEx | Modules/Combat/CombatSystem.cs | 战斗事件扩展（virtual/override多态） |
 | TeamDesign | Modules/Team/ | 队伍核心逻辑（单例） |
@@ -330,6 +333,48 @@ unity -batchmode -runTests -testPlatform playmode
   - 连击窗口1秒，每10次连击+0.1，最高1.5
   - 精准校准：静止>2秒后移动 = 2x加成
 - InputConverter使用UnityEngine.InputSystem.Mouse.current.position.ReadValue()获取鼠标位置，兼容New Input System
+
+## 统一ID规则（ID Rule）
+
+所有资源配置的ID均遵循以下规则：
+
+### 命名规范
+- 采用大Pascal命名法
+- 路径规则：`{Package}.{Category}.{Name}.{Extend}`
+
+### ID格式示例
+| 资源类型 | ID格式 | 示例 |
+|---------|--------|------|
+| 物品 | `Core.Item.{Name}` | `Core.Item.GoldCoin`, `Core.Item.ShortBlade` |
+| 角色 | `Core.Actor.{Name}` | `Core.Actor.Player`, `Core.Actor.Bandit` |
+| 事件 | `Core.Event.{Category}.{Name}` | `Core.Event.Combat.EncounterBandit` |
+| 事件树 | `Core.EventTree.{Name}` | `Core.EventTree.MerchantEncounter` |
+
+### 扩展名（Extend）
+| 扩展名 | 用途 |
+|--------|------|
+| `NameText` | 名称文本ID |
+| `DescriptionText` | 描述文本ID |
+| `Image` | 图片资源 |
+| `SoundEffect` | 音效资源 |
+
+## 统一Actor设计
+
+Actor是统一的角色概念，不再区分敌人/玩家/NPC，通过Affiliation（阵营归属）来区分：
+
+### Affiliation 枚举
+| 阵营 | 说明 |
+|------|------|
+| `Player` | 玩家角色 |
+| `Friendly` | 友好阵营 |
+| `Neutral` | 中立阵营（商人、村民等） |
+| `Hostile` | 敌对阵营（匪徒、野兽等） |
+| `Authority` | 权威阵营（守卫、官员等） |
+
+### Actor特性
+- `isBoss`: 标记是否为Boss
+- `goldReward`/`expReward`: 击杀奖励（Hostile阵营可能有）
+- `interactionType`: 交互类型（Neutral/Authority阵营可能有）
 
 ## GIT WORKFLOW
 

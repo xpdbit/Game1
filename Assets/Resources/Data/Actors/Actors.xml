@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Actors>
-    <!-- 基础玩家属性 -->
-    <Actor id="Player">
-        <nameTextId>Actor.Player.NameText</nameTextId>
-        <descTextId>Actor.Player.DescriptionText</descTextId>
-        <type>Player</type>
+    <!-- 玩家角色 -->
+    <Actor id="Core.Actor.Player">
+        <nameTextId>Core.Actor.Player.NameText</nameTextId>
+        <descTextId>Core.Actor.Player.DescriptionText</descTextId>
+        <affiliation>Player</affiliation>
         <maxHp>20</maxHp>
         <attack>3</attack>
         <defense>5</defense>
         <speed>1.0</speed>
     </Actor>
 
-    <!-- 敌人类型 -->
-    <Actor id="Enemy.Bandit">
-        <nameTextId>Actor.Enemy.Bandit.NameText</nameTextId>
-        <descTextId>Actor.Enemy.Bandit.DescriptionText</descTextId>
-        <type>Enemy</type>
+    <!-- 匪徒 -->
+    <Actor id="Core.Actor.Bandit">
+        <nameTextId>Core.Actor.Bandit.NameText</nameTextId>
+        <descTextId>Core.Actor.Bandit.DescriptionText</descTextId>
+        <affiliation>Hostile</affiliation>
         <maxHp>20</maxHp>
         <attack>2</attack>
         <defense>3</defense>
@@ -24,10 +24,11 @@
         <expReward>5</expReward>
     </Actor>
 
-    <Actor id="Enemy.BanditElite">
-        <nameTextId>Actor.Enemy.BanditElite.NameText</nameTextId>
-        <descTextId>Actor.Enemy.BanditElite.DescriptionText</descTextId>
-        <type>Enemy</type>
+    <!-- 精英匪徒 -->
+    <Actor id="Core.Actor.BanditElite">
+        <nameTextId>Core.Actor.BanditElite.NameText</nameTextId>
+        <descTextId>Core.Actor.BanditElite.DescriptionText</descTextId>
+        <affiliation>Hostile</affiliation>
         <maxHp>40</maxHp>
         <attack>4</attack>
         <defense>5</defense>
@@ -36,10 +37,11 @@
         <expReward>12</expReward>
     </Actor>
 
-    <Actor id="Enemy.WildBeast">
-        <nameTextId>Actor.Enemy.WildBeast.NameText</nameTextId>
-        <descTextId>Actor.Enemy.WildBeast.DescriptionText</descTextId>
-        <type>Enemy</type>
+    <!-- 野兽 -->
+    <Actor id="Core.Actor.WildBeast">
+        <nameTextId>Core.Actor.WildBeast.NameText</nameTextId>
+        <descTextId>Core.Actor.WildBeast.DescriptionText</descTextId>
+        <affiliation>Hostile</affiliation>
         <maxHp>15</maxHp>
         <attack>4</attack>
         <defense>2</defense>
@@ -48,10 +50,11 @@
         <expReward>3</expReward>
     </Actor>
 
-    <Actor id="Enemy.Merchant">
-        <nameTextId>Actor.Enemy.Merchant.NameText</nameTextId>
-        <descTextId>Actor.Enemy.Merchant.DescriptionText</descTextId>
-        <type>Enemy</type>
+    <!-- 行商 -->
+    <Actor id="Core.Actor.Merchant">
+        <nameTextId>Core.Actor.Merchant.NameText</nameTextId>
+        <descTextId>Core.Actor.Merchant.DescriptionText</descTextId>
+        <affiliation>Neutral</affiliation>
         <maxHp>10</maxHp>
         <attack>1</attack>
         <defense>8</defense>
@@ -60,10 +63,12 @@
         <expReward>5</expReward>
     </Actor>
 
-    <Actor id="Enemy.Boss.RoadGangLeader">
-        <nameTextId>Actor.Enemy.Boss.RoadGangLeader.NameText</nameTextId>
-        <descTextId>Actor.Enemy.Boss.RoadGangLeader.DescriptionText</descTextId>
-        <type>Boss</type>
+    <!-- 路寇首领 (Boss) -->
+    <Actor id="Core.Actor.RoadGangLeader">
+        <nameTextId>Core.Actor.RoadGangLeader.NameText</nameTextId>
+        <descTextId>Core.Actor.RoadGangLeader.DescriptionText</descTextId>
+        <affiliation>Hostile</affiliation>
+        <isBoss>true</isBoss>
         <maxHp>100</maxHp>
         <attack>8</attack>
         <defense>10</defense>
@@ -72,22 +77,11 @@
         <expReward>50</expReward>
     </Actor>
 
-    <!-- NPC类型 -->
-    <Actor id="NPC.Merchant">
-        <nameTextId>Actor.NPC.Merchant.NameText</nameTextId>
-        <descTextId>Actor.NPC.Merchant.DescriptionText</descTextId>
-        <type>NPC</type>
-        <maxHp>30</maxHp>
-        <attack>0</attack>
-        <defense>2</defense>
-        <speed>0.6</speed>
-        <interactionType>Trade</interactionType>
-    </Actor>
-
-    <Actor id="NPC.Villager">
-        <nameTextId>Actor.NPC.Villager.NameText</nameTextId>
-        <descTextId>Actor.NPC.Villager.DescriptionText</descTextId>
-        <type>NPC</type>
+    <!-- 村民 -->
+    <Actor id="Core.Actor.Villager">
+        <nameTextId>Core.Actor.Villager.NameText</nameTextId>
+        <descTextId>Core.Actor.Villager.DescriptionText</descTextId>
+        <affiliation>Neutral</affiliation>
         <maxHp>20</maxHp>
         <attack>0</attack>
         <defense>1</defense>
@@ -95,14 +89,39 @@
         <interactionType>Story</interactionType>
     </Actor>
 
-    <Actor id="NPC.Guard">
-        <nameTextId>Actor.NPC.Guard.NameText</nameTextId>
-        <descTextId>Actor.NPC.Guard.DescriptionText</descTextId>
-        <type>NPC</type>
+    <!-- 守卫 -->
+    <Actor id="Core.Actor.Guard">
+        <nameTextId>Core.Actor.Guard.NameText</nameTextId>
+        <descTextId>Core.Actor.Guard.DescriptionText</descTextId>
+        <affiliation>Authority</affiliation>
         <maxHp>50</maxHp>
         <attack>5</attack>
         <defense>8</defense>
         <speed>0.8</speed>
         <interactionType>Combat</interactionType>
+    </Actor>
+
+    <!-- 学者 -->
+    <Actor id="Core.Actor.Scholar">
+        <nameTextId>Core.Actor.Scholar.NameText</nameTextId>
+        <descTextId>Core.Actor.Scholar.DescriptionText</descTextId>
+        <affiliation>Neutral</affiliation>
+        <maxHp>15</maxHp>
+        <attack>0</attack>
+        <defense>2</defense>
+        <speed>0.6</speed>
+        <interactionType>Trade</interactionType>
+    </Actor>
+
+    <!-- 医者 -->
+    <Actor id="Core.Actor.Healer">
+        <nameTextId>Core.Actor.Healer.NameText</nameTextId>
+        <descTextId>Core.Actor.Healer.DescriptionText</descTextId>
+        <affiliation>Neutral</affiliation>
+        <maxHp>18</maxHp>
+        <attack>0</attack>
+        <defense>3</defense>
+        <speed>0.5</speed>
+        <interactionType>Trade</interactionType>
     </Actor>
 </Actors>
