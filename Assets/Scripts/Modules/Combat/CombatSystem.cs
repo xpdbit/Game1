@@ -221,12 +221,12 @@ namespace Game1
             int enemyArmor = 5;
             int enemyDamage = 3;
 
-            // 如果有NPC模板，使用NPC属性
+                        // 如果有NPC模板，使用NPC属性
             if (npcTemplate != null)
             {
-                enemyHp = npcTemplate.maxHp;
-                enemyArmor = npcTemplate.defense;
-                enemyDamage = npcTemplate.attack;
+                enemyHp = npcTemplate.baseHp;
+                enemyArmor = npcTemplate.baseArmor;
+                enemyDamage = npcTemplate.baseDamage;
             }
             else
             {

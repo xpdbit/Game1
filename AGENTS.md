@@ -25,7 +25,10 @@ Game1/
 │   │   │   ├── GameLoop/   # GameLoopManager
 │   │   │   ├── SaveSystem/ # SaveManager
 │   │   │   ├── EventBus/   # 事件总线
-│   │   │   ├── Input/      # 后台输入管理（UniWindowController）
+│   │   │   ├── Input/      # 输入管理
+│   │   │   │   ├── BackgroundInputManager.cs  # 后台输入管理（UniWindowController）
+│   │   │   │   ├── GlobalKeyboardHook.cs      # 全局键盘钩子（Windows API）
+│   │   │   │   └── InputConverter.cs           # 虚实交互输入转换
 │   │   │   ├── Debug/      # GameDebug调试信息
 │   │   │   └── Utils/      # 工具类 (ResourceManager, Utils, UniTaskProgress)
 │   │   ├── Combat/         # 战斗系统 (已废弃，请使用 Modules/Combat/)
@@ -38,8 +41,12 @@ Game1/
 │   │   │   ├── Idle/       # IdleRewardModule
 │   │   │   ├── Travel/     # TravelManager, ProgressManager
 │   │   │   ├── Combat/     # CombatSystem (移动自根目录 Combat/)
-│   │   │   ├── Team/       # TeamDesign, TeamManager, TeamMemberData
-│   │   │   └── Inventory/  # InventoryDesign, ItemManager, InventoryEvents, InventoryItemData
+│   │   │   ├── Team/       # TeamDesign, TeamManager, TeamMemberData, JobSystem
+│   │   │   ├── Inventory/  # InventoryDesign, ItemManager, InventoryEvents, InventoryItemData, EquipmentSystem
+│   │   │   ├── Skill/      # SkillDesign, SkillManager, SkillData (NEW)
+│   │   │   ├── Card/       # CardDesign, CardManager, CardData (NEW)
+│   │   │   ├── Prestige/   # PrestigeManager (NEW)
+│   │   │   └── PVP/        # PVPMatchManager, PVPArenaManager (NEW)
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
@@ -135,6 +142,28 @@ Game1/
 | TeamDesign | Modules/Team/ | 队伍核心逻辑（单例） |
 | TeamManager | Modules/Team/ | 队伍管理器（静态API） |
 | TeamMemberData | Modules/Team/ | 队伍成员数据结构 |
+| JobSystem | Modules/Team/ | 职业系统（商贾/镖师/学者/医者） |
+| JobType | Modules/Team/ | 职业类型枚举 |
+| JobBonus | Modules/Team/ | 职业加成数据结构 |
+| EquipmentSystem | Modules/Inventory/ | 装备系统（装备/强化/属性计算） |
+| EquipmentSlot | Modules/Inventory/ | 装备槽位枚举 |
+| SkillDesign | Modules/Skill/ | 技能核心逻辑（单例） |
+| SkillManager | Modules/Skill/ | 技能管理器（静态API） |
+| SkillData | Modules/Skill/ | 技能数据（运行时） |
+| SkillTemplate | Modules/Skill/ | 技能模板（配置） |
+| SkillType | Modules/Skill/ | 技能类型枚举（Passive/Active/Ultimate） |
+| CardDesign | Modules/Card/ | 卡牌核心逻辑（单例） |
+| CardManager | Modules/Card/ | 卡牌管理器（静态API） |
+| CardData | Modules/Card/ | 卡牌数据 |
+| CardType | Modules/Card/ | 卡牌类型枚举 |
+| CardRarity | Modules/Card/ | 卡牌稀有度（N/R/SR/SSR/UR/GR） |
+| GachaType | Modules/Card/ | 抽卡类型枚举 |
+| PrestigeManager | Modules/Prestige/ | 轮回系统（点数/商店/资源保留） |
+| PrestigeUpgrade | Modules/Prestige/ | 轮回升级数据 |
+| PVPMatchManager | Modules/PVP/ | PVP匹配管理器 |
+| PVPArenaManager | Modules/PVP/ | PVP竞技场管理器 |
+| GlobalKeyboardHook | Core/Input/ | Windows全局键盘钩子 |
+| InputConverter | Core/Input/ | 虚实交互输入转换 |
 | EventQueue | Events/ | 事件队列 |
 | IGameEvent | Events/EventQueue.cs | 游戏事件接口 |
 | EventResult | Events/EventQueue.cs | 事件结果 |
@@ -291,6 +320,15 @@ unity -batchmode -runTests -testPlatform playmode
   - TeamManager: 静态API，委托给TeamDesign
   - TeamMemberData: 成员数据结构
   - UITeam: UI面板，继承BaseUIPanel
+- 全局输入系统（NEW）:
+  - GlobalKeyboardHook: 使用Windows API SetWindowsHookEx实现全局键盘监听
+  - InputConverter: 键盘敲击转脚程、鼠标移动转校准、连击加成计算
+  - BackgroundInputManager: 集成UniWindowController鼠标 + GlobalKeyboardHook键盘
+- 虚实交互输入转换算法:
+  - 每10次键盘敲击 = 1秒脚程
+  - 每100px鼠标移动 = 0.1秒脚程
+  - 连击窗口1秒，每10次连击+0.1，最高1.5
+  - 精准校准：静止>2秒后移动 = 2x加成
 
 ## GIT WORKFLOW
 

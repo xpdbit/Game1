@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game1
 {
@@ -124,12 +125,8 @@ namespace Game1
             // 检查物品
             if (choice.requiredItemId > 0)
             {
-                // 检查玩家背包是否有该物品
-                var player = GameMain.instance?.playerActor;
-                if (player == null) return false;
-
                 // 通过 ItemManager 检查背包中是否有指定物品
-                var items = ItemManager.instance?.GetItemsByTemplateId(choice.requiredItemId.ToString());
+                var items = ItemManager.GetItemsByTemplateId(choice.requiredItemId.ToString());
                 if (items == null || items.Count == 0)
                     return false;
             }

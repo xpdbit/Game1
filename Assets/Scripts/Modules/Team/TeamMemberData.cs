@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game1
@@ -43,6 +44,66 @@ namespace Game1
         /// 防御力
         /// </summary>
         public int defense = 3;
+
+        /// <summary>
+        /// 速度
+        /// </summary>
+        public float speed = 1f;
+
+        /// <summary>
+        /// 魅力（交易NPC态度）
+        /// </summary>
+        public int charisma = 1;
+
+        /// <summary>
+        /// 智慧（暴击率）
+        /// </summary>
+        public int wisdom = 1;
+
+        /// <summary>
+        /// 职业
+        /// </summary>
+        public JobType job = JobType.None;
+
+        /// <summary>
+        /// 武器模板ID
+        /// </summary>
+        public string weaponTemplateId = "";
+
+        /// <summary>
+        /// 护甲模板ID
+        /// </summary>
+        public string armorTemplateId = "";
+
+        /// <summary>
+        /// 饰品1模板ID
+        /// </summary>
+        public string accessory1TemplateId = "";
+
+        /// <summary>
+        /// 饰品2模板ID
+        /// </summary>
+        public string accessory2TemplateId = "";
+
+        /// <summary>
+        /// 坐骑模板ID
+        /// </summary>
+        public string mountTemplateId = "";
+
+        /// <summary>
+        /// 被动技能ID列表
+        /// </summary>
+        public List<string> passiveSkillIds = new();
+
+        /// <summary>
+        /// 主动技能ID列表
+        /// </summary>
+        public List<string> activeSkillIds = new();
+
+        /// <summary>
+        /// 终极技能ID
+        /// </summary>
+        public string ultimateSkillId = "";
 
         /// <summary>
         /// 是否存活
@@ -92,9 +153,37 @@ namespace Game1
         {
             level++;
             maxHp += 5;
-            hp = maxHp;  // 升级满血
+            hp = maxHp;
             attack += 2;
             defense += 1;
+        }
+
+        /// <summary>
+        /// 获取总攻击力（基础 + 职业加成 + 装备加成）
+        /// </summary>
+        public int GetTotalAttack()
+        {
+            int bonus = JobSystem.instance.GetJobAttributeBonus(job, AttributeType.Attack, level);
+            return attack + bonus;
+        }
+
+        /// <summary>
+        /// 获取总防御力
+        /// </summary>
+        public int GetTotalDefense()
+        {
+            int bonus = JobSystem.instance.GetJobAttributeBonus(job, AttributeType.Defense, level);
+            return defense + bonus;
+        }
+
+        /// <summary>
+        /// 获取总速度
+        /// </summary>
+        public float GetSpeed()
+        {
+            float bonus = 0;
+            var equipmentBonus = EquipmentSystem.instance.GetTotalEquipmentBonus(this);
+            return speed * equipmentBonus.speedMultiplier + bonus;
         }
 
         /// <summary>
