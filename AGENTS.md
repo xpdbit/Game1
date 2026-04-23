@@ -98,7 +98,8 @@ Game1/
 | 背包系统 | Assets/Scripts/Modules/Inventory/ | InventoryDesign核心逻辑 |
 | 战斗系统 | Assets/Scripts/Modules/Combat/ | CombatSystem |
 | NPC系统 | Assets/Scripts/Entities/NPC/ | NPCSystem |
-| 事件系统 | Assets/Scripts/Events/ | EventManager, EventChain |
+| 事件系统 | Assets/Scripts/Events/ | EventManager, EventChain, EventTreeManager, EventTreeRunner |
+| 事件树 | Assets/Scripts/Events/EventTreeRunner.cs | 分支叙事运行器 |
 | 事件链 | Assets/Scripts/Events/EventChain.cs | 事件链系统 |
 | 选择对话框 | Assets/Scripts/UI/Dialog/ | UISelectionDialog |
 | 地图路径 | Assets/Scripts/UI/Map/ | UIMapPath |
