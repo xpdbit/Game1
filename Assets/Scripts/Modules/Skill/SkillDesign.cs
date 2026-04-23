@@ -89,7 +89,7 @@ namespace Game1
                 baseEffectValue = 0.5f,
                 effectValuePerLevel = 0.1f,
                 cooldown = 30f,
-                cost = 0,
+                baseCost = 0,
                 condition = SkillCondition.InCombat
             });
 
@@ -104,7 +104,7 @@ namespace Game1
                 baseEffectValue = 0.3f,
                 effectValuePerLevel = 0.05f,
                 cooldown = 45f,
-                cost = 0,
+                baseCost = 0,
                 condition = SkillCondition.InCombat
             });
         }
@@ -306,7 +306,7 @@ namespace Game1
                 return SkillResult.Failure("技能冷却中");
 
             // 检查消耗
-            if (template.cost > 0)
+            if (template.baseCost > 0)
             {
                 // TODO: 检查并消耗资源
             }
@@ -338,7 +338,7 @@ namespace Game1
                     if (target is TeamMemberData targetMember)
                     {
                         int healAmount = (int)(targetMember.maxHp * skill.GetEffectValue());
-                        targetMember.currentHp = Mathf.Min(targetMember.maxHp, targetMember.currentHp + healAmount);
+                        targetMember.hp = Mathf.Min(targetMember.maxHp, targetMember.hp + healAmount);
                         return SkillResult.Success($"恢复了 {healAmount} 点生命", healAmount);
                     }
                     break;
@@ -355,7 +355,7 @@ namespace Game1
                     // 消耗生命换取金币
                     int healthCost = skill.cost;
                     int goldGain = healthCost * 10;
-                    caster.currentHp -= healthCost;
+                    caster.hp -= healthCost;
                     // TODO: 增加金币
                     return SkillResult.Success($"消耗 {healthCost} HP 获得 {goldGain} 金币", goldGain);
             }

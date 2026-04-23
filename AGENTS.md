@@ -329,6 +329,7 @@ unity -batchmode -runTests -testPlatform playmode
   - 每100px鼠标移动 = 0.1秒脚程
   - 连击窗口1秒，每10次连击+0.1，最高1.5
   - 精准校准：静止>2秒后移动 = 2x加成
+- InputConverter使用UnityEngine.InputSystem.Mouse.current.position.ReadValue()获取鼠标位置，兼容New Input System
 
 ## GIT WORKFLOW
 

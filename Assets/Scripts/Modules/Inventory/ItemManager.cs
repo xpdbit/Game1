@@ -13,6 +13,8 @@ namespace Game1
         Food,
         Weapon,
         Armor,
+        Accessory,
+        Mount,
         Consumable,
         Material,
         QuestItem,

@@ -3121,6 +3121,7 @@ MonoBehaviour:
   _currentState: 2
   inventory: {fileID: 948499123}
   gameDashboard: {fileID: 2130480624}
+  team: {fileID: 0}
 --- !u!1 &581956432
 GameObject:
   m_ObjectHideFlags: 0

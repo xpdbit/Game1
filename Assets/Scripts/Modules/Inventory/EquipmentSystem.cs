@@ -95,9 +95,9 @@ namespace Game1
             if (item == null)
                 return EquipmentOperationResult.Failure("物品不能为空");
 
-            var template = ItemManager.instance.GetTemplate(item.templateId);
+            var template = ItemManager.GetTemplate(item.itemTemplate.id);
             if (template == null)
-                return EquipmentOperationResult.Failure($"物品模板不存在: {item.templateId}");
+                return EquipmentOperationResult.Failure($"物品模板不存在: {item.itemTemplate.id}");
 
             // 检查物品类型是否匹配槽位
             if (!IsItemTypeMatchSlot(template.type, slot))
@@ -117,19 +117,19 @@ namespace Game1
             switch (slot)
             {
                 case EquipmentSlot.Weapon:
-                    member.weaponTemplateId = item.templateId;
+                    member.weaponTemplateId = item.itemTemplate.id;
                     break;
                 case EquipmentSlot.Armor:
-                    member.armorTemplateId = item.templateId;
+                    member.armorTemplateId = item.itemTemplate.id;
                     break;
                 case EquipmentSlot.Accessory1:
-                    member.accessory1TemplateId = item.templateId;
+                    member.accessory1TemplateId = item.itemTemplate.id;
                     break;
                 case EquipmentSlot.Accessory2:
-                    member.accessory2TemplateId = item.templateId;
+                    member.accessory2TemplateId = item.itemTemplate.id;
                     break;
                 case EquipmentSlot.Mount:
-                    member.mountTemplateId = item.templateId;
+                    member.mountTemplateId = item.itemTemplate.id;
                     break;
             }
 
@@ -182,12 +182,7 @@ namespace Game1
                 return null;
 
             // 创建物品实例并返回
-            return new ItemInstance
-            {
-                instanceId = ItemManager.instance.GenerateInstanceId(),
-                templateId = templateId,
-                amount = 1
-            };
+            return new ItemInstance(templateId, 1);
         }
 
         /// <summary>
@@ -199,18 +194,18 @@ namespace Game1
         public InventoryOperationResult EnhanceEquipment(ItemInstance equipment, int level)
         {
             if (equipment == null)
-                return InventoryOperationResult.Failure("装备不能为空");
+                return InventoryOperationResult.Fail("装备不能为空");
 
             if (level <= 0)
-                return InventoryOperationResult.Failure("强化等级必须大于0");
+                return InventoryOperationResult.Fail("强化等级必须大于0");
 
-            var template = ItemManager.instance.GetTemplate(equipment.templateId);
+            var template = ItemManager.GetTemplate(equipment.itemTemplate.id);
             if (template == null)
-                return InventoryOperationResult.Failure($"物品模板不存在: {equipment.templateId}");
+                return InventoryOperationResult.Fail($"物品模板不存在: {equipment.itemTemplate.id}");
 
             // 检查是否为可强化物品（武器和防具）
             if (template.type != ItemType.Weapon && template.type != ItemType.Armor)
-                return InventoryOperationResult.Failure("只有武器和防具可以强化");
+                return InventoryOperationResult.Fail("只有武器和防具可以强化");
 
             // 计算强化费用
             int cost = GetEnhanceCost(template, level);
@@ -222,7 +217,7 @@ namespace Game1
             // 执行强化
             // equipment.enhancedLevel = level; // 需要在ItemInstance中添加增强等级字段
 
-            return InventoryOperationResult.Success($"强化成功，等级提升到 {level}");
+            return InventoryOperationResult.Ok(0, 0);
         }
 
         /// <summary>
@@ -249,7 +244,7 @@ namespace Game1
             if (equipment == null)
                 return 0;
 
-            var template = ItemManager.instance.GetTemplate(equipment.templateId);
+            var template = ItemManager.GetTemplate(equipment.itemTemplate.id);
             if (template == null || template.type != ItemType.Weapon)
                 return 0;
 
@@ -270,7 +265,7 @@ namespace Game1
             if (equipment == null)
                 return 0;
 
-            var template = ItemManager.instance.GetTemplate(equipment.templateId);
+            var template = ItemManager.GetTemplate(equipment.itemTemplate.id);
             if (template == null || template.type != ItemType.Armor)
                 return 0;
 
@@ -348,7 +343,7 @@ namespace Game1
                 if (string.IsNullOrEmpty(templateId))
                     continue;
 
-                var template = ItemManager.instance.GetTemplate(templateId);
+                var template = ItemManager.GetTemplate(templateId);
                 if (template == null)
                     continue;
 

@@ -97,7 +97,11 @@ namespace Game1
             _keystrokeCount = 0;
             _lastKeystrokeTime = 0;
             _comboMultiplier = 1.0f;
-            _lastMousePosition = Input.mousePosition;
+#if ENABLE_INPUT_SYSTEM
+            _lastMousePosition = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
+#else
+            _lastMousePosition = UnityEngine.Input.mousePosition;
+#endif
             _lastMouseMoveTime = Time.time;
             _lastInputTime = Time.time;
             isPrecisionCalibration = false;
@@ -110,7 +114,11 @@ namespace Game1
         /// </summary>
         public void Update()
         {
-            _lastMousePosition = Input.mousePosition;
+#if ENABLE_INPUT_SYSTEM
+            _lastMousePosition = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
+#else
+            _lastMousePosition = UnityEngine.Input.mousePosition;
+#endif
         }
 
         /// <summary>
