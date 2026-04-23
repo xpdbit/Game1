@@ -265,12 +265,12 @@ namespace Game1
                 case "combat_001":
                 case "combat_002":
                 case "combat_003":
-                    var combatEvent = new CombatEvent
+                    var combatEventEx = new CombatEventEx
                     {
                         enemyCount = Math.Max(1, location.baseReward / 20),
                         enemyStrength = Math.Max(10, location.baseReward / 10)
                     };
-                    return combatEvent;
+                    return combatEventEx;
 
                 case "trade_001":
                 case "trade_002":
@@ -293,7 +293,7 @@ namespace Game1
             int eventType = UnityEngine.Random.Range(0, 3);
             return eventType switch
             {
-                0 => new CombatEvent
+                0 => new CombatEventEx
                 {
                     enemyCount = UnityEngine.Random.Range(1, 4),
                     enemyStrength = UnityEngine.Random.Range(10, 50)
@@ -319,7 +319,7 @@ namespace Game1
             };
 
             // TODO: 创建NPC遭遇事件
-            return new CombatEvent
+            return new CombatEventEx
             {
                 enemyCount = 1,
                 enemyStrength = 20
@@ -340,7 +340,7 @@ namespace Game1
                 _ => NPCType.Hostile
             };
 
-            return new CombatEvent
+            return new CombatEventEx
             {
                 enemyCount = 1,
                 enemyStrength = npcType == NPCType.Hostile ? 25 : 15

@@ -192,6 +192,7 @@ namespace Game1
     /// <summary>
     /// 战斗事件扩展
     /// 用于在事件系统中触发战斗
+    /// 使用virtual/override体系保证多态正确工作
     /// </summary>
     [Serializable]
     public class CombatEventEx : CombatEvent
@@ -202,7 +203,7 @@ namespace Game1
         /// <summary>
         /// 执行战斗（使用新战斗系统）
         /// </summary>
-        public new EventResult Execute()
+        public override EventResult Execute()
         {
             var result = new EventResult();
 

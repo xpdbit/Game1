@@ -130,6 +130,7 @@ Game1/
 | Location | Entities/World/ | 地点节点 |
 | NPCSystem | Entities/NPC/ | NPC系统 |
 | CombatSystem | Modules/Combat/ | 战斗系统 |
+| CombatEventEx | Modules/Combat/CombatSystem.cs | 战斗事件扩展（virtual/override多态） |
 | TeamDesign | Modules/Team/ | 队伍核心逻辑（单例） |
 | TeamManager | Modules/Team/ | 队伍管理器（静态API） |
 | TeamMemberData | Modules/Team/ | 队伍成员数据结构 |

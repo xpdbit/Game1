@@ -124,7 +124,14 @@ namespace Game1
             // 检查物品
             if (choice.requiredItemId > 0)
             {
-                // TODO: 检查玩家背包是否有该物品
+                // 检查玩家背包是否有该物品
+                var player = GameMain.instance?.playerActor;
+                if (player == null) return false;
+
+                // 通过 ItemManager 检查背包中是否有指定物品
+                var items = ItemManager.instance?.GetItemsByTemplateId(choice.requiredItemId.ToString());
+                if (items == null || items.Count == 0)
+                    return false;
             }
 
             return true;
@@ -262,7 +269,28 @@ namespace Game1
             {
                 foreach (var moduleId in choice.addModuleIds)
                 {
-                    // TODO: 根据moduleId创建模块并添加
+                    // 根据moduleId创建模块并添加
+                    // moduleId格式与IModule.moduleId一致
+                    IModule module = moduleId switch
+                    {
+                        "idle_reward" => new IdleRewardModule(),
+                        _ => null
+                    };
+
+                    if (module != null)
+                    {
+                        // 先初始化模块（如果需要）
+                        if (module is IdleRewardModule idleModule)
+                        {
+                            idleModule.Initialize(player);
+                        }
+                        // 再添加到玩家
+                        player.AddModule(module);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[EventChain] Unknown moduleId: {moduleId}");
+                    }
                 }
             }
 
