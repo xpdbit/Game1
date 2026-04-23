@@ -33,13 +33,13 @@ Game1/
 │   │   │   ├── Player/     # PlayerActor
 │   │   │   ├── World/      # WorldMap
 │   │   │   └── NPC/        # NPCSystem
-│   │   ├── Inventory/      # 背包系统
-│   │   │   └── InventoryDesign.cs
+│   │   ├── Inventory/      # 背包系统 (已废弃，请使用 Modules/Inventory/)
 │   │   ├── Modules/        # 游戏模块
 │   │   │   ├── Idle/       # IdleRewardModule
 │   │   │   ├── Travel/     # TravelManager, ProgressManager
 │   │   │   ├── Combat/     # CombatSystem (移动自根目录 Combat/)
-│   │   │   └── Team/       # TeamDesign, TeamManager, TeamMemberData
+│   │   │   ├── Team/       # TeamDesign, TeamManager, TeamMemberData
+│   │   │   └── Inventory/  # InventoryDesign, ItemManager, InventoryEvents, InventoryItemData
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
@@ -59,8 +59,7 @@ Game1/
 │   │   │   ├── UILayout.cs
 │   │   │   ├── UIListItems.cs
 │   │   │   └── Utils/      # UI工具
-│   │   ├── Managers/       # 管理器
-│   │   │   └── ItemManager.cs
+│   │   ├── Managers/       # 管理器 (已废弃，请使用 Modules/Inventory/)
 │   │   ├── GameMain.cs     # 游戏入口
 │   │   └── GameTest.cs     # 测试类
 │   ├── Scenes/            # Unity场景
@@ -96,7 +95,7 @@ Game1/
 | 挂机收益 | Assets/Scripts/Modules/Idle/ | IdleRewardModule |
 | 透明窗口 | Packages/UniWindowController | 悬浮窗支持 |
 | 场景 | Assets/Scenes/SampleScene.unity | 测试场景 |
-| 背包系统 | Assets/Scripts/Inventory/ | InventoryDesign核心逻辑 |
+| 背包系统 | Assets/Scripts/Modules/Inventory/ | InventoryDesign核心逻辑 |
 | 战斗系统 | Assets/Scripts/Modules/Combat/ | CombatSystem |
 | NPC系统 | Assets/Scripts/Entities/NPC/ | NPCSystem |
 | 事件系统 | Assets/Scripts/Events/ | EventManager, EventChain |
@@ -167,13 +166,13 @@ Game1/
 | UIMapPath | UI/Map/ | 地图路径UI |
 | XUniTaskProgress | UI/Utils/UniTaskProgress.cs | 任务进度 |
 | XObjectPool | UI/Utils/UIUtils.cs | 对象池 |
-| InventoryItemData | UI/UIInventory.cs | 物品数据+状态 |
-| InventoryDesign | Inventory/ | 背包核心逻辑（非MonoBehaviour） |
-| InventoryOperationResult | Inventory/InventoryDesign.cs | 操作结果 |
-| InventoryCapacity | Inventory/InventoryDesign.cs | 容量配置 |
-| ItemTemplate | Managers/ItemManager.cs | 物品模板，含ParseFromXml |
-| ItemInstance | Managers/ItemManager.cs | 物品实例 |
-| ItemType | Managers/ItemManager.cs | 物品类型枚举 |
+| InventoryItemData | Modules/Inventory/ | 物品数据+状态 |
+| InventoryDesign | Modules/Inventory/ | 背包核心逻辑（非MonoBehaviour） |
+| InventoryOperationResult | Modules/Inventory/InventoryDesign.cs | 操作结果 |
+| InventoryCapacity | Modules/Inventory/InventoryDesign.cs | 容量配置 |
+| ItemTemplate | Modules/Inventory/ItemManager.cs | 物品模板，含ParseFromXml |
+| ItemInstance | Modules/Inventory/ItemManager.cs | 物品实例 |
+| ItemType | Modules/Inventory/ItemManager.cs | 物品类型枚举 |
 | TeamOperationResult | Modules/Team/TeamDesign.cs | 队伍操作结果 |
 | TeamCapacity | Modules/Team/TeamDesign.cs | 队伍容量配置 |
 | TeamEventData | Modules/Team/TeamDesign.cs | 队伍事件数据 |
