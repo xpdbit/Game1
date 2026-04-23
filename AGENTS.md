@@ -175,6 +175,8 @@ Game1/
 | ItemTemplate | Modules/Inventory/ItemManager.cs | 物品模板，含ParseFromXml |
 | ItemInstance | Modules/Inventory/ItemManager.cs | 物品实例 |
 | ItemType | Modules/Inventory/ItemManager.cs | 物品类型枚举 |
+| ActorManager | Entities/Actor/ActorManager.cs | 角色模板管理器 |
+| ActorTemplate | Entities/Actor/ActorManager.cs | 角色模板，含ParseFromXml |
 | TeamOperationResult | Modules/Team/TeamDesign.cs | 队伍操作结果 |
 | TeamCapacity | Modules/Team/TeamDesign.cs | 队伍容量配置 |
 | TeamEventData | Modules/Team/TeamDesign.cs | 队伍事件数据 |
@@ -203,6 +205,33 @@ Game1/
 - **前台悬浮**: 无边框、置顶、点击穿透
 - **输入系统**: New Input System (com.unity.inputsystem)
 - **UI架构**: UIManager状态机 + EventBus解耦
+
+## INITIALIZATION ORDER
+
+正确的初始化顺序：
+
+```
+1. ResourceManager.Initialize()
+   └─► 加载配置（Items.xml, Events.xml等）
+
+2. ItemManager.Initialize() [RuntimeInitializeOnLoadMethod]
+   └─► 加载物品模板
+
+3. ActorManager.Initialize() [RuntimeInitializeOnLoadMethod]
+   └─► 加载角色模板
+
+4. GameMain.instance.Initialize()
+   │
+   ├─► PlayerActor.Initialize()
+   │
+   ├─► TravelManager.Initialize(player)
+   │
+   ├─► EventQueue.Initialize()
+   │
+   └─► SaveManager.LoadSaveData() → 应用存档
+```
+
+依赖关系：ResourceManager → ItemManager/ActorManager → GameMain → SaveManager
 
 ## TECHNICAL STACK
 

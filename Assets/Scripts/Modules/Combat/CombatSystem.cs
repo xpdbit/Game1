@@ -200,14 +200,14 @@ namespace Game1
         public NPCTemplate npcTemplate;  // NPC模板（如果有）
         public string npcInstanceId;       // NPC实例ID
 
-        /// <summary>
-        /// 执行战斗（使用新战斗系统）
-        /// </summary>
+/// <summary>
+    /// 执行战斗（使用新战斗系统）
+    /// </summary>
         public override EventResult Execute()
         {
             var result = new EventResult();
 
-            // 获取玩家数据（这里需要从GameMain获取）
+            // 获取玩家数据
             var player = GameMain.instance?.playerActor;
             if (player == null)
             {
@@ -216,13 +216,35 @@ namespace Game1
                 return result;
             }
 
-            // 执行战斗
-            // 敌人属性：HP = enemyStrength, ARMOR = 5, DAMAGE = 3 (每角色20HP/5ARMOR/3DAMAGE)
+            // 从 ActorManager 获取敌人属性
+            int enemyHp = enemyStrength;
+            int enemyArmor = 5;
+            int enemyDamage = 3;
+
+            // 如果有NPC模板，使用NPC属性
+            if (npcTemplate != null)
+            {
+                enemyHp = npcTemplate.maxHp;
+                enemyArmor = npcTemplate.defense;
+                enemyDamage = npcTemplate.attack;
+            }
+            else
+            {
+                // 通过 ActorManager 查找合适的敌人模板
+                var enemyTemplate = ActorManager.GetEnemyTemplate(enemyCount);
+                if (enemyTemplate != null)
+                {
+                    enemyHp = enemyTemplate.maxHp + enemyStrength / 10;
+                    enemyArmor = enemyTemplate.defense;
+                    enemyDamage = enemyTemplate.attack;
+                }
+            }
+
             var combatResult = CombatSystem.instance.ExecuteCombat(
                 player,
-                enemyStrength,  // HP = enemyStrength
-                5,              // 敌人护甲
-                3,              // 敌人伤害
+                enemyHp,
+                enemyArmor,
+                enemyDamage,
                 $"敌人(enemyCount:{enemyCount})"
             );
 

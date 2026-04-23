@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Actors>
+    <!-- 基础玩家属性 -->
+    <Actor id="Player">
+        <nameTextId>Actor.Player.NameText</nameTextId>
+        <descTextId>Actor.Player.DescriptionText</descTextId>
+        <type>Player</type>
+        <maxHp>20</maxHp>
+        <attack>3</attack>
+        <defense>5</defense>
+        <speed>1.0</speed>
+    </Actor>
+
+    <!-- 敌人类型 -->
+    <Actor id="Enemy.Bandit">
+        <nameTextId>Actor.Enemy.Bandit.NameText</nameTextId>
+        <descTextId>Actor.Enemy.Bandit.DescriptionText</descTextId>
+        <type>Enemy</type>
+        <maxHp>20</maxHp>
+        <attack>2</attack>
+        <defense>3</defense>
+        <speed>0.8</speed>
+        <goldReward>15</goldReward>
+        <expReward>5</expReward>
+    </Actor>
+
+    <Actor id="Enemy.BanditElite">
+        <nameTextId>Actor.Enemy.BanditElite.NameText</nameTextId>
+        <descTextId>Actor.Enemy.BanditElite.DescriptionText</descTextId>
+        <type>Enemy</type>
+        <maxHp>40</maxHp>
+        <attack>4</attack>
+        <defense>5</defense>
+        <speed>0.9</speed>
+        <goldReward>35</goldReward>
+        <expReward>12</expReward>
+    </Actor>
+
+    <Actor id="Enemy.WildBeast">
+        <nameTextId>Actor.Enemy.WildBeast.NameText</nameTextId>
+        <descTextId>Actor.Enemy.WildBeast.DescriptionText</descTextId>
+        <type>Enemy</type>
+        <maxHp>15</maxHp>
+        <attack>4</attack>
+        <defense>2</defense>
+        <speed>1.2</speed>
+        <goldReward>10</goldReward>
+        <expReward>3</expReward>
+    </Actor>
+
+    <Actor id="Enemy.Merchant">
+        <nameTextId>Actor.Enemy.Merchant.NameText</nameTextId>
+        <descTextId>Actor.Enemy.Merchant.DescriptionText</descTextId>
+        <type>Enemy</type>
+        <maxHp>10</maxHp>
+        <attack>1</attack>
+        <defense>8</defense>
+        <speed>0.5</speed>
+        <goldReward>25</goldReward>
+        <expReward>5</expReward>
+    </Actor>
+
+    <Actor id="Enemy.Boss.RoadGangLeader">
+        <nameTextId>Actor.Enemy.Boss.RoadGangLeader.NameText</nameTextId>
+        <descTextId>Actor.Enemy.Boss.RoadGangLeader.DescriptionText</descTextId>
+        <type>Boss</type>
+        <maxHp>100</maxHp>
+        <attack>8</attack>
+        <defense>10</defense>
+        <speed>0.7</speed>
+        <goldReward>100</goldReward>
+        <expReward>50</expReward>
+    </Actor>
+
+    <!-- NPC类型 -->
+    <Actor id="NPC.Merchant">
+        <nameTextId>Actor.NPC.Merchant.NameText</nameTextId>
+        <descTextId>Actor.NPC.Merchant.DescriptionText</descTextId>
+        <type>NPC</type>
+        <maxHp>30</maxHp>
+        <attack>0</attack>
+        <defense>2</defense>
+        <speed>0.6</speed>
+        <interactionType>Trade</interactionType>
+    </Actor>
+
+    <Actor id="NPC.Villager">
+        <nameTextId>Actor.NPC.Villager.NameText</nameTextId>
+        <descTextId>Actor.NPC.Villager.DescriptionText</descTextId>
+        <type>NPC</type>
+        <maxHp>20</maxHp>
+        <attack>0</attack>
+        <defense>1</defense>
+        <speed>0.5</speed>
+        <interactionType>Story</interactionType>
+    </Actor>
+
+    <Actor id="NPC.Guard">
+        <nameTextId>Actor.NPC.Guard.NameText</nameTextId>
+        <descTextId>Actor.NPC.Guard.DescriptionText</descTextId>
+        <type>NPC</type>
+        <maxHp>50</maxHp>
+        <attack>5</attack>
+        <defense>8</defense>
+        <speed>0.8</speed>
+        <interactionType>Combat</interactionType>
+    </Actor>
+</Actors>
