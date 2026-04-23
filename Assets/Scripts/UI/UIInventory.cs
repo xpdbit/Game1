@@ -18,9 +18,6 @@ namespace Game1
         public UIListItems uIListItems;
         public Button closeButton;
 
-        [Header("模板引用（用于对象池）")]
-        public RectTransform itemTemplate;
-
         [Header("设置")]
         public bool autoRefreshOnEvent = true;  // 自动刷新开关
 

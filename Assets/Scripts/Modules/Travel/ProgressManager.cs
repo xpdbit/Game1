@@ -62,8 +62,8 @@ namespace Game1
         private int _milestoneCount = 0;
         private float _accumulatedTime = 0f;  // 累积时间，用于精确计算
 
-        // TravelRate计算：使用滑动窗口记录过去60秒的每秒点数
-        private const int TRAVEL_RATE_SECONDS = 60;
+        // TravelRate计算：使用滑动窗口记录过去5秒的每秒点数
+        private const int TRAVEL_RATE_SECONDS = 5;
         private readonly float[] _pointsPerSecond = new float[TRAVEL_RATE_SECONDS];  // 每秒的点数
         private int _currentSecondIndex = 0;  // 当前秒对应的索引
         private float _lastRecordTime = 0f;  // 上次记录的时间（秒）

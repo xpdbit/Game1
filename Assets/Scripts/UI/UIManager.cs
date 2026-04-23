@@ -52,6 +52,7 @@ namespace Game1
         [Header("模块")]
         public UIInventory inventory;
         public UIGameDashboard gameDashboard;
+        public UITeam team;
 
         #endregion
 

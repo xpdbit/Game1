@@ -97,7 +97,7 @@ namespace Game1
                 if (pm != null)
                 {
                     _sb.AppendLine($"TravelPoint: {pm.currentPoints}/{pm.config.travelPointSize}");
-                    _sb.AppendLine($"TravelRate: {pm.travelRate:F1} TP/s (60s平均)");
+                    _sb.AppendLine($"TravelRate: {pm.travelRate:F1} TP/s (5s平均)");
                     _sb.AppendLine($"Milestone: {pm.milestoneCount}");
                 }
             }
@@ -126,6 +126,10 @@ namespace Game1
                     _sb.AppendLine($"EventTree: {runner.currentTemplate?.name ?? "Unknown"}");
                     _sb.AppendLine($"State: {runner.state}");
                 }
+
+                // 显示待处理事件数量
+                int pendingCount = GameMain.instance?.eventQueue?.pendingCount ?? 0;
+                _sb.AppendLine($"Pending Events: {pendingCount}");
             }
 
             _debugText.text = _sb.ToString();

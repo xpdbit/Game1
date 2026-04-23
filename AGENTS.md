@@ -6,7 +6,7 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-22
+**Generated:** 2026-04-23
 **Project:** Game1 - Unity 6 游戏开发项目
 **Commit:** 17ada358
 **Branch:** main
@@ -27,9 +27,8 @@ Game1/
 │   │   │   ├── EventBus/   # 事件总线
 │   │   │   ├── Input/      # 后台输入管理（UniWindowController）
 │   │   │   ├── Debug/      # GameDebug调试信息
-│   │   │   └── Utils/      # 工具类
-│   │   ├── Combat/         # 战斗系统
-│   │   │   └── CombatSystem.cs
+│   │   │   └── Utils/      # 工具类 (ResourceManager, Utils, UniTaskProgress)
+│   │   ├── Combat/         # 战斗系统 (已废弃，请使用 Modules/Combat/)
 │   │   ├── Entities/       # 实体
 │   │   │   ├── Player/     # PlayerActor
 │   │   │   ├── World/      # WorldMap
@@ -38,7 +37,9 @@ Game1/
 │   │   │   └── InventoryDesign.cs
 │   │   ├── Modules/        # 游戏模块
 │   │   │   ├── Idle/       # IdleRewardModule
-│   │   │   └── Travel/     # TravelManager, ProgressManager
+│   │   │   ├── Travel/     # TravelManager, ProgressManager
+│   │   │   ├── Combat/     # CombatSystem (移动自根目录 Combat/)
+│   │   │   └── Team/       # TeamDesign, TeamManager, TeamMemberData
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
@@ -50,7 +51,8 @@ Game1/
 │   │   │   ├── Dialog/     # UISelectionDialog
 │   │   │   ├── Map/        # UIMapPath
 │   │   │   ├── Editor/     # Unity编辑器扩展
-│   │   │   ├── UIInventory/
+│   │   │   ├── UITeam.cs   # 队伍UI
+│   │   │   ├── UIInventory.cs
 │   │   │   ├── UIManager.cs
 │   │   │   ├── UIProgressBar.cs
 │   │   │   ├── UIText.cs
@@ -58,8 +60,7 @@ Game1/
 │   │   │   ├── UIListItems.cs
 │   │   │   └── Utils/      # UI工具
 │   │   ├── Managers/       # 管理器
-│   │   │   ├── ItemManager.cs
-│   │   │   └── ResourceManager.cs
+│   │   │   └── ItemManager.cs
 │   │   ├── GameMain.cs     # 游戏入口
 │   │   └── GameTest.cs     # 测试类
 │   ├── Scenes/            # Unity场景
@@ -96,12 +97,14 @@ Game1/
 | 透明窗口 | Packages/UniWindowController | 悬浮窗支持 |
 | 场景 | Assets/Scenes/SampleScene.unity | 测试场景 |
 | 背包系统 | Assets/Scripts/Inventory/ | InventoryDesign核心逻辑 |
-| 战斗系统 | Assets/Scripts/Combat/ | CombatSystem |
+| 战斗系统 | Assets/Scripts/Modules/Combat/ | CombatSystem |
 | NPC系统 | Assets/Scripts/Entities/NPC/ | NPCSystem |
 | 事件系统 | Assets/Scripts/Events/ | EventManager, EventChain |
 | 事件链 | Assets/Scripts/Events/EventChain.cs | 事件链系统 |
 | 选择对话框 | Assets/Scripts/UI/Dialog/ | UISelectionDialog |
 | 地图路径 | Assets/Scripts/UI/Map/ | UIMapPath |
+| 队伍系统 | Assets/Scripts/Modules/Team/ | TeamDesign, TeamManager |
+| 队伍UI | Assets/Scripts/UI/UITeam.cs | 队伍面板 |
 
 ## CODE MAP
 
@@ -116,6 +119,7 @@ Game1/
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
 | BackgroundInputManager | Core/Input/ | 后台输入管理（UniWindowController） |
 | GameDebug | Core/Debug/ | 调试信息管理器（运行时显示） |
+| ResourceManager | Core/Utils/ | 资源加载（JSON/XML/手动解析） |
 | PlayerActor | Entities/Player/ | 玩家数据+模块 |
 | IModule | Entities/Player/PlayerActor.cs | 模块接口 |
 | TravelState | Entities/Player/PlayerActor.cs | 旅行状态 |
@@ -126,7 +130,10 @@ Game1/
 | WorldMap | Entities/World/ | 节点地图 |
 | Location | Entities/World/ | 地点节点 |
 | NPCSystem | Entities/NPC/ | NPC系统 |
-| CombatSystem | Combat/ | 战斗系统 |
+| CombatSystem | Modules/Combat/ | 战斗系统 |
+| TeamDesign | Modules/Team/ | 队伍核心逻辑（单例） |
+| TeamManager | Modules/Team/ | 队伍管理器（静态API） |
+| TeamMemberData | Modules/Team/ | 队伍成员数据结构 |
 | EventQueue | Events/ | 事件队列 |
 | IGameEvent | Events/EventQueue.cs | 游戏事件接口 |
 | EventResult | Events/EventQueue.cs | 事件结果 |
@@ -146,8 +153,10 @@ Game1/
 | BaseUIPanel | UI/UIManager.cs | 面板基类 |
 | GameHUDPanel | UI/UIManager.cs | HUD面板 |
 | UIManager | UI/UIManager.cs | UI状态机 |
-| UIInventory | UI/UIInventory/UIInventory.cs | 背包主组件 |
-| UIInventoryItem | UI/UIInventory/UIInventoryItem.cs | 物品行 |
+| UIInventory | UI/UIInventory.cs | 背包主组件 |
+| UIInventoryItem | UI/UIInventory.cs | 物品行 |
+| UITeam | UI/UITeam.cs | 队伍UI主组件 |
+| UITeamMember | UI/UITeam.cs | 队伍成员行 |
 | UIProgressBar | UI/UIProgressBar.cs | 进度条（支持四方向） |
 | UIText | UI/UIText.cs | TextMeshPro封装 |
 | UITextLinkHandler | UI/UIText.cs | 文本链接处理（存根） |
@@ -158,14 +167,16 @@ Game1/
 | UIMapPath | UI/Map/ | 地图路径UI |
 | XUniTaskProgress | UI/Utils/UniTaskProgress.cs | 任务进度 |
 | XObjectPool | UI/Utils/UIUtils.cs | 对象池 |
-| InventoryItemData | UI/UIInventory/InventoryItemData.cs | 物品数据+状态 |
+| InventoryItemData | UI/UIInventory.cs | 物品数据+状态 |
 | InventoryDesign | Inventory/ | 背包核心逻辑（非MonoBehaviour） |
 | InventoryOperationResult | Inventory/InventoryDesign.cs | 操作结果 |
 | InventoryCapacity | Inventory/InventoryDesign.cs | 容量配置 |
-| ResourceManager | Managers/ResourceManager.cs | 资源加载（JSON/XML/手动解析） |
 | ItemTemplate | Managers/ItemManager.cs | 物品模板，含ParseFromXml |
 | ItemInstance | Managers/ItemManager.cs | 物品实例 |
 | ItemType | Managers/ItemManager.cs | 物品类型枚举 |
+| TeamOperationResult | Modules/Team/TeamDesign.cs | 队伍操作结果 |
+| TeamCapacity | Modules/Team/TeamDesign.cs | 队伍容量配置 |
+| TeamEventData | Modules/Team/TeamDesign.cs | 队伍事件数据 |
 
 ## CONVENTIONS (C#)
 
@@ -230,7 +241,7 @@ unity -batchmode -runTests -testPlatform playmode
 - IModule接口定义在 PlayerActor.cs 中
 - 物品配置使用XML: Resources/Data/Items/Items.xml
 - ItemTemplate.ParseFromXml使用SelectSingleNode路径解析
-- ResourceManager.Get<T>(id)提供资源查找入口
+- ResourceManager.Load<T>(path)提供资源查找入口
 - ItemManager.Initialize使用[RuntimeInitializeOnLoadMethod]在场景加载前初始化
 - InventoryDesign是纯逻辑类（非MonoBehaviour），提供背包核心操作
 - UIListItems使用对象池(XObjectPool)管理列表项实例
@@ -245,6 +256,11 @@ unity -batchmode -runTests -testPlatform playmode
 - ProgressManager提供进度点系统，每200点触发普通事件，每1000点触发事件树
 - ProgressManager.travelRate使用滑动窗口计算过去60秒的平均TP/s
 - TravelPoint超出travelPointSize(默认1000)时归零重新累计
+- Team模块采用与Inventory模块相同的设计模式:
+  - TeamDesign: 单例非MonoBehaviour，核心逻辑
+  - TeamManager: 静态API，委托给TeamDesign
+  - TeamMemberData: 成员数据结构
+  - UITeam: UI面板，继承BaseUIPanel
 
 ## GIT WORKFLOW
 

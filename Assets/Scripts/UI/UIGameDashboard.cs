@@ -77,14 +77,11 @@ namespace Game1
                 travelRateText.text = $"{travelPointRate:F1} TP/s";
             }
 
-            // 更新当前金币显示（始终尝试获取玩家数据）
+            // 更新当前金币显示（背包中GoldCoin数目）
             if (goldText != null)
             {
-                var player = GameMain.instance?.GetPlayerActor();
-                if (player != null)
-                {
-                    goldText.text = $"{player.carryItems.gold}";
-                }
+                int goldCount = InventoryDesign.instance.GetTotalAmountByTemplateId("Core.Item.GoldCoin");
+                goldText.text = $"Gold {goldCount}";
             }
         }
     }
