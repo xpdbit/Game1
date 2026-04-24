@@ -347,7 +347,7 @@ unity -batchmode -runTests -testPlatform playmode
 |---------|--------|------|
 | 物品 | `Core.Item.{Name}` | `Core.Item.GoldCoin`, `Core.Item.ShortBlade` |
 | 角色 | `Core.Actor.{Name}` | `Core.Actor.Player`, `Core.Actor.Bandit` |
-| 事件 | `Core.Event.{Category}.{Name}` | `Core.Event.Combat.EncounterBandit` |
+| 事件 | `Core.Event.{Name}` | `Core.Event.EncounterBandit` |
 | 事件树 | `Core.EventTree.{Name}` | `Core.EventTree.MerchantEncounter` |
 
 ### 扩展名（Extend）

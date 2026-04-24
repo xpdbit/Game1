@@ -2,7 +2,7 @@
 <Events>
     <!-- 战斗事件 -->
     <Event>
-        <id>Core.Event.Combat.EncounterBandit</id>
+        <id>Core.Event.EncounterBandit</id>
         <name>遭遇战斗</name>
         <type>Combat</type>
         <description>路上遇到了强盗！</description>
@@ -11,7 +11,7 @@
         </effects>
     </Event>
     <Event>
-        <id>Core.Event.Combat.JungleAmbush</id>
+        <id>Core.Event.JungleAmbush</id>
         <name>丛林伏击</name>
         <type>Combat</type>
         <description>丛林中突然冲出野兽！</description>
@@ -21,7 +21,7 @@
         </effects>
     </Event>
     <Event>
-        <id>Core.Event.Combat.MountainBanditRaid</id>
+        <id>Core.Event.MountainBanditRaid</id>
         <name>山贼袭击</name>
         <type>Combat</type>
         <description>山贼拦路抢劫！</description>
@@ -32,7 +32,7 @@
 
     <!-- 交易事件 -->
     <Event>
-        <id>Core.Event.Trade.EncounterCaravan</id>
+        <id>Core.Event.EncounterCaravan</id>
         <name>路遇商队</name>
         <type>Trade</type>
         <description>遇到了一支商队，可以进行交易。</description>
@@ -42,7 +42,7 @@
         </effects>
     </Event>
     <Event>
-        <id>Core.Event.Trade.MarketTrading</id>
+        <id>Core.Event.MarketTrading</id>
         <name>集市贸易</name>
         <type>Trade</type>
         <description>来到了热闹的集市！</description>
@@ -54,7 +54,7 @@
 
     <!-- 发现事件 -->
     <Event>
-        <id>Core.Event.Discovery.AncientChest</id>
+        <id>Core.Event.AncientChest</id>
         <name>古旧宝箱</name>
         <type>Discovery</type>
         <description>路边发现了一个古旧的宝箱！</description>
@@ -64,7 +64,7 @@
         </effects>
     </Event>
     <Event>
-        <id>Core.Event.Discovery.HerbPatch</id>
+        <id>Core.Event.HerbPatch</id>
         <name>草药丛</name>
         <type>Discovery</type>
         <description>发现了一片茂密的草药丛！</description>
@@ -75,7 +75,7 @@
 
     <!-- 随机事件 -->
     <Event>
-        <id>Core.Event.Random.UnexpectedEncounter</id>
+        <id>Core.Event.UnexpectedEncounter</id>
         <name>随机遭遇</name>
         <type>Random</type>
         <description>旅途中发生了意想不到的事情...</description>
@@ -84,7 +84,7 @@
         </effects>
     </Event>
     <Event>
-        <id>Core.Event.Random.KindStranger</id>
+        <id>Core.Event.KindStranger</id>
         <name>好心人</name>
         <type>Random</type>
         <description>遇到好心人送了一些盘缠！</description>
@@ -95,7 +95,7 @@
 
     <!-- 故事事件 -->
     <Event>
-        <id>Core.Event.Story.AncientRuins</id>
+        <id>Core.Event.AncientRuins</id>
         <name>神秘遗迹</name>
         <type>Story</type>
         <description>发现了一处被遗忘的神秘遗迹...</description>
