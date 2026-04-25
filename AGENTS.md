@@ -44,10 +44,12 @@ Game1/
 │   │   │   ├── Combat/     # CombatSystem (移动自根目录 Combat/)
 │   │   │   ├── Team/       # TeamDesign, TeamManager, TeamMemberData, JobSystem
 │   │   │   ├── Inventory/  # InventoryDesign, ItemManager, InventoryEvents, InventoryItemData, EquipmentSystem
-│   │   │   ├── Skill/      # SkillDesign, SkillManager, SkillData (NEW)
-│   │   │   ├── Card/       # CardDesign, CardManager, CardData (NEW)
-│   │   │   ├── Prestige/   # PrestigeManager (NEW)
-│   │   │   └── PVP/        # PVPMatchManager, PVPArenaManager (NEW)
+│   │   │   ├── Skill/      # SkillDesign, SkillManager, SkillData
+│   │   │   ├── Card/       # CardDesign, CardManager, CardData
+│   │   │   ├── Prestige/   # PrestigeManager
+│   │   │   ├── PVP/        # PVPMatchManager, PVPArenaManager
+│   │   │   ├── Pet/         # PetCompanionModule (随队宠物)
+│   │   │   └── Activity/   # ActivityMonitorModule (活跃度监测)
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
@@ -165,6 +167,10 @@ Game1/
 | PrestigeUpgrade | Modules/Prestige/ | 轮回升级数据 |
 | PVPMatchManager | Modules/PVP/ | PVP匹配管理器 |
 | PVPArenaManager | Modules/PVP/ | PVP竞技场管理器 |
+| ActivityMonitorModule | Modules/Activity/ | 活跃度监测模块 |
+| PetCompanionModule | Modules/Pet/ | 随队宠物模块 |
+| PendingEventManager | Modules/Idle/ | 积压事件管理器 |
+| BatchProcessor | Modules/Idle/ | 批量处理系统 |
 | GlobalKeyboardHook | Core/Input/ | Windows全局键盘钩子 |
 | InputConverter | Core/Input/ | 虚实交互输入转换 |
 | EventQueue | Events/ | 事件队列 |
@@ -318,6 +324,56 @@ unity -batchmode -runTests -testPlatform playmode
 - ProgressManager提供进度点系统，每200点触发普通事件，每1000点触发事件树
 - ProgressManager.travelRate使用滑动窗口计算过去60秒的平均TP/s
 - TravelPoint超出travelPointSize(默认1000)时归零重新累计
+
+## 积压事件系统（新）
+
+积压事件是游戏离线/后台时累积的事件，等待玩家返回后决策：
+
+### 事件稀有度
+- **普通(Normal)**：高频率，低价值，可批量处理
+- **稀有(Rare)**：中等频率，中等价值，需要关注
+- **传奇(Legendary)**：低频率，高价值，独特体验
+
+### 批量处理系统
+- 普通事件提供批量处理选项（自动战斗、自动收获）
+- 批量处理提供简报：压缩文本、抽卡式结果展示
+- 几乎自动的战斗流程，只需简单选择
+
+### 时间线记录
+- 记录每个积压事件的时间点
+- 玩家可查看离线期间的事件编年史
+- 支持按时间顺序或稀有度排序
+
+## 活跃度系统（新）
+
+### 输入活跃度监测
+- 从"每次输入监测"改为"有效活跃度监测"
+- 有效活跃度 = 操作混合度 × 间隔差系数
+- 操作混合度：多种操作类型（点击、移动等）的组合
+- 间隔差：操作时间间隔的变化程度
+
+### 活跃/非活跃优势
+- **活跃玩家**：更多脚程、更多互动事件
+- **非活跃玩家**：自动战斗效率加成、离线收益提升
+
+## 随队宠物系统（新）
+
+参考桌宠设计，作为游戏封面展示：
+
+### 功能定位
+- 反馈玩家状态（血量、心情、活跃度）
+- 实时展示游戏进度
+- 增添情感陪伴元素
+
+### 视觉设计
+- 形象：纯色似狗宠物（类似蜡笔小新的小白）
+- 实现方式：2D骨骼动画
+- 状态动画：idle、happy、sad、excited等
+
+### 技术实现
+- 使用Unity 2D Animation或类似系统
+- 骨骼绑定 + 关键帧动画
+- 表情系统：眼睛、嘴巴等部件动画
 - Team模块采用与Inventory模块相同的设计模式:
   - TeamDesign: 单例非MonoBehaviour，核心逻辑
   - TeamManager: 静态API，委托给TeamDesign
