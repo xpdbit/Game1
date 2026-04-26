@@ -161,21 +161,21 @@ namespace Game1
 
     #region 具体事件实现示例
 
-/// <summary>
-        /// 战斗事件示例
-        /// </summary>
-        [Serializable]
-        public class CombatEvent : IGameEvent
-        {
-            public string eventId => "combat_001";
-            public string title => "遭遇战斗";
-            public string description => "路上遇到了强盗！";
-            public GameEventType eventType => GameEventType.Combat;
+    /// <summary>
+    /// 战斗事件示例
+    /// </summary>
+    [Serializable]
+    public class CombatEvent : IGameEvent
+    {
+        public string eventId => "combat_001";
+        public string title => "遭遇战斗";
+        public string description => "路上遇到了强盗！";
+        public GameEventType eventType => GameEventType.Combat;
 
-            public int enemyCount;
-            public int enemyStrength;
+        public int enemyCount;
+        public int enemyStrength;
 
-            public virtual bool CanTrigger()
+        public virtual bool CanTrigger()
         {
             // TODO: 根据条件判断
             return true;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Game1;
 
 namespace Game1.Modules.Combat
 {
@@ -293,7 +294,7 @@ namespace Game1.Modules.Combat
             if (result.playerVictory)
             {
                 result.goldReward = CalculateMultiEnemyGoldReward(enemies);
-                result.expReward = aliveEnemies.Count * 10; // 每个敌人10经验
+                result.expReward = result.kills.Count * 10; // 使用击杀数而非存活数
                 result.endMessage = $"击败了 {result.kills.Count} 个敌人！获得 {result.goldReward} 金币。";
             }
             else if (playerHp <= 0)
@@ -584,10 +585,10 @@ namespace Game1.Modules.Combat
         public NPCTemplate npcTemplate;  // NPC模板（如果有）
         public string npcInstanceId;       // NPC实例ID
 
-/// <summary>
-    /// 执行战斗（使用新战斗系统）
-    /// </summary>
-    public override EventResult Execute()
+        /// <summary>
+        /// 执行战斗（使用新战斗系统）
+        /// </summary>
+        public override EventResult Execute()
         {
             // 获取玩家数据
             var player = GameMain.instance?.GetPlayerActor();

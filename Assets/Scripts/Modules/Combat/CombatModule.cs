@@ -334,5 +334,35 @@ namespace Game1.Modules.Combat
         }
 
         #endregion
+
+        #region Serialization
+
+        /// <summary>
+        /// 导出战斗统计到存档数据
+        /// </summary>
+        /// <returns>战斗存档数据</returns>
+        public CombatSaveData Export()
+        {
+            return new CombatSaveData(_statistics);
+        }
+
+        /// <summary>
+        /// 从存档数据导入战斗统计
+        /// </summary>
+        /// <param name="saveData">战斗存档数据</param>
+        public void Import(CombatSaveData saveData)
+        {
+            if (saveData == null)
+            {
+                Debug.LogWarning("[CombatModule] Import: saveData is null, resetting statistics");
+                ResetStatistics();
+                return;
+            }
+
+            _statistics = saveData.ToStatistics();
+            Debug.Log($"[CombatModule] Imported combat statistics: battles={_statistics.totalBattles}, victories={_statistics.victories}, winRate={_statistics.winRate:P1}");
+        }
+
+        #endregion
     }
 }

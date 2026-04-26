@@ -1,0 +1,50 @@
+<Project>
+  <!--
+    Game1 代码质量配置
+    此文件用于非Unity构建环境的分析器配置（如PR检查、本地dotnet build）
+    Unity项目使用自动生成的csproj，此文件不影响Unity构建
+  -->
+
+  <!-- 分析器配置 -->
+  <PropertyGroup>
+    <!-- 启用分析器 -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnableDefaultAnalyzers>true</EnableDefaultAnalyzers>
+
+    <!-- 分析器严格模式 -->
+    <AnalysisMode>Recommended</AnalysisMode>
+    <AnalysisModeRecommended>AllEnabled</AnalysisModeRecommended>
+    <AnalysisModeAll>AllEnabled</AnalysisModeAll>
+
+    <!-- 警告视为错误 -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors></WarningsAsErrors>
+    <WarningsNotAsErrors>IDE0005;IDE0058;IDE0059;IDE0060</WarningsNotAsErrors>
+
+    <!-- 代码质量 -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Unity特定分析器配置 -->
+  <PropertyGroup>
+    <!-- Unity API 使用警告 -->
+    <NoWarn>$(NoWarn);USG0001</NoWarn>
+
+    <!-- 启用 Unity 分析器（如果可用） -->
+    <UnityAnalyzersEnabled>true</UnityAnalyzersEnabled>
+  </PropertyGroup>
+
+  <!-- 输出配置 -->
+  <PropertyGroup>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- 分析器输出 -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath></CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+</Project>

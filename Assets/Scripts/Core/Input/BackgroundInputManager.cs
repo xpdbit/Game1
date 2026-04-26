@@ -37,8 +37,10 @@ namespace Game1
         private bool _isInitialized;
 
         // 组件引用
-        private GlobalKeyboardHook _keyboardHook;
+        private GlobalKeyboardHook _keyboardHook;     // 后备键盘钩子
+        private RawInputManager _rawInputManager;    // Raw Input 管理器（优先使用）
         private InputConverter _inputConverter;
+        private bool _useRawInput = true;            // 是否使用 Raw Input
 
         // 事件
         public event Action onAnyKeyPressed;
@@ -80,9 +82,10 @@ namespace Game1
         {
             if (_isInitialized) return;
 
-            // 关键修复：确保GlobalKeyboardHook处于干净状态
+            // 关键修复：确保所有钩子处于干净状态
             // 防止上次Dispose后无法重新初始化的问题
             GlobalKeyboardHook.ForceReset();
+            RawInputManager.ForceReset();
 
             _lastMouseButtons = (int)Kirurobo.UniWindowController.GetMouseButtons();
             _lastModifierKeys = (int)Kirurobo.UniWindowController.GetModifierKeys();
@@ -92,25 +95,52 @@ namespace Game1
             _inputConverter = InputConverter.instance;
             _inputConverter.Initialize();
 
-            // 初始化全局键盘钩子（Windows only）
+            // 初始化 Raw Input 管理器（Windows only，优先使用）
 #if UNITY_STANDALONE_WIN
-            _keyboardHook = GlobalKeyboardHook.instance;
-            if (_keyboardHook.Initialize())
+            if (_useRawInput)
             {
-                _keyboardHook.onKeyDown += OnGlobalKeyDown;
-                _keyboardHook.onKeyUp += OnGlobalKeyUp;
-                _keyboardHook.onAnyKeyPressed += OnGlobalAnyKeyPressed;
+                _rawInputManager = RawInputManager.instance;
+                if (_rawInputManager.Initialize())
+                {
+                    _rawInputManager.onKeyDown += OnRawInputKeyDown;
+                    _rawInputManager.onKeyUp += OnRawInputKeyUp;
+                    _rawInputManager.onAnyKeyPressed += OnRawInputAnyKeyPressed;
 
-                // 转发InputConverter事件
-                _inputConverter.onStepsConverted += (steps) => onStepsConverted?.Invoke(steps);
-                _inputConverter.onComboUpdated += (multiplier) => onComboUpdated?.Invoke(multiplier);
-                _inputConverter.onPrecisionCalibration += () => onPrecisionCalibration?.Invoke();
+                    // 转发InputConverter事件
+                    _inputConverter.onStepsConverted += (steps) => onStepsConverted?.Invoke(steps);
+                    _inputConverter.onComboUpdated += (multiplier) => onComboUpdated?.Invoke(multiplier);
+                    _inputConverter.onPrecisionCalibration += () => onPrecisionCalibration?.Invoke();
 
-                Debug.Log("[BackgroundInputManager] Global keyboard hook installed");
+                    Debug.Log("[BackgroundInputManager] Raw Input manager installed - no hook delay");
+                }
+                else
+                {
+                    Debug.LogWarning("[BackgroundInputManager] Failed to initialize Raw Input - falling back to keyboard hook");
+                    _useRawInput = false;
+                }
             }
-            else
+
+            // 如果 Raw Input 失败，使用 GlobalKeyboardHook 作为后备
+            if (!_useRawInput || !_rawInputManager.isInitialized)
             {
-                Debug.LogWarning("[BackgroundInputManager] Failed to install global keyboard hook - keyboard input will be limited when window is not focused");
+                _keyboardHook = GlobalKeyboardHook.instance;
+                if (_keyboardHook.Initialize())
+                {
+                    _keyboardHook.onKeyDown += OnGlobalKeyDown;
+                    _keyboardHook.onKeyUp += OnGlobalKeyUp;
+                    _keyboardHook.onAnyKeyPressed += OnGlobalAnyKeyPressed;
+
+                    // 转发InputConverter事件
+                    _inputConverter.onStepsConverted += (steps) => onStepsConverted?.Invoke(steps);
+                    _inputConverter.onComboUpdated += (multiplier) => onComboUpdated?.Invoke(multiplier);
+                    _inputConverter.onPrecisionCalibration += () => onPrecisionCalibration?.Invoke();
+
+                    Debug.Log("[BackgroundInputManager] Global keyboard hook installed (fallback mode)");
+                }
+                else
+                {
+                    Debug.LogWarning("[BackgroundInputManager] Failed to install global keyboard hook - keyboard input will be limited when window is not focused");
+                }
             }
 #else
             Debug.Log("[BackgroundInputManager] Non-Windows platform - using fallback input method");
@@ -136,14 +166,47 @@ namespace Game1
             // 更新InputConverter
             _inputConverter?.Update();
 
-            // 更新全局键盘钩子
+            // 更新 Raw Input 管理器（优先）
 #if UNITY_STANDALONE_WIN
-            _keyboardHook?.Update();
+            _rawInputManager?.Update();
+
+            // 如果 Raw Input 未初始化，使用 GlobalKeyboardHook 作为后备
+            if (_rawInputManager == null || !_rawInputManager.isInitialized)
+            {
+                _keyboardHook?.Update();
+            }
 #endif
         }
 
         /// <summary>
-        /// 处理全局按键按下
+        /// 处理全局按键按下（来自 Raw Input）
+        /// </summary>
+        private void OnRawInputKeyDown(int vkCode)
+        {
+            onKeyDown?.Invoke(vkCode);
+
+            // 转换为脚程
+            _inputConverter?.OnKeystroke(vkCode);
+        }
+
+        /// <summary>
+        /// 处理全局按键释放（来自 Raw Input）
+        /// </summary>
+        private void OnRawInputKeyUp(int vkCode)
+        {
+            onKeyUp?.Invoke(vkCode);
+        }
+
+        /// <summary>
+        /// 处理全局任意键按下（来自 Raw Input）
+        /// </summary>
+        private void OnRawInputAnyKeyPressed()
+        {
+            onAnyKeyPressed?.Invoke();
+        }
+
+        /// <summary>
+        /// 处理全局按键按下（来自 GlobalKeyboardHook）
         /// </summary>
         private void OnGlobalKeyDown(int vkCode)
         {
@@ -154,7 +217,7 @@ namespace Game1
         }
 
         /// <summary>
-        /// 处理全局按键释放
+        /// 处理全局按键释放（来自 GlobalKeyboardHook）
         /// </summary>
         private void OnGlobalKeyUp(int vkCode)
         {
@@ -162,7 +225,7 @@ namespace Game1
         }
 
         /// <summary>
-        /// 处理全局任意键按下
+        /// 处理全局任意键按下（来自 GlobalKeyboardHook）
         /// </summary>
         private void OnGlobalAnyKeyPressed()
         {
@@ -317,6 +380,17 @@ namespace Game1
         public void Dispose()
         {
 #if UNITY_STANDALONE_WIN
+            // 清理 Raw Input 管理器
+            if (_rawInputManager != null)
+            {
+                _rawInputManager.onKeyDown -= OnRawInputKeyDown;
+                _rawInputManager.onKeyUp -= OnRawInputKeyUp;
+                _rawInputManager.onAnyKeyPressed -= OnRawInputAnyKeyPressed;
+                _rawInputManager.Dispose();
+                _rawInputManager = null;
+            }
+
+            // 清理 GlobalKeyboardHook
             if (_keyboardHook != null)
             {
                 // 移除事件订阅（防止内存泄漏和回调到已释放对象）
@@ -324,6 +398,7 @@ namespace Game1
                 _keyboardHook.onKeyUp -= OnGlobalKeyUp;
                 _keyboardHook.onAnyKeyPressed -= OnGlobalAnyKeyPressed;
                 _keyboardHook.Dispose();
+                _keyboardHook = null;
             }
 #endif
             _inputConverter = null;

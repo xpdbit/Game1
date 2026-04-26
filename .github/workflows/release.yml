@@ -1,0 +1,183 @@
+name: Release Build
+
+on:
+  push:
+    branches: [main]
+
+env:
+  UNITY_VERSION: '6000.1.5f1'
+
+jobs:
+  # ============================================
+  # Windows Standalone Release Build
+  # ============================================
+  build-windows-release:
+    name: Build Windows Release
+    runs-on: ubuntu-latest
+    container:
+      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create LFS file list
+        run: |
+          if [ -f .gitattributes ]; then
+            grep "filter=lfs" .gitattributes | sed 's/filter=lfs//' | sed 's/^ *//' | sed 's/ *$//' > lfs_files.txt
+          fi
+
+      - name: Download LFS objects
+        if: env.lfs_files
+        run: |
+          if [ -f lfs_files.txt ]; then
+            git lfs pull --include "$(cat lfs_files.txt | tr '\n' ',')"
+          fi
+
+      - name: Build Windows Release
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          /opt/unity-editor/Editor/Unity \
+            -projectPath "${{ github.workspace }}" \
+            -buildWindows64Player "Build/Release/Windows/Game1.exe" \
+            -logFile release-windows.log \
+            -quit
+
+      - name: Upload Windows Release Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Release
+          path: Build/Release/Windows/
+          retention-days: 90
+
+      - name: Upload Windows Release Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Release-Log
+          path: release-windows.log
+          retention-days: 90
+
+  # ============================================
+  # WebGL Release Build
+  # ============================================
+  build-webgl-release:
+    name: Build WebGL Release
+    runs-on: ubuntu-latest
+    container:
+      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build WebGL Release
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          /opt/unity-editor/Editor/Unity \
+            -projectPath "${{ github.workspace }}" \
+            -buildWebGLPlayer "Build/Release/WebGL" \
+            -logFile release-webgl.log \
+            -quit
+
+      - name: Upload WebGL Release Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebGL-Release
+          path: Build/Release/WebGL/
+          retention-days: 90
+
+      - name: Upload WebGL Release Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebGL-Release-Log
+          path: release-webgl.log
+          retention-days: 90
+
+  # ============================================
+  # Release Unit Tests
+  # ============================================
+  test-release:
+    name: Run Release Tests
+    runs-on: ubuntu-latest
+    container:
+      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Unit Tests
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          /opt/unity-editor/Editor/Unity \
+            -projectPath "${{ github.workspace }}" \
+            -runTests \
+            -testPlatform EditMode \
+            -testResults "${{ github.workspace }}/test-results/release-tests.xml" \
+            -logFile release-test.log \
+            -quit
+
+      - name: Upload Release Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Release-Test-Results
+          path: test-results/
+          retention-days: 90
+
+      - name: Publish Release Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Release Tests
+          path: 'test-results/*.xml'
+          reporter: dotnet-trx
+          fail-on: test failures
+
+  # ============================================
+  # Release Summary & Notification
+  # ============================================
+  release-status:
+    name: Release Status
+    runs-on: ubuntu-latest
+    needs: [build-windows-release, build-webgl-release, test-release]
+    if: always()
+    steps:
+      - name: Release Build Summary
+        run: |
+          echo "## Release Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows Release Build | ${{ needs.build-windows-release.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| WebGL Release Build | ${{ needs.build-webgl-release.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release Tests | ${{ needs.test-release.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Notification on Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          author_name: 'Game1 Release'
+          fields: repo,message,commit,author,workflow,job
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Success Notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          author_name: 'Game1 Release'
+          fields: repo,message,commit,author,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

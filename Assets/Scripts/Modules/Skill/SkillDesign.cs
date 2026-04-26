@@ -42,7 +42,6 @@ namespace Game1
         /// </summary>
         public void Initialize()
         {
-            // TODO: 从Skills.xml加载技能模板
             LoadSkillTemplates();
             Debug.Log("[SkillDesign] Initialized");
         }
@@ -653,5 +652,69 @@ namespace Game1
         }
 
         #endregion
+
+        #region Serialization
+
+        /// <summary>
+        /// 导出所有角色技能数据用于存档
+        /// </summary>
+        public SerializableDictionary<int, List<SkillSaveData>> Export()
+        {
+            var saveData = new SerializableDictionary<int, List<SkillSaveData>>();
+            foreach (var kvp in _memberSkills)
+            {
+                var memberSkills = new List<SkillSaveData>();
+                foreach (var skill in kvp.Value)
+                {
+                    memberSkills.Add(new SkillSaveData
+                    {
+                        skillId = skill.id,
+                        currentLevel = skill.currentLevel
+                    });
+                }
+                saveData[kvp.Key] = memberSkills;
+            }
+            return saveData;
+        }
+
+        /// <summary>
+        /// 从存档恢复角色技能数据
+        /// </summary>
+        public void Import(SerializableDictionary<int, List<SkillSaveData>> saveData)
+        {
+            _memberSkills.Clear();
+            if (saveData == null) return;
+
+            foreach (var kvp in saveData)
+            {
+                var memberId = kvp.Key;
+                var skills = new List<SkillData>();
+                foreach (var savedSkill in kvp.Value)
+                {
+                    var template = GetTemplate(savedSkill.skillId);
+                    if (template == null) continue;
+
+                    var skillData = template.ToSkillData();
+                    skillData.currentLevel = savedSkill.currentLevel;
+                    skills.Add(skillData);
+                }
+                if (skills.Count > 0)
+                {
+                    _memberSkills[memberId] = skills;
+                }
+            }
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// 技能存档数据结构（精简版，用于存档）
+    /// </summary>
+    [Serializable]
+    public class SkillSaveData
+    {
+        public string skillId;
+        public int currentLevel;
     }
 }

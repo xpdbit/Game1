@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Game1.Core.EventBus
@@ -72,12 +74,100 @@ namespace Game1.Core.EventBus
         }
 
         /// <summary>
-        /// 发布事件 (异步) - 实现IEventBus接口
+        /// 发布事件 (异步泛型便捷方法)
+        /// </summary>
+        public void PublishAsync<T>(EventType eventType, T sender, object data = null)
+        {
+            PublishAsync(new GameEvent(eventType, sender, data));
+        }
+
+        /// <summary>
+        /// 发布事件 (异步可等待泛型便捷方法)
+        /// </summary>
+        public async UniTask PublishAsyncAwaitable<T>(EventType eventType, T sender, object data = null, CancellationToken cancellationToken = default)
+        {
+            await PublishAsyncAwaitable(new GameEvent(eventType, sender, data), cancellationToken);
+        }
+
+        /// <summary>
+        /// 发布事件 (异步) - 真正异步实现，不阻塞主线程
+        /// 使用UniTask.Void实现fire-and-forget异步发布
         /// </summary>
         public void PublishAsync(GameEvent e)
         {
-            // 异步发布：在下一帧发布事件
-            UnityEngine.Debug.Log($"[EventBus] Async publish: {e.type}");
+            // 先获取订阅者列表的快照，避免异步执行时集合被修改
+            if (!_subscribers.TryGetValue(e.type, out var subscriberList) || subscriberList.Count == 0)
+            {
+                return;
+            }
+
+            // 复制列表以确保线程安全和迭代安全
+            var subscribersSnapshot = new List<IEventSubscriber>(subscriberList);
+
+            // Fire-and-forget异步执行，不阻塞主线程
+            UniTask.Void(async () =>
+            {
+                // 切换到主线程，确保Unity API调用安全
+                await UniTask.SwitchToMainThread();
+
+                // 使用PlayerLoopTiming.Update确保在下一帧执行
+                // 这样不会阻塞当前的PublishAsync调用
+                await UniTask.Yield(PlayerLoopTiming.Update, CancellationToken.None);
+
+                try
+                {
+                    foreach (var subscriber in subscribersSnapshot)
+                    {
+                        try
+                        {
+                            subscriber.OnEvent(e);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"Event handler error for {e.type}: {ex.Message}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"EventBus async publish error for {e.type}: {ex.Message}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// 发布事件 (异步) - 异步发布并等待所有订阅者处理完成
+        /// 注意：这是等待所有处理器完成，而非立即返回
+        /// </summary>
+        public async UniTask PublishAsyncAwaitable(GameEvent e, CancellationToken cancellationToken = default)
+        {
+            if (!_subscribers.TryGetValue(e.type, out var subscriberList) || subscriberList.Count == 0)
+            {
+                return;
+            }
+
+            // 复制列表以确保线程安全和迭代安全
+            var subscribersSnapshot = new List<IEventSubscriber>(subscriberList);
+
+            // 切换到主线程
+            await UniTask.SwitchToMainThread();
+
+            // 等待下一帧
+            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+
+            foreach (var subscriber in subscribersSnapshot)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    subscriber.OnEvent(e);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Event handler error for {e.type}: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>

@@ -289,8 +289,9 @@ namespace Game1
             {
                 try
                 {
-                    var kbStruct = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-                    int vkCode = (int)kbStruct.vkCode;
+                    // 直接读取 vkCode（偏移量0），避免 Marshal.PtrToStructure 分配内存
+                    // KBDLLHOOKSTRUCT: vkCode 是第一个 uint32 字段
+                    int vkCode = Marshal.ReadInt32(lParam, 0);
 
                     // 仅将按键码入队列，不做任何耗时操作
                     // 这样可以避免阻塞消息泵导致输入延迟

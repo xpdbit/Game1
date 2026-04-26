@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Game1.Modules.Combat;
 
 namespace Game1
 {
@@ -150,6 +151,32 @@ namespace Game1
             // 重置状态
             stats.currentHp = stats.maxHp;
 
+            // 恢复模块数据
+            // 背包数据
+            if (saveData.inventoryItems != null && saveData.inventoryItems.Count > 0)
+            {
+                InventoryDesign.instance.Import(saveData.inventoryItems);
+            }
+
+            // 队伍数据
+            if (saveData.teamMembers != null && saveData.teamMembers.Count > 0)
+            {
+                TeamDesign.instance.Import(saveData.teamMembers);
+            }
+
+            // 技能数据
+            if (saveData.skillsByMemberId != null && saveData.skillsByMemberId.Count > 0)
+            {
+                SkillDesign.instance.Import(saveData.skillsByMemberId);
+            }
+
+            // 战斗数据
+            var combatModule = modules.GetModule<CombatModule>();
+            if (combatModule != null)
+            {
+                combatModule.Import(saveData.combatData);
+            }
+
             Debug.Log($"[PlayerActor] Applied save data: ID={id}, Name={actorName}, Level={level}, Gold={carryItems.gold}");
         }
 
@@ -158,7 +185,7 @@ namespace Game1
         /// </summary>
         public PlayerSaveData ExportToSaveData()
         {
-            return new PlayerSaveData
+            var saveData = new PlayerSaveData
             {
                 actorId = id,
                 actorName = actorName,
@@ -167,6 +194,25 @@ namespace Game1
                 offlineAccumulatedTime = 0f,
                 timestamp = DateTime.Now.Ticks
             };
+
+            // 导出模块数据
+            // 背包数据
+            saveData.inventoryItems = InventoryDesign.instance.Export();
+
+            // 队伍数据
+            saveData.teamMembers = TeamDesign.instance.Export();
+
+            // 技能数据
+            saveData.skillsByMemberId = SkillDesign.instance.Export();
+
+            // 战斗数据
+            var combatModule = modules.GetModule<CombatModule>();
+            if (combatModule != null)
+            {
+                saveData.combatData = combatModule.Export();
+            }
+
+            return saveData;
         }
         #endregion
     }

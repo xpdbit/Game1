@@ -1,0 +1,384 @@
+# Game1 代码风格配置
+# Unity 6.1.5 + URP + C# 9.0 项目
+
+# ===========================================
+# 基础配置
+# ===========================================
+
+root = true
+
+# 所有文件
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# ===========================================
+# C# 特定配置
+# ===========================================
+
+[*.cs]
+# 缩进
+indent_style = space
+indent_size = 4
+
+# ===========================================
+# 命名规范
+# ===========================================
+
+# 私有字段: _camelCase 或 m_CamelCase
+dotnet_naming_rule.private_field_style.rule_definition = 任意
+dotnet_naming_rule.private_field_style.style = first_char_lowercase
+
+# ===========================================
+# 编码质量规则
+# ===========================================
+
+# CA1500: 变量名不应与字段名匹配 (排除序列化字段)
+dotnet_diagnostic.CA1500.severity = suggestion
+
+# CA1502: 避免过度复杂的方法
+dotnet_diagnostic.CA1502.severity = warning
+dotnet_diagnostic.CA1502.maximumComplexity = 25
+
+# CA1505: 避免不可维护的代码
+dotnet_diagnostic.CA1505.severity = warning
+
+# CA1506: 避免过度类耦合
+dotnet_diagnostic.CA1506.severity = warning
+
+# CA1507: 在 nameof() 中使用 nameof
+dotnet_diagnostic.CA1507.severity = warning
+
+# ===========================================
+# 设计规则
+# ===========================================
+
+# CA1062: 验证公共方法的参数
+dotnet_diagnostic.CA1062.severity = warning
+
+# CA1063: 实现 IDisposable 正确
+dotnet_diagnostic.CA1063.severity = warning
+
+# CA1064: 异常应为公共的
+dotnet_diagnostic.CA1064.severity = suggestion
+
+# ===========================================
+# 性能规则
+# ===========================================
+
+# CA1802: 使用字面量
+dotnet_diagnostic.CA1802.severity = suggestion
+
+# CA1805: 避免不必要初始化
+dotnet_diagnostic.CA1805.severity = suggestion
+
+# CA1812: 避免未实例化的内部类
+dotnet_diagnostic.CA1812.severity = suggestion
+
+# CA1813: 避免未密封的属性
+dotnet_diagnostic.CA1813.severity = suggestion
+
+# CA1822: 将成员标记为 static
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# CA1823: 避免未使用的私有字段
+dotnet_diagnostic.CA1823.severity = suggestion
+
+# ===========================================
+# 可靠性规则
+# ===========================================
+
+# CA2007: 不要直接等待 Task
+dotnet_diagnostic.CA2007.severity = none
+
+# CA2008: 不要通过 TaskScheduler 传递任务
+dotnet_diagnostic.CA2008.severity = warning
+
+# CA2009: 不要在 ref struct 上调用 ICollection<T>
+dotnet_diagnostic.CA2009.severity = warning
+
+# ===========================================
+# 使用规则
+# ===========================================
+
+# IDE0005: 不必要的 using 导入
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0008: 不必要的代码
+dotnet_diagnostic.IDE0008.severity = suggestion
+
+# IDE0010: 添加缺失的 switch case
+dotnet_diagnostic.IDE0010.severity = suggestion
+
+# IDE0011: 大括号格式化
+dotnet_diagnostic.IDE0011.severity = warning
+
+# IDE0016: 使用 nameof
+dotnet_diagnostic.IDE0016.severity = warning
+
+# IDE0032: 使用自动属性
+dotnet_diagnostic.IDE0032.severity = suggestion
+
+# IDE0035: 删除无法访问的代码
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: 排序修饰符
+dotnet_diagnostic.IDE0036.severity = suggestion
+
+# IDE0037: 使用推断的成员名称
+dotnet_diagnostic.IDE0037.severity = suggestion
+
+# IDE0038: 使用模式匹配
+dotnet_diagnostic.IDE0038.severity = suggestion
+
+# IDE0039: 使用本地函数
+dotnet_diagnostic.IDE0039.severity = suggestion
+
+# IDE0040: 添加修饰符
+dotnet_diagnostic.IDE0040.severity = suggestion
+
+# IDE0041: 使用 nameof
+dotnet_diagnostic.IDE0041.severity = suggestion
+
+# IDE0042: 变量声明样式
+dotnet_diagnostic.IDE0042.severity = suggestion
+
+# IDE0043: 使用 'nameof' 代替字符串
+dotnet_diagnostic.IDE0043.severity = suggestion
+
+# IDE0044: 使字段只读
+dotnet_diagnostic.IDE0044.severity = suggestion
+
+# IDE0045: 使用条件表达式
+dotnet_diagnostic.IDE0045.severity = suggestion
+
+# IDE0046: 使用条件表达式而不是 if-else
+dotnet_diagnostic.IDE0046.severity = suggestion
+
+# IDE0047/48: 括号格式
+dotnet_diagnostic.IDE0047.severity = warning
+dotnet_diagnostic.IDE0048.severity = warning
+
+# IDE0050: 使用推断的元组名称
+dotnet_diagnostic.IDE0050.severity = suggestion
+
+# IDE0051: 删除未使用的私有成员
+dotnet_diagnostic.IDE0051.severity = suggestion
+
+# IDE0052: 删除未读过的私有成员
+dotnet_diagnostic.IDE0052.severity = suggestion
+
+# IDE0053: 使用表达式体 lambda
+dotnet_diagnostic.IDE0053.severity = suggestion
+
+# IDE0054: 使用 'is' 而不是强制转换
+dotnet_diagnostic.IDE0054.severity = suggestion
+
+# IDE0055: 修正格式
+dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE0056: 使用 '?.'
+dotnet_diagnostic.IDE0056.severity = suggestion
+
+# IDE0057: 使用扩展方法代替
+dotnet_diagnostic.IDE0057.severity = suggestion
+
+# IDE0058: 禁止设置未使用的本地变量值（仅限测试代码）
+dotnet_diagnostic.IDE0058.severity = none
+
+# IDE0059: 禁止赋值值从未使用（仅限测试代码）
+dotnet_diagnostic.IDE0059.severity = none
+
+# IDE0060: 删除未使用的参数
+dotnet_diagnostic.IDE0060.severity = suggestion
+
+# IDE0061: 使用本地函数
+dotnet_diagnostic.IDE0061.severity = suggestion
+
+# IDE0062: 使本地函数 static
+dotnet_diagnostic.IDE0062.severity = suggestion
+
+# IDE0063: 使用简单 'using' 语句
+dotnet_diagnostic.IDE0063.severity = suggestion
+
+# IDE0064: 使类型可以引用
+dotnet_diagnostic.IDE0064.severity = suggestion
+
+# IDE0065: using 语句排序
+dotnet_diagnostic.IDE0065.severity = warning
+
+# IDE0066: 使用 switch 表达式
+dotnet_diagnostic.IDE0066.severity = suggestion
+
+# IDE0070: 使用 'System.HashCode.Combine'
+dotnet_diagnostic.IDE0070.severity = suggestion
+
+# IDE0071: 推断内插字符串类型
+dotnet_diagnostic.IDE0071.severity = suggestion
+
+# IDE0072: 添加缺失的 switch case
+dotnet_diagnostic.IDE0072.severity = warning
+
+# IDE0073: 使用文件头
+dotnet_diagnostic.IDE0073.severity = none
+
+# IDE0074: 使用 'not' 模式
+dotnet_diagnostic.IDE0074.severity = suggestion
+
+# IDE0075: 简化条件表达式
+dotnet_diagnostic.IDE0075.severity = suggestion
+
+# IDE0076: 禁止在同一程序集中使用旧版特效
+dotnet_diagnostic.IDE0076.severity = warning
+
+# IDE0077: 禁止指定旧版特效
+dotnet_diagnostic.IDE0077.severity = warning
+
+# IDE0078: 使用模式匹配
+dotnet_diagnostic.IDE0078.severity = suggestion
+
+# IDE0079: 删除不必要的断言
+dotnet_diagnostic.IDE0079.severity = suggestion
+
+# IDE0080: 删除不需要的撇去
+dotnet_diagnostic.IDE0080.severity = suggestion
+
+# IDE0081: 使用 'not' 模式
+dotnet_diagnostic.IDE0081.severity = suggestion
+
+# IDE0082: typeof 应改为 nameof
+dotnet_diagnostic.IDE0082.severity = warning
+
+# IDE0083: 使用 'not' 模式
+dotnet_diagnostic.IDE0083.severity = suggestion
+
+# IDE0084: 使用字段初始值设定项
+dotnet_diagnostic.IDE0084.severity = suggestion
+
+# IDE0085: 简化切换
+dotnet_diagnostic.IDE0085.severity = suggestion
+
+# IDE0086: 使用 'nameof'
+dotnet_diagnostic.IDE0086.severity = suggestion
+
+# IDE0087: 使用 'not' 模式
+dotnet_diagnostic.IDE0087.severity = suggestion
+
+# IDE0088: 使用 'or' 模式
+dotnet_diagnostic.IDE0088.severity = suggestion
+
+# IDE0089: 初始化时赋值
+dotnet_diagnostic.IDE0089.severity = suggestion
+
+# IDE0090: 使用 'new'
+dotnet_diagnostic.IDE0090.severity = suggestion
+
+# IDE0091: 使用推断成员初始值设定项
+dotnet_diagnostic.IDE0091.severity = suggestion
+
+# IDE0092: 使用 nameof
+dotnet_diagnostic.IDE0092.severity = warning
+
+# IDE0093: 使用 'when' 模式
+dotnet_diagnostic.IDE0093.severity = suggestion
+
+# IDE0094: 使用 'is' 而不是 'is' 和 cast
+dotnet_diagnostic.IDE0094.severity = suggestion
+
+# IDE0095: 使用推断的 tuple 名称
+dotnet_diagnostic.IDE0095.severity = suggestion
+
+# IDE0096: 使用 'or' 模式
+dotnet_diagnostic.IDE0096.severity = suggestion
+
+# IDE0097: 使用 'and' 模式
+dotnet_diagnostic.IDE0097.severity = suggestion
+
+# IDE0098: 使用 'in' 模式
+dotnet_diagnostic.IDE0098.severity = suggestion
+
+# IDE0099: 不需要强制转换
+dotnet_diagnostic.IDE0099.severity = suggestion
+
+# IDE0100: 删除不必要的相等比较
+dotnet_diagnostic.IDE0100.severity = suggestion
+
+# IDE0101: 简化 LINQ
+dotnet_diagnostic.IDE0101.severity = suggestion
+
+# IDE0102: 在 foreach 循环中使用 AsSpan
+dotnet_diagnostic.IDE0102.severity = suggestion
+
+# IDE0103: 在 LINQ 中使用 AsSpan
+dotnet_diagnostic.IDE0103.severity = suggestion
+
+# IDE0104: 有效的测试方法
+dotnet_diagnostic.IDE0104.severity = warning
+
+# IDE0105: 在 getter 中返回数组
+dotnet_diagnostic.IDE0105.severity = warning
+
+# IDE0106: 索引修饰符样式
+dotnet_diagnostic.IDE0106.severity = suggestion
+
+# IDE0107: 禁止无体表达成员
+dotnet_diagnostic.IDE0107.severity = warning
+
+# IDE0108: 强制无体表达成员
+dotnet_diagnostic.IDE0108.severity = warning
+
+# IDE0109: 使用 'new'
+dotnet_diagnostic.IDE0109.severity = suggestion
+
+# IDE0110: 删除不必要的元组名称
+dotnet_diagnostic.IDE0110.severity = suggestion
+
+# IDE0111: 使用隐式类型
+dotnet_diagnostic.IDE0111.severity = suggestion
+
+# IDE0112: 使用静态本地函数
+dotnet_diagnostic.IDE0112.severity = suggestion
+
+# IDE0113: 使用 'is' 而不是 'isnot'
+dotnet_diagnostic.IDE0113.severity = suggestion
+
+# IDE0114: 使用 'new'
+dotnet_diagnostic.IDE0114.severity = suggestion
+
+# IDE0115: 优先使用 'not'
+dotnet_diagnostic.IDE0115.severity = suggestion
+
+# ===========================================
+# 格式化规则 (Style)
+# ===========================================
+
+# 方案棉甲
+dotnet_diagnostic.editorconfig.severity = warning
+
+# ===========================================
+# 消除分析器规则冲突
+# ===========================================
+
+# 确保 Unity 分析器不与 editorconfig 冲突
+dotnet_diagnostic.UnityAPIUsageEnumMember.severity = warning
+dotnet_diagnostic.UnityAPIUsageMember.severity = warning
+dotnet_diagnostic.UnityAPIUsageType.severity = warning
+
+# ===========================================
+# 严重性级别关键词
+# ===========================================
+# none/silent/suggestion/warning/error
+
+# ===========================================
+# 排除的文件
+# ===========================================
+
+# 排除生成的文件
+**/Assembly-CSharp*.csproj
+**/Assembly-*.cs
+**/Temp/**
+**/Library/**
+**/obj/**
+**/Logs/**

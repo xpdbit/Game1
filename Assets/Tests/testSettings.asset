@@ -1,0 +1,14 @@
+# Unity Test Framework - 测试配置文件
+# 用于Unity编辑器内运行测试的配置文件
+
+# Test Framework设置
+testPlatform: EditMode
+testSettings:
+  instantiators:
+    - method: NUnit.ObjectNotation
+    - method: Serialization
+  defaultStates:
+    - name: BeforeTearDown
+      enabled: false
+    - name: UnderTeardown
+      enabled: false

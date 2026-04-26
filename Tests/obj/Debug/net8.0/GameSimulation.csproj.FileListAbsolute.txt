@@ -1,0 +1,13 @@
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.GeneratedMSBuildEditorConfig.editorconfig
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.AssemblyInfoInputs.cache
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.AssemblyInfo.cs
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.csproj.CoreCompileInputs.cache
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.sourcelink.json
+E:\UnityProgram\Game1\Tests\bin\Debug\net8.0\GameSimulation.exe
+E:\UnityProgram\Game1\Tests\bin\Debug\net8.0\GameSimulation.deps.json
+E:\UnityProgram\Game1\Tests\bin\Debug\net8.0\GameSimulation.runtimeconfig.json
+E:\UnityProgram\Game1\Tests\bin\Debug\net8.0\GameSimulation.dll
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.dll
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\refint\GameSimulation.dll
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\GameSimulation.genruntimeconfig.cache
+E:\UnityProgram\Game1\Tests\obj\Debug\net8.0\ref\GameSimulation.dll

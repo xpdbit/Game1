@@ -20,6 +20,93 @@ namespace Game1
     }
 
     /// <summary>
+    /// UI状态配置 - 数据驱动核心
+    /// </summary>
+    [Serializable]
+    public class UIStateConfig
+    {
+        public UIState state;
+        [Tooltip("进入状态时打开的面板ID列表")]
+        public string[] openPanelsOnEnter = Array.Empty<string>();
+        [Tooltip("退出状态时关闭的面板ID列表")]
+        public string[] closePanelsOnExit = Array.Empty<string>();
+    }
+
+    /// <summary>
+    /// 状态表 - 替代switch硬编码
+    /// </summary>
+    [Serializable]
+    public class UIStateTable
+    {
+        [Tooltip("状态配置列表")]
+        public UIStateConfig[] configs = Array.Empty<UIStateConfig>();
+
+        private Dictionary<UIState, UIStateConfig> _configMap;
+
+        /// <summary>
+        /// 获取默认状态表配置（用于编辑器配置或回退）
+        /// </summary>
+        public static UIStateConfig[] GetDefaultConfigs()
+        {
+            return new UIStateConfig[]
+            {
+                new UIStateConfig { state = UIState.Loading, openPanelsOnEnter = new[] { "LoadingPanel" }, closePanelsOnExit = new[] { "LoadingPanel" } },
+                new UIStateConfig { state = UIState.MainMenu, openPanelsOnEnter = new[] { "MainMenuPanel" } },
+                new UIStateConfig { state = UIState.Playing, openPanelsOnEnter = new[] { "GameHUDPanel" } },
+                new UIStateConfig { state = UIState.Paused, openPanelsOnEnter = new[] { "PausePanel" } },
+                new UIStateConfig { state = UIState.Event, openPanelsOnEnter = new[] { "EventPanel" } },
+            };
+        }
+
+        /// <summary>
+        /// 初始化状态表（若序列化为空，使用默认配置）
+        /// </summary>
+        public void Initialize()
+        {
+            _configMap = new Dictionary<UIState, UIStateConfig>();
+
+            // 使用序列化的configs，如果为空则使用默认配置保持向后兼容
+            var configsToUse = configs.Length > 0 ? configs : GetDefaultConfigs();
+
+            foreach (var config in configsToUse)
+            {
+                if (config != null)
+                    _configMap[config.state] = config;
+            }
+        }
+
+        /// <summary>
+        /// 获取状态配置
+        /// </summary>
+        public bool TryGetConfig(UIState state, out UIStateConfig config)
+        {
+            if (_configMap == null)
+                Initialize();
+            return _configMap.TryGetValue(state, out config);
+        }
+
+        /// <summary>
+        /// 获取进入状态时需要打开的面板
+        /// </summary>
+        public string[] GetOpenPanelsOnEnter(UIState state)
+        {
+            if (TryGetConfig(state, out var config))
+                return config.openPanelsOnEnter;
+            return Array.Empty<string>();
+        }
+
+        /// <summary>
+        /// 获取退出状态时需要关闭的面板
+        /// </summary>
+        public string[] GetClosePanelsOnExit(UIState state)
+        {
+            if (TryGetConfig(state, out var config))
+                return config.closePanelsOnExit;
+            return Array.Empty<string>();
+        }
+    }
+
+    /// <summary>
     /// UI面板接口
     /// </summary>
     public interface IUIPanel
@@ -47,6 +134,11 @@ namespace Game1
         // 面板字典
         private Dictionary<string, IUIPanel> _panels = new();
         private Stack<string> _panelStack = new(); // 用于管理面板堆栈（返回）
+
+        // 状态表 - 数据驱动替代switch硬编码
+        [Header("状态配置")]
+        [Tooltip("状态表配置 - 新增状态只需在此配置，无需修改源码")]
+        public UIStateTable stateTable = new();
         #endregion
 
         #region UI Components
@@ -111,6 +203,9 @@ namespace Game1
         /// </summary>
         private void Initialize()
         {
+            // 初始化状态表
+            stateTable.Initialize();
+
             gameDashboard.Initialize();
 
             // 初始关闭所有面板
@@ -159,33 +254,21 @@ namespace Game1
 
         private void OnStateExit(UIState state)
         {
-            switch (state)
+            // 数据驱动：使用状态表获取退出状态时需要关闭的面板
+            var panelsToClose = stateTable.GetClosePanelsOnExit(state);
+            foreach (var panelId in panelsToClose)
             {
-                case UIState.Loading:
-                    ClosePanel("LoadingPanel");
-                    break;
+                ClosePanel(panelId);
             }
         }
 
         private void OnStateEnter(UIState state)
         {
-            switch (state)
+            // 数据驱动：使用状态表获取进入状态时需要打开的面板
+            var panelsToOpen = stateTable.GetOpenPanelsOnEnter(state);
+            foreach (var panelId in panelsToOpen)
             {
-                case UIState.Loading:
-                    OpenPanel("LoadingPanel");
-                    break;
-                case UIState.MainMenu:
-                    OpenPanel("MainMenuPanel");
-                    break;
-                case UIState.Playing:
-                    OpenPanel("GameHUDPanel");
-                    break;
-                case UIState.Paused:
-                    OpenPanel("PausePanel");
-                    break;
-                case UIState.Event:
-                    OpenPanel("EventPanel");
-                    break;
+                OpenPanel(panelId);
             }
         }
         #endregion
