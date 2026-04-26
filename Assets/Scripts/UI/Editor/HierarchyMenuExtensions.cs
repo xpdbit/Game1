@@ -17,7 +17,7 @@ namespace Game1.Editor
         public static void CreateProgressBar(MenuCommand menuCommand)
         {
             // 创建Canvas（如果不存在）
-            Canvas canvas = Object.FindObjectOfType<Canvas>();
+            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
                 GameObject canvasObj = new GameObject("Canvas");
@@ -147,7 +147,7 @@ namespace Game1.Editor
 
         private static Canvas GetOrCreateCanvas()
         {
-            Canvas canvas = Object.FindObjectOfType<Canvas>();
+            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
                 GameObject canvasObj = new GameObject("Canvas");

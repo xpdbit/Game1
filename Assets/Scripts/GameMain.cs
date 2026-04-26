@@ -1,13 +1,19 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
+using VContainer.Unity;
+using Game1.Modules.Travel;
+using Game1.Modules.Combat;
+using Game1.Core.EventBus;
 
 namespace Game1
 {
     /// <summary>
     /// 游戏主入口
     /// 单例模式，管理所有子系统
+    /// 同时作为VContainer的LifetimeScope
     /// </summary>
-    public class GameMain : MonoBehaviour
+    public class GameMain : LifetimeScope
     {
         #region Singleton
         public static GameMain instance { get; private set; }
@@ -19,8 +25,8 @@ namespace Game1
         [Header("UI引用")]
         public UIManager uIManager;
 
-        [Header("玩家数据")]
-        public PlayerActor playerActor;
+        [Header("游戏循环")]
+        public GameLoopManager gameLoopManager;
 
         [Header("旅行系统")]
         public TravelManager travelManager;
@@ -39,22 +45,25 @@ namespace Game1
         // 事件
         public event System.Action onPlayerInput;
 
-        private void Awake()
+        protected override void Awake()
         {
             instance = this;
 
-            // 初始化管理器（按依赖顺序）
+            // 初始化管理器（按依赖顺序）- 必须在base.Awake()之前
             InitializeManagers();
 
             // 初始化物品系统
             ItemManager.Initialize();
 
-            // 初始化玩家
-            InitializePlayer();
+            // VContainer的Awake - 创建容器并调用Configure()
+            base.Awake();
         }
 
         private void Start()
         {
+            // 初始化玩家（等待GameLoopManager完成初始化）
+            InitializePlayer();
+
             // 开始游戏
             StartGame();
         }
@@ -69,11 +78,27 @@ namespace Game1
             }
         }
 
+        protected override void Configure(IContainerBuilder builder)
+        {
+            // Register existing singleton managers via RegisterInstance
+            // InitializeManagers() runs before this, so singletons are already initialized
+            builder.RegisterInstance(gameLoopManager).As<GameLoopManager>();
+            builder.RegisterInstance(TravelManager.instance).As<ITravelManager>();
+            builder.RegisterInstance(CombatSystem.instance).As<ICombatSystem>();
+            builder.RegisterInstance(EventBus.instance).As<IEventBus>();
+            builder.RegisterInstance(ProgressManager.instance);
+            builder.Register<SaveManager>(Lifetime.Singleton);
+        }
+
         /// <summary>
         /// 初始化所有管理器
         /// </summary>
         private void InitializeManagers()
         {
+            // GameLoopManager必须首先创建，确保PlayerActor唯一实例
+            if (gameLoopManager == null)
+                gameLoopManager = gameObject.AddComponent<GameLoopManager>();
+
             // 旅行管理器
             if (travelManager == null)
                 travelManager = TravelManager.instance;
@@ -82,9 +107,10 @@ namespace Game1
             if (progressManager == null)
                 progressManager = ProgressManager.instance;
 
-            // 事件队列
-            if (eventQueue == null)
-                eventQueue = new EventQueue();
+            // 事件队列 - 使用GameLoopManager已创建的实例
+            // 注意：EventQueue在GameLoopManager.InitializeSystems()中创建
+            // GameLoopManager先于TravelManager初始化，确保一致性
+            eventQueue ??= new EventQueue();
 
             // 事件链管理器
             if (eventChainManager == null)
@@ -98,8 +124,26 @@ namespace Game1
             if (combatSystem == null)
                 combatSystem = CombatSystem.instance;
 
+            // 卡牌系统（CardDesign在Game1命名空间）
+            CardDesign.instance.Initialize();
+
+            // 技能系统（SkillDesign在Game1命名空间）
+            SkillDesign.instance.Initialize();
+
             // 设置旅行管理器的事件队列引用
             travelManager?.SetEventQueue(eventQueue);
+
+            // 订阅事件树存档请求
+            EventTreeRunner.instance.onTreeSaveRequested += OnEventTreeSaveRequested;
+        }
+
+        /// <summary>
+        /// 事件树存档请求处理
+        /// </summary>
+        private void OnEventTreeSaveRequested(EventTreeRunSaveData data)
+        {
+            var saveManager = GetService<SaveManager>();
+            saveManager?.SetEventTreeRunData(data);
         }
 
         /// <summary>
@@ -107,13 +151,21 @@ namespace Game1
         /// </summary>
         private void InitializePlayer()
         {
-            if (playerActor == null)
+            // PlayerActor由GameLoopManager创建并拥有，这里获取引用确保一致
+            if (gameLoopManager != null)
             {
-                playerActor = new PlayerActor();
+                // 等待GameLoopManager初始化完成
             }
 
-            // 初始化旅行管理器
-            travelManager?.Initialize(playerActor);
+            // 初始化旅行管理器（使用GameLoopManager中的PlayerActor）
+            if (gameLoopManager?.player != null)
+            {
+                travelManager?.Initialize(gameLoopManager.player);
+            }
+            else
+            {
+                Debug.LogWarning("[GameMain] GameLoopManager.player is null during InitializePlayer");
+            }
         }
 
         /// <summary>
@@ -133,7 +185,15 @@ namespace Game1
         /// </summary>
         public PlayerActor GetPlayerActor()
         {
-            return playerActor;
+            return gameLoopManager?.player;
+        }
+
+        /// <summary>
+        /// 获取DI容器中的服务
+        /// </summary>
+        public T GetService<T>() where T : class
+        {
+            return Container.Resolve<T>();
         }
 
         /// <summary>
@@ -150,7 +210,8 @@ namespace Game1
         /// </summary>
         public void SaveGame()
         {
-            // TODO: 实现存档逻辑
+            // 保存事件树状态
+            EventTreeRunner.instance.SaveState();
             Debug.Log("[GameMain] SaveGame called");
         }
 
@@ -159,7 +220,13 @@ namespace Game1
         /// </summary>
         public void LoadGame()
         {
-            // TODO: 实现读档逻辑
+            // 获取SaveManager中的事件树数据并恢复
+            var saveManager = GetService<SaveManager>();
+            var eventTreeData = saveManager?.GetEventTreeRunData();
+            if (eventTreeData != null)
+            {
+                EventTreeRunner.instance.RestoreState(eventTreeData);
+            }
             Debug.Log("[GameMain] LoadGame called");
         }
     }
@@ -179,9 +246,5 @@ namespace Game1
         public int playerHp = 20;
         public int playerArmor = 5;
         public int playerDamage = 3;
-
-        [Header("背包配置")]
-        public int inventoryMaxSlots = 50;
-        public float inventoryMaxWeight = 100f;
     }
 }

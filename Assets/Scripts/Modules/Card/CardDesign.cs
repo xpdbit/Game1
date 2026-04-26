@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 namespace Game1
@@ -160,6 +161,23 @@ namespace Game1
     }
 
     /// <summary>
+    /// 卡牌战斗加成
+    /// </summary>
+    public struct CardCombatBonus
+    {
+        public float damageMultiplier;   // 伤害倍率加成
+        public float defenseMultiplier; // 防御倍率加成
+        public float critMultiplier;    // 暴击倍率加成
+        public float hpMultiplier;      // 生命倍率加成
+        public float goldMultiplier;    // 金币倍率加成
+
+        public float GetTotalBonus()
+        {
+            return damageMultiplier + defenseMultiplier + critMultiplier + hpMultiplier + goldMultiplier;
+        }
+    }
+
+    /// <summary>
     /// 卡牌模板
     /// </summary>
     [Serializable]
@@ -173,6 +191,7 @@ namespace Game1
         public float attributeMultiplier;
         public int affixCount;
         public List<string> tags;  // 标签（用于限定池）
+        public int sellPrice;      // 出售价格
     }
 
     /// <summary>
@@ -295,7 +314,131 @@ namespace Game1
         /// </summary>
         private void LoadCardTemplates()
         {
-            // 示例：添加默认卡牌模板
+            // 先尝试从XML加载
+            if (!LoadFromXml())
+            {
+                // XML加载失败时使用默认模板
+                Debug.LogWarning("[CardDesign] Failed to load from XML, using default templates");
+                LoadDefaultTemplates();
+            }
+        }
+
+        /// <summary>
+        /// 从XML文件加载卡牌模板
+        /// </summary>
+        private bool LoadFromXml()
+        {
+            try
+            {
+                var xmlPath = "Data/Cards/Cards";
+                var textAsset = Resources.Load<TextAsset>(xmlPath);
+                if (textAsset == null)
+                {
+                    Debug.LogWarning($"[CardDesign] Cards.xml not found at {xmlPath}");
+                    return false;
+                }
+
+                var doc = new System.Xml.XmlDocument();
+                doc.LoadXml(textAsset.text);
+
+                var root = doc.DocumentElement;
+                if (root.Name != "Cards")
+                {
+                    Debug.LogError($"[CardDesign] Invalid root element: {root.Name}");
+                    return false;
+                }
+
+                int loadedCount = 0;
+                foreach (System.Xml.XmlNode node in root.ChildNodes)
+                {
+                    if (node.NodeType != System.Xml.XmlNodeType.Element) continue;
+                    if (node.Name != "Card") continue;
+
+                    var template = ParseCardFromXml(node);
+                    if (template != null)
+                    {
+                        AddTemplate(template);
+                        loadedCount++;
+                    }
+                }
+
+                Debug.Log($"[CardDesign] Loaded {loadedCount} card templates from XML");
+                return loadedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[CardDesign] Failed to load Cards.xml: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 解析XML节点为卡牌模板
+        /// </summary>
+        private CardTemplate ParseCardFromXml(System.Xml.XmlNode node)
+        {
+            try
+            {
+                var template = new CardTemplate
+                {
+                    id = node.Attributes["id"]?.Value ?? "",
+                    nameTextId = node.Attributes["nameTextId"]?.Value ?? "",
+                    descTextId = node.Attributes["descTextId"]?.Value ?? "",
+                    type = ParseCardType(node.Attributes["type"]?.Value ?? "Character"),
+                    rarity = ParseCardRarity(node.Attributes["rarity"]?.Value ?? "N"),
+                    attributeMultiplier = float.Parse(node.Attributes["attributeMultiplier"]?.Value ?? "1.0"),
+                    affixCount = string.IsNullOrEmpty(node.Attributes["affixIds"]?.Value) ? 0 :
+                        node.Attributes["affixIds"].Value.Split(',').Length
+                };
+
+                // 解析SellPrice
+                var sellPriceNode = node.SelectSingleNode("SellPrice");
+                if (sellPriceNode != null && int.TryParse(sellPriceNode.InnerText, out int sellPrice))
+                {
+                    template.sellPrice = sellPrice;
+                }
+
+                return template;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[CardDesign] Failed to parse card node: {ex.Message}");
+                return null;
+            }
+        }
+
+        private CardType ParseCardType(string value)
+        {
+            return value switch
+            {
+                "Character" => CardType.Character,
+                "Equipment" => CardType.Equipment,
+                "Skill" => CardType.Skill,
+                "Item" => CardType.Item,
+                "Event" => CardType.Event,
+                _ => CardType.Character
+            };
+        }
+
+        private CardRarity ParseCardRarity(string value)
+        {
+            return value switch
+            {
+                "N" => CardRarity.N,
+                "R" => CardRarity.R,
+                "SR" => CardRarity.SR,
+                "SSR" => CardRarity.SSR,
+                "UR" => CardRarity.UR,
+                "GR" => CardRarity.GR,
+                _ => CardRarity.N
+            };
+        }
+
+        /// <summary>
+        /// 加载默认模板（当XML不可用时）
+        /// </summary>
+        private void LoadDefaultTemplates()
+        {
             AddTemplate(new CardTemplate
             {
                 id = "Core.Card.Character.ZhangFei",
@@ -510,6 +653,65 @@ namespace Game1
         public List<string> GetActivatedCardIds()
         {
             return new List<string>(_activatedCardIds);
+        }
+
+        /// <summary>
+        /// 获取已激活卡牌数据列表
+        /// </summary>
+        public List<CardData> GetActivatedCards()
+        {
+            var result = new List<CardData>();
+            foreach (var card in _ownedCards)
+            {
+                if (card.isActivated)
+                    result.Add(card);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 获取战斗加成（从已激活的卡牌计算）
+        /// </summary>
+        public CardCombatBonus GetCombatBonus()
+        {
+            var bonus = new CardCombatBonus();
+
+            foreach (var card in _ownedCards)
+            {
+                if (!card.isActivated)
+                    continue;
+
+                // 根据卡牌类型应用加成
+                switch (card.type)
+                {
+                    case CardType.Character:
+                        // 角色卡提供属性倍率加成
+                        bonus.damageMultiplier += card.attributeMultiplier - 1f;
+                        break;
+
+                    case CardType.Equipment:
+                        // 装备卡提供防御加成
+                        bonus.defenseMultiplier += card.attributeMultiplier - 1f;
+                        break;
+
+                    case CardType.Skill:
+                        // 技能卡提供暴击加成
+                        bonus.critMultiplier += card.attributeMultiplier - 1f;
+                        break;
+
+                    case CardType.Item:
+                        // 道具卡提供生命加成
+                        bonus.hpMultiplier += card.attributeMultiplier - 1f;
+                        break;
+
+                    case CardType.Event:
+                        // 事件卡提供金币加成
+                        bonus.goldMultiplier += card.attributeMultiplier - 1f;
+                        break;
+                }
+            }
+
+            return bonus;
         }
 
         /// <summary>

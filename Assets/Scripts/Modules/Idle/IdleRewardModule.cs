@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Game1
 {
@@ -58,11 +59,44 @@ namespace Game1
         }
 
         /// <summary>
-        /// 计算离线收益
+        /// 计算离线收益（带护肝机制）
         /// </summary>
         public float CalculateOfflineReward(float offlineSeconds)
         {
-            return offlineSeconds * baseRewardPerSecond * offlineRewardRate * GetCurrentRewardRate();
+            // 护肝机制：
+            // 1. 上限24小时
+            // 2. 前6小时正常收益，6小时外收益减半
+            float cappedSeconds = Mathf.Min(offlineSeconds, 24f * 3600f);
+
+            // 分段计算：前6小时100%，之后50%
+            float fullRateSeconds = Mathf.Min(cappedSeconds, 6f * 3600f);
+            float reducedRateSeconds = cappedSeconds - fullRateSeconds;
+
+            float fullRateReward = fullRateSeconds * baseRewardPerSecond * offlineRewardRate * GetCurrentRewardRate();
+            float reducedRateReward = reducedRateSeconds * baseRewardPerSecond * offlineRewardRate * GetCurrentRewardRate() * 0.5f;
+
+            return fullRateReward + reducedRateReward;
+        }
+
+        /// <summary>
+        /// 应用离线收益到玩家
+        /// </summary>
+        public void ApplyOfflineReward(float offlineSeconds)
+        {
+            if (_player == null)
+            {
+                Debug.LogWarning("[IdleRewardModule] ApplyOfflineReward: _player is null");
+                return;
+            }
+
+            float reward = CalculateOfflineReward(offlineSeconds);
+
+            // 使用float累加，最后再取整，避免精度丢失
+            float newGold = _player.carryItems.gold + reward;
+            _player.carryItems.gold = Mathf.FloorToInt(newGold);
+            _totalEarned += reward;
+
+            Debug.Log($"[IdleRewardModule] Offline reward applied: +{Mathf.FloorToInt(reward)} gold for {offlineSeconds / 3600f:F1} hours");
         }
 
         #region IModule Members
@@ -86,8 +120,10 @@ namespace Game1
             _accumulatedTime += deltaTime;
 
             // 计算本tick的收益并添加到玩家金币
+            // 使用float累加，最后再取整，避免精度丢失
             float reward = baseRewardPerSecond * GetCurrentRewardRate() * deltaTime;
-            _player.carryItems.gold += (int)reward;
+            float newGold = _player.carryItems.gold + reward;
+            _player.carryItems.gold = Mathf.FloorToInt(newGold);
             _totalEarned += reward;
         }
 

@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Game1.Modules.Combat;
 
-namespace Game1
+namespace Game1.Modules.Travel
 {
     /// <summary>
     /// 旅行管理器
     /// 管理旅行进度、路径选择、事件触发
+    /// 实现ITravelManager接口以支持VContainer DI
     /// </summary>
-    public class TravelManager
+    public class TravelManager : ITravelManager
     {
         #region Singleton
         private static TravelManager _instance;
@@ -32,6 +34,7 @@ namespace Game1
 
         public TravelStatus status { get; private set; } = TravelStatus.Idle;
         public float currentProgress => _player?.travelState.progress ?? 0f;
+        public float progressToNextEvent => 1f - currentProgress;
 
         public event Action<TravelStatus> onStatusChanged;
         public event Action onTravelCompleted;
@@ -42,7 +45,7 @@ namespace Game1
             _worldMap = new WorldMap();
         }
 
-        #region Initialization
+        #region ITravelManager Implementation
 
         /// <summary>
         /// 初始化
@@ -58,6 +61,53 @@ namespace Game1
         public void SetEventQueue(EventQueue eventQueue)
         {
             _eventQueue = eventQueue;
+        }
+
+        /// <summary>
+        /// 触发事件链
+        /// </summary>
+        public void TriggerEventChain(string eventChainId)
+        {
+            // TODO: 实现事件链触发
+            Debug.Log($"[TravelManager] TriggerEventChain: {eventChainId}");
+        }
+
+        /// <summary>
+        /// 玩家交互
+        /// </summary>
+        public void OnPlayerInteract()
+        {
+            // 允许在大多数状态下增加进度点，除了正在处理需要玩家专注选择的情况
+            if (status == TravelStatus.AwaitingChoice)
+            {
+                // 等待选择时不增加进度点，需要玩家专注当前选择
+                return;
+            }
+            ProgressManager.instance.AddPointsClick();
+        }
+
+        /// <summary>
+        /// Tick - 更新旅行进度和进度点
+        /// </summary>
+        public void Tick(float deltaTime)
+        {
+            if (_player == null) return;
+
+            switch (status)
+            {
+                case TravelStatus.Traveling:
+                    TickTraveling(deltaTime);
+                    break;
+                case TravelStatus.ProgressMilestone:
+                    // 处理里程碑事件
+                    break;
+            }
+
+            // 更新挂机进度点
+            if (status == TravelStatus.Traveling || status == TravelStatus.Idle)
+            {
+                ProgressManager.instance.AddPoints(deltaTime);
+            }
         }
 
         #endregion
@@ -121,33 +171,7 @@ namespace Game1
 
         #endregion
 
-        #region Tick & Progress
-
-        /// <summary>
-        /// Tick - 更新旅行进度和进度点
-        /// </summary>
-        public void Tick(float deltaTime)
-        {
-            if (_player == null) return;
-
-            switch (status)
-            {
-                case TravelStatus.Traveling:
-                    TickTraveling(deltaTime);
-                    break;
-                case TravelStatus.ProgressMilestone:
-                    // 处理里程碑事件
-                    break;
-            }
-
-            // 更新挂机进度点
-            if (status == TravelStatus.Traveling || status == TravelStatus.Idle)
-            {
-                ProgressManager.instance.AddPoints(deltaTime);
-            }
-        }
-
-        /// <summary>
+        #region Journey Control (continued)>
         /// 处理旅行中的Tick
         /// </summary>
         private void TickTraveling(float deltaTime)
@@ -233,20 +257,6 @@ namespace Game1
                     _player.ApplyEventResult(result);
                 }
             }
-        }
-
-        /// <summary>
-        /// 点击增加进度点
-        /// </summary>
-        public void OnPlayerInteract()
-        {
-            // 允许在大多数状态下增加进度点，除了正在处理需要玩家专注选择的情况
-            if (status == TravelStatus.AwaitingChoice)
-            {
-                // 等待选择时不增加进度点，需要玩家专注当前选择
-                return;
-            }
-            ProgressManager.instance.AddPointsClick();
         }
 
         #endregion

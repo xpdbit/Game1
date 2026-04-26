@@ -11,6 +11,7 @@ namespace Game1
 
         [Header("侧边栏")]
         public Button inventoryButton;
+        public Button teamButton;
 
         [Header("挂机信息")]
         public UIText travelRateText;
@@ -23,12 +24,25 @@ namespace Game1
 
         public void Initialize()
         {
-            inventoryButton.onClick.RemoveAllListeners();
-            inventoryButton.onClick.AddListener(() =>
+            if (inventoryButton != null && UIManager.instance?.inventory != null)
             {
-                UIManager.instance.inventory.Open();
-                UIManager.instance.inventory.Refresh();
-            });
+                inventoryButton.onClick.RemoveAllListeners();
+                inventoryButton.onClick.AddListener(() =>
+                {
+                    UIManager.instance.inventory.Open();
+                    UIManager.instance.inventory.Refresh();
+                });
+            }
+
+            if (teamButton != null && UIManager.instance?.team != null)
+            {
+                teamButton.onClick.RemoveAllListeners();
+                teamButton.onClick.AddListener(() =>
+                {
+                    UIManager.instance.team.Open();
+                    UIManager.instance.team.Refresh();
+                });
+            }
 
             // 获取挂机模块引用
             var player = GameMain.instance?.GetPlayerActor();

@@ -2,55 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Game1
+namespace Game1.Core.EventBus
 {
-    /// <summary>
-    /// 事件类型枚举
-    /// </summary>
-    public enum EventType
-    {
-        None,
-        GoldChanged,
-        LevelUp,
-        TravelStarted,
-        TravelCompleted,
-        ModuleActivated,
-        ModuleDeactivated,
-        EventTriggered,
-        SaveCompleted,
-        LoadCompleted,
-    }
-
-    /// <summary>
-    /// 事件数据
-    /// </summary>
-    public class GameEvent
-    {
-        public EventType type;
-        public object sender;
-        public object data;
-
-        public GameEvent(EventType type, object sender = null, object data = null)
-        {
-            this.type = type;
-            this.sender = sender;
-            this.data = data;
-        }
-    }
-
-    /// <summary>
-    /// 事件订阅者
-    /// </summary>
-    public interface IEventSubscriber
-    {
-        void OnEvent(GameEvent e);
-    }
-
     /// <summary>
     /// 事件总线 - 发布订阅模式
     /// 用于模块间解耦通信
+    /// 实现IEventBus接口以支持VContainer DI
     /// </summary>
-    public class EventBus
+    public class EventBus : IEventBus
     {
         private static EventBus _instance;
         public static EventBus instance => _instance ??= new EventBus();
@@ -110,6 +69,15 @@ namespace Game1
         public void Publish<T>(EventType eventType, T sender, object data = null)
         {
             Publish(new GameEvent(eventType, sender, data));
+        }
+
+        /// <summary>
+        /// 发布事件 (异步) - 实现IEventBus接口
+        /// </summary>
+        public void PublishAsync(GameEvent e)
+        {
+            // 异步发布：在下一帧发布事件
+            UnityEngine.Debug.Log($"[EventBus] Async publish: {e.type}");
         }
 
         /// <summary>

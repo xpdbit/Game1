@@ -97,6 +97,9 @@ namespace Game1
 
         // 保留的技能列表
         private readonly List<string> _retainedSkills = new();
+
+        // 玩家数据引用（用于获取等级和金币）
+        private PlayerActor _playerActor;
         #endregion
 
         #region Events
@@ -143,6 +146,22 @@ namespace Game1
         {
             LoadUpgrades();
             Debug.Log("[PrestigeManager] Initialized");
+        }
+
+        /// <summary>
+        /// 设置玩家数据引用（由GameLoopManager在创建PlayerActor后调用）
+        /// </summary>
+        public void SetPlayerActor(PlayerActor playerActor)
+        {
+            _playerActor = playerActor;
+        }
+
+        /// <summary>
+        /// 获取玩家数据引用
+        /// </summary>
+        public PlayerActor GetPlayerActor()
+        {
+            return _playerActor;
         }
 
         /// <summary>
@@ -283,19 +302,16 @@ namespace Game1
         /// </summary>
         private int CalculateRetainedGold()
         {
-            // TODO: 从PlayerActor获取当前金币
-            int currentGold = 0;
-
+            int currentGold = _playerActor?.carryItems.gold ?? 0;
             return (int)(currentGold * _goldRetentionRate);
         }
 
         /// <summary>
-        /// 获取玩家等级（需要从PlayerActor获取）
+        /// 获取玩家等级
         /// </summary>
         private int GetPlayerLevel()
         {
-            // TODO: 从PlayerActor获取
-            return 1;
+            return _playerActor?.level ?? 1;
         }
 
         /// <summary>

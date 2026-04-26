@@ -80,6 +80,10 @@ namespace Game1
         {
             if (_isInitialized) return;
 
+            // 关键修复：确保GlobalKeyboardHook处于干净状态
+            // 防止上次Dispose后无法重新初始化的问题
+            GlobalKeyboardHook.ForceReset();
+
             _lastMouseButtons = (int)Kirurobo.UniWindowController.GetMouseButtons();
             _lastModifierKeys = (int)Kirurobo.UniWindowController.GetModifierKeys();
             _lastCursorPosition = Kirurobo.UniWindowController.GetCursorPosition();
@@ -313,7 +317,14 @@ namespace Game1
         public void Dispose()
         {
 #if UNITY_STANDALONE_WIN
-            _keyboardHook?.Dispose();
+            if (_keyboardHook != null)
+            {
+                // 移除事件订阅（防止内存泄漏和回调到已释放对象）
+                _keyboardHook.onKeyDown -= OnGlobalKeyDown;
+                _keyboardHook.onKeyUp -= OnGlobalKeyUp;
+                _keyboardHook.onAnyKeyPressed -= OnGlobalAnyKeyPressed;
+                _keyboardHook.Dispose();
+            }
 #endif
             _inputConverter = null;
             _isInitialized = false;

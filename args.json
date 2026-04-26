@@ -1,0 +1,8 @@
+{
+  "inputs": [
+    {
+      "ParentFolderPath": "Assets/Scripts/Core",
+      "NewFolderName": "DI"
+    }
+  ]
+}

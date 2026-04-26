@@ -39,6 +39,21 @@ namespace Game1
     }
 
     /// <summary>
+    /// 事件链选择历史条目
+    /// </summary>
+    [Serializable]
+    public class EventChainHistoryEntry
+    {
+        public string nodeId;            // 节点ID
+        public string choiceId;          // 选择的选项ID
+        public string previousFlag;       // 选择前的标志值（null表示无）
+        public string newFlag;           // 选择后设置的标志值（null表示无）
+        public int goldCost;             // 消耗的金币
+        public List<string> addedModules;   // 添加的模块ID列表
+        public List<string> removedModules; // 移除的模块ID列表
+    }
+
+    /// <summary>
     /// 事件链
     /// 管理连续事件的执行
     /// </summary>
@@ -52,6 +67,10 @@ namespace Game1
         public string currentNodeId;           // 当前节点ID
         public Dictionary<string, string> flags = new();  // 事件标志
         public bool isCompleted;
+
+        // Undo/Redo支持
+        private readonly List<EventChainHistoryEntry> _history = new();
+        private int _historyIndex = -1;
 
         public EventChain()
         {
@@ -86,6 +105,26 @@ namespace Game1
             var choice = currentNode.choices.Find(c => c.choiceId == choiceId);
             if (choice == null) return null;
 
+            // 记录历史（用于Undo）
+            var historyEntry = new EventChainHistoryEntry
+            {
+                nodeId = currentNodeId,
+                choiceId = choiceId,
+                previousFlag = choice.setFlag != null && flags.ContainsKey(choice.setFlag) ? flags[choice.setFlag] : null,
+                newFlag = choice.setFlag,
+                goldCost = choice.goldCost,
+                addedModules = choice.addModuleIds != null ? new List<string>(choice.addModuleIds) : new List<string>(),
+                removedModules = choice.removeModuleIds != null ? new List<string>(choice.removeModuleIds) : new List<string>()
+            };
+
+            // 截断重做历史（选择后清空重做栈）
+            if (_historyIndex < _history.Count - 1)
+            {
+                _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
+            }
+            _history.Add(historyEntry);
+            _historyIndex = _history.Count - 1;
+
             // 设置标志
             if (!string.IsNullOrEmpty(choice.setFlag))
             {
@@ -105,6 +144,80 @@ namespace Game1
 
             return choice;
         }
+
+        /// <summary>
+        /// 撤销上一次选择
+        /// </summary>
+        public bool Undo()
+        {
+            if (_historyIndex < 0) return false;
+
+            var entry = _history[_historyIndex];
+
+            // 恢复标志
+            if (entry.previousFlag != null)
+            {
+                flags[entry.newFlag] = entry.previousFlag;
+            }
+            else if (entry.newFlag != null)
+            {
+                flags.Remove(entry.newFlag);
+            }
+
+            // 恢复金币（注意：这需要调用者提供当前金币）
+            // 这里只记录状态，实际金币恢复由调用者处理
+
+            // 恢复节点位置
+            currentNodeId = entry.nodeId;
+            isCompleted = false;
+
+            _historyIndex--;
+            return true;
+        }
+
+        /// <summary>
+        /// 重做上一次撤销
+        /// </summary>
+        public bool Redo()
+        {
+            if (_historyIndex >= _history.Count - 1) return false;
+
+            _historyIndex++;
+            var entry = _history[_historyIndex];
+
+            // 应用标志
+            if (!string.IsNullOrEmpty(entry.newFlag))
+            {
+                flags[entry.newFlag] = entry.choiceId;
+            }
+
+            // 移动到下一个节点
+            var node = nodes.Find(n => n.nodeId == entry.nodeId);
+            if (node != null)
+            {
+                var choice = node.choices.Find(c => c.choiceId == entry.choiceId);
+                if (choice != null && !string.IsNullOrEmpty(choice.nextNodeId))
+                {
+                    currentNodeId = choice.nextNodeId;
+                }
+                else
+                {
+                    isCompleted = true;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 获取是否可以撤销
+        /// </summary>
+        public bool CanUndo() => _historyIndex >= 0;
+
+        /// <summary>
+        /// 获取是否可以重做
+        /// </summary>
+        public bool CanRedo() => _historyIndex < _history.Count - 1;
 
         /// <summary>
         /// 检查选项是否可用
@@ -252,7 +365,7 @@ namespace Game1
         /// </summary>
         private void ApplyChoiceEffects(EventChoice choice)
         {
-            var player = GameMain.instance?.playerActor;
+            var player = GameMain.instance?.GetPlayerActor();
             if (player == null) return;
 
             // 消耗金币

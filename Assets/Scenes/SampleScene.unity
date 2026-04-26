@@ -244,7 +244,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &20987721
@@ -455,11 +455,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 72119184}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d99629b95c7d6b643877fd8f795f98ab, type: 3}
+  m_Script: {fileID: 11500000, guid: 5bdf9fb457158e54d86496e478ad0a4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   uIListItems: {fileID: 734219440}
   closeButton: {fileID: 1460391321}
+  teamCountText: {fileID: 0}
+  totalPowerText: {fileID: 0}
   autoRefreshOnEvent: 1
 --- !u!1 &81407729
 GameObject:
@@ -603,7 +605,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &81407733
@@ -671,8 +673,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 50%
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7bc629362f1e6394dab11f2f74a1b06d, type: 2}
+  m_sharedMaterial: {fileID: 8424308537103416768, guid: 7bc629362f1e6394dab11f2f74a1b06d, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1926,7 +1928,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &379227546
@@ -2258,7 +2260,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &430040626
@@ -3061,7 +3063,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &517058392
@@ -3119,9 +3121,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentState: 2
-  inventory: {fileID: 948499123}
   gameDashboard: {fileID: 2130480624}
-  team: {fileID: 0}
+  inventory: {fileID: 948499123}
+  team: {fileID: 72119186}
 --- !u!1 &581956432
 GameObject:
   m_ObjectHideFlags: 0
@@ -3171,6 +3173,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 291e353dd5c92d3419548d63a0647b31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  parentReference:
+    TypeName: 
+  autoRun: 1
+  autoInjectGameObjects: []
   config:
     pointsPerSecond: 1
     pointsPerClick: 10
@@ -3178,32 +3184,8 @@ MonoBehaviour:
     playerHp: 20
     playerArmor: 5
     playerDamage: 3
-    inventoryMaxSlots: 50
-    inventoryMaxWeight: 100
   uIManager: {fileID: 530930236}
-  playerActor:
-    id: 54eeff62-87bc-4343-b2a0-1a9f07d59c7a
-    actorName: "\u884C\u8005"
-    level: 1
-    stats:
-      maxHp: 20
-      currentHp: 20
-      attack: 3
-      defense: 5
-      speed: 1
-    carryItems:
-      gold: 0
-      ownedModuleIds: []
-      maxCapacity: 100
-      currentLoad: 0
-    travelState:
-      currentState: 0
-      progress: 0
-      realTimeRequired: 0
-      currentLocationId: 
-      nextLocationId: 
-    modules:
-      _modules: []
+  gameLoopManager: {fileID: 0}
 --- !u!114 &581956437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3233,6 +3215,8 @@ MonoBehaviour:
   _runEventTest: 1
   _runIdleTest: 1
   _runEventBusTest: 1
+  _runActorTest: 1
+  _runTeamTest: 1
   _runTravelPointTest: 1
   _useBackgroundInput: 1
   _testDuration: 30
@@ -3248,7 +3232,7 @@ GameObject:
   - component: {fileID: 653799070}
   - component: {fileID: 653799069}
   m_Layer: 5
-  m_Name: Food Label
+  m_Name: Food Label Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3997,7 +3981,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &847028562
@@ -4187,7 +4171,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &946594544
@@ -5711,7 +5695,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1408178432
@@ -5930,7 +5914,7 @@ GameObject:
   - component: {fileID: 1503498355}
   - component: {fileID: 1503498354}
   m_Layer: 5
-  m_Name: XP Label
+  m_Name: XP Label Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6196,7 +6180,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1549548720
@@ -6925,7 +6909,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 72%
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7bc629362f1e6394dab11f2f74a1b06d, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -6991,7 +6975,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1781767428
@@ -7498,7 +7482,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1912077956
@@ -7743,7 +7727,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 25%
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7bc629362f1e6394dab11f2f74a1b06d, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -7809,7 +7793,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &2024712572
@@ -8008,7 +7992,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 72%
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7bc629362f1e6394dab11f2f74a1b06d, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -8074,7 +8058,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &2090285485
@@ -8183,6 +8167,7 @@ MonoBehaviour:
   xpProgressBar: {fileID: 1807312742}
   foodProgressBar: {fileID: 655009370}
   inventoryButton: {fileID: 697405668}
+  teamButton: {fileID: 1404670728}
   travelRateText: {fileID: 54668867}
   goldText: {fileID: 1188271259}
   debugText: {fileID: 263075866}

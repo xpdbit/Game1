@@ -25,6 +25,11 @@ namespace Game1
             public int attack = 3;      // 攻击力
             public int defense = 5;     // 护甲值
             public float speed = 1f;    // 速度
+
+            // 暴击/闪避属性
+            public float critChance = 0.1f;       // 暴击率 10%
+            public float dodgeChance = 0.05f;    // 闪避率 5%
+            public float critDamageMultiplier = 1.5f; // 暴击伤害倍率 150%
         }
         public Stats stats = new();
         #endregion
@@ -111,6 +116,57 @@ namespace Game1
             // foreach (var moduleId in result.removedModuleIds) { ... }
 
             Debug.Log($"[PlayerActor] Applied event result: +{result.goldReward}g -{result.goldCost}g, Message: {result.message}");
+        }
+
+        /// <summary>
+        /// 从存档数据恢复玩家数据
+        /// </summary>
+        public void ApplyFromSaveData(PlayerSaveData saveData)
+        {
+            if (saveData == null)
+            {
+                Debug.LogWarning("[PlayerActor] ApplyFromSaveData: saveData is null, creating new actor");
+                id = Guid.NewGuid().ToString();
+                actorName = "行者";
+                level = 1;
+                carryItems.gold = 0;
+                stats.currentHp = stats.maxHp;
+                return;
+            }
+
+            // 验证ID一致性
+            if (!string.IsNullOrEmpty(saveData.actorId) && saveData.actorId != id)
+            {
+                Debug.Log($"[PlayerActor] Applying save data with different ID: {saveData.actorId} (was {id})");
+            }
+
+            // 应用存档数据
+            id = saveData.actorId;
+            actorName = saveData.actorName;
+            level = saveData.level;
+            carryItems.gold = saveData.gold;
+            carryItems.maxCapacity = 100; // 默认容量
+
+            // 重置状态
+            stats.currentHp = stats.maxHp;
+
+            Debug.Log($"[PlayerActor] Applied save data: ID={id}, Name={actorName}, Level={level}, Gold={carryItems.gold}");
+        }
+
+        /// <summary>
+        /// 导出玩家数据到存档
+        /// </summary>
+        public PlayerSaveData ExportToSaveData()
+        {
+            return new PlayerSaveData
+            {
+                actorId = id,
+                actorName = actorName,
+                level = level,
+                gold = carryItems.gold,
+                offlineAccumulatedTime = 0f,
+                timestamp = DateTime.Now.Ticks
+            };
         }
         #endregion
     }

@@ -30,6 +30,10 @@ namespace Game1
         public List<string> removedModuleIds = new();
         public string message;
         public bool isGameOver;
+
+        // 战斗相关（用于战斗事件扩展）
+        public bool playerVictory;
+        public List<Modules.Combat.CombatLogEntry> combatLog = new();
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 #if UNITY_STANDALONE_WIN
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -50,7 +51,7 @@ namespace Game1
 
         #region Singleton
         private static GlobalKeyboardHook _instance;
-        public static GlobalKeyboardHook instance => _instance ??= new GlobalKeyboardHook();
+        public static GlobalKeyboardHook instance => GetInstanceSafe();
         #endregion
 
         #region Events
@@ -67,6 +68,10 @@ namespace Game1
 
         // 记录上一帧按下的键，用于检测按键释放
         private int _lastPressedKey = -1;
+
+        // 键事件队列 - 避免在HookCallback中阻塞消息泵
+        private readonly ConcurrentQueue<int> _keyDownQueue = new ConcurrentQueue<int>();
+        private readonly ConcurrentQueue<int> _keyUpQueue = new ConcurrentQueue<int>();
         #endregion
 
         #region Public Properties
@@ -109,12 +114,16 @@ namespace Game1
                 }
                 else
                 {
+                    // 安装失败时清理已分配的委托，防止内存泄漏
+                    _hookProc = null;
                     Debug.LogError("[GlobalKeyboardHook] Failed to install keyboard hook");
                     return false;
                 }
             }
             catch (Exception e)
             {
+                // 异常时清理已分配的委托，防止内存泄漏
+                _hookProc = null;
                 Debug.LogError($"[GlobalKeyboardHook] Initialize failed: {e.Message}");
                 return false;
             }
@@ -122,11 +131,30 @@ namespace Game1
 
         /// <summary>
         /// 每帧更新（需要在游戏循环中调用）
-        /// 用于检测按键释放事件
+        /// 处理队列中的键事件，避免在HookCallback中阻塞消息泵
         /// </summary>
         public void Update()
         {
             if (!_isInitialized || _isDisposed) return;
+
+            // 处理按键按下队列
+            while (_keyDownQueue.TryDequeue(out int vkCode))
+            {
+                // 避免重复触发
+                if (_lastPressedKey != vkCode)
+                {
+                    _lastPressedKey = vkCode;
+                    try
+                    {
+                        onKeyDown?.Invoke(vkCode);
+                        onAnyKeyPressed?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"[GlobalKeyboardHook] onKeyDown handler threw: {e.Message}");
+                    }
+                }
+            }
 
             // 检测上一帧按下的键是否已释放
             if (_lastPressedKey != -1)
@@ -134,7 +162,14 @@ namespace Game1
                 short state = GetAsyncKeyState(_lastPressedKey);
                 if ((state & 0x8000) == 0) // 最高位为0表示键已释放
                 {
-                    onKeyUp?.Invoke(_lastPressedKey);
+                    try
+                    {
+                        onKeyUp?.Invoke(_lastPressedKey);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"[GlobalKeyboardHook] onKeyUp handler threw: {e.Message}");
+                    }
                     _lastPressedKey = -1;
                 }
             }
@@ -157,7 +192,49 @@ namespace Game1
             _hookProc = null;
             _isInitialized = false;
             _isDisposed = true;
+            // 注意：不设置 _instance = null，因为静态实例在域重新加载时会自动重置
+            // 如果需要强制重置实例，请使用 ForceReset() 方法
+        }
+
+        /// <summary>
+        /// 重置实例状态（用于在Dispose后重新初始化）
+        /// 解决了_isDisposed=true导致无法重新Initialize的问题
+        /// </summary>
+        public void Reset()
+        {
+            _isDisposed = false;
+            _isInitialized = false;
+            _hookId = IntPtr.Zero;
+            _hookProc = null;
+            _lastPressedKey = -1;
+            // 清空队列
+            while (_keyDownQueue.TryDequeue(out _)) { }
+            while (_keyUpQueue.TryDequeue(out _)) { }
+        }
+
+        /// <summary>
+        /// 强制重置单例（用于域重新加载后）
+        /// </summary>
+        public static void ForceReset()
+        {
+            if (_instance != null)
+            {
+                _instance.Dispose();
+            }
             _instance = null;
+        }
+
+        /// <summary>
+        /// 安全获取实例（自动重置已销毁的实例）
+        /// </summary>
+        private static GlobalKeyboardHook GetInstanceSafe()
+        {
+            if (_instance != null && _instance._isDisposed)
+            {
+                // 实例已被销毁，重置它以便重新初始化
+                _instance.Reset();
+            }
+            return _instance ??= new GlobalKeyboardHook();
         }
 
         /// <summary>
@@ -215,21 +292,14 @@ namespace Game1
                     var kbStruct = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                     int vkCode = (int)kbStruct.vkCode;
 
-                    // 避免重复触发
-                    if (_lastPressedKey != vkCode)
-                    {
-                        _lastPressedKey = vkCode;
-                        onKeyDown?.Invoke(vkCode);
-                        onAnyKeyPressed?.Invoke();
-                    }
-
-                    // 可选：阻止系统处理某些按键（如Alt+F4）
-                    // if (vkCode == 0x73) // F4
-                    //     return (IntPtr)1;
+                    // 仅将按键码入队列，不做任何耗时操作
+                    // 这样可以避免阻塞消息泵导致输入延迟
+                    _keyDownQueue.Enqueue(vkCode);
                 }
-                catch (Exception e)
+                catch
                 {
-                    Debug.LogError($"[GlobalKeyboardHook] Hook callback error: {e.Message}");
+                    // 静默处理异常 - 在钩子回调中不允许抛出异常，否则会导致输入延迟
+                    // 不要使用Debug.LogError，因为这会在主线程上造成阻塞
                 }
             }
 

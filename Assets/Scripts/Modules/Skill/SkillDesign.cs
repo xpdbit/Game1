@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 namespace Game1
@@ -51,7 +52,160 @@ namespace Game1
         /// </summary>
         private void LoadSkillTemplates()
         {
-            // 示例：添加默认技能模板
+            // 先尝试从XML加载
+            if (!LoadFromXml())
+            {
+                // XML加载失败时使用默认模板
+                Debug.LogWarning("[SkillDesign] Failed to load from XML, using default templates");
+                LoadDefaultTemplates();
+            }
+        }
+
+        /// <summary>
+        /// 从XML文件加载技能模板
+        /// </summary>
+        private bool LoadFromXml()
+        {
+            try
+            {
+                var xmlPath = "Data/Skills/Skills";
+                var textAsset = Resources.Load<TextAsset>(xmlPath);
+                if (textAsset == null)
+                {
+                    Debug.LogWarning($"[SkillDesign] Skills.xml not found at {xmlPath}");
+                    return false;
+                }
+
+                var doc = new System.Xml.XmlDocument();
+                doc.LoadXml(textAsset.text);
+
+                var root = doc.DocumentElement;
+                if (root.Name != "Skills")
+                {
+                    Debug.LogError($"[SkillDesign] Invalid root element: {root.Name}");
+                    return false;
+                }
+
+                int loadedCount = 0;
+                foreach (System.Xml.XmlNode node in root.ChildNodes)
+                {
+                    if (node.NodeType != System.Xml.XmlNodeType.Element) continue;
+                    if (node.Name != "Skill") continue;
+
+                    var template = ParseSkillFromXml(node);
+                    if (template != null)
+                    {
+                        AddTemplate(template);
+                        loadedCount++;
+                    }
+                }
+
+                Debug.Log($"[SkillDesign] Loaded {loadedCount} skill templates from XML");
+                return loadedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SkillDesign] Failed to load Skills.xml: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 解析XML节点为技能模板
+        /// </summary>
+        private SkillTemplate ParseSkillFromXml(System.Xml.XmlNode node)
+        {
+            try
+            {
+                var template = new SkillTemplate
+                {
+                    id = node.Attributes["id"]?.Value ?? "",
+                    nameTextId = node.Attributes["nameTextId"]?.Value ?? "",
+                    descTextId = node.Attributes["descTextId"]?.Value ?? "",
+                    type = ParseSkillType(node.Attributes["type"]?.Value ?? "Passive"),
+                    maxLevel = int.Parse(node.Attributes["maxLevel"]?.Value ?? "1"),
+                    effectType = ParseSkillEffectType(node.Attributes["effectType"]?.Value ?? "damage_boost"),
+                    baseEffectValue = float.Parse(node.Attributes["baseEffectValue"]?.Value ?? "0"),
+                    effectValuePerLevel = float.Parse(node.Attributes["effectValuePerLevel"]?.Value ?? "0"),
+                    cooldown = float.Parse(node.Attributes["cooldown"]?.Value ?? "0"),
+                    baseCost = int.Parse(node.Attributes["baseCost"]?.Value ?? "0"),
+                    condition = ParseSkillCondition(node.Attributes["condition"]?.Value ?? "None"),
+                    range = float.Parse(node.Attributes["range"]?.Value ?? "1")
+                };
+
+                return template;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SkillDesign] Failed to parse skill node: {ex.Message}");
+                return null;
+            }
+        }
+
+        private SkillType ParseSkillType(string value)
+        {
+            return value switch
+            {
+                "Passive" => SkillType.Passive,
+                "Active" => SkillType.Active,
+                "Ultimate" => SkillType.Ultimate,
+                _ => SkillType.Passive
+            };
+        }
+
+        private SkillEffectType ParseSkillEffectType(string value)
+        {
+            return value switch
+            {
+                "damage_boost" => SkillEffectType.damage_boost,
+                "heal" => SkillEffectType.heal,
+                "heal_bonus" => SkillEffectType.heal_bonus,
+                "trade_bonus" => SkillEffectType.trade_bonus,
+                "travel_speed" => SkillEffectType.travel_speed,
+                "travel_speed_boost" => SkillEffectType.travel_speed_boost,
+                "defense_boost" => SkillEffectType.defense_boost,
+                "crit_rate" => SkillEffectType.crit_rate,
+                "exp_bonus" => SkillEffectType.exp_bonus,
+                "area_damage" => SkillEffectType.area_damage,
+                "shield" => SkillEffectType.shield,
+                "gold_to_health" => SkillEffectType.gold_to_health,
+                "hp_boost" => SkillEffectType.hp_boost,
+                "single_target_crit" => SkillEffectType.single_target_crit,
+                "group_heal" => SkillEffectType.group_heal,
+                _ => SkillEffectType.damage_boost
+            };
+        }
+
+        private SkillCondition ParseSkillCondition(string value)
+        {
+            if (string.IsNullOrEmpty(value) || value == "None")
+                return SkillCondition.None;
+
+            var condition = SkillCondition.None;
+            var parts = value.Split(',');
+            foreach (var part in parts)
+            {
+                var trimmed = part.Trim();
+                switch (trimmed)
+                {
+                    case "InCombat": condition |= SkillCondition.InCombat; break;
+                    case "OutOfCombat": condition |= SkillCondition.OutOfCombat; break;
+                    case "InTravel": condition |= SkillCondition.InTravel; break;
+                    case "HasTarget": condition |= SkillCondition.HasTarget; break;
+                    case "LowHealth": condition |= SkillCondition.LowHealth; break;
+                    case "FullHealth": condition |= SkillCondition.FullHealth; break;
+                    case "InTeam": condition |= SkillCondition.InTeam; break;
+                    case "Solo": condition |= SkillCondition.Solo; break;
+                }
+            }
+            return condition;
+        }
+
+        /// <summary>
+        /// 加载默认模板（当XML不可用时）
+        /// </summary>
+        private void LoadDefaultTemplates()
+        {
             AddTemplate(new SkillTemplate
             {
                 id = "Core.Skill.Passive.Merchant",
@@ -71,7 +225,7 @@ namespace Game1
                 nameTextId = "Core.Skill.Passive.SwiftStep.NameText",
                 descTextId = "Core.Skill.Passive.SwiftStep.DescText",
                 type = SkillType.Passive,
-                maxLevel = 5,
+                maxLevel = 3,
                 effectType = SkillEffectType.travel_speed,
                 baseEffectValue = 0.04f,
                 effectValuePerLevel = 0.04f,
@@ -264,18 +418,25 @@ namespace Game1
             if (member == null)
                 return;
 
+            float effectValue = skill.GetEffectValue();
+
             switch (skill.effectType)
             {
                 case SkillEffectType.damage_boost:
-                    member.attack += (int)skill.GetEffectValue();
+                    member.attack += (int)effectValue;
                     break;
 
                 case SkillEffectType.defense_boost:
-                    member.defense += (int)skill.GetEffectValue();
+                    member.defense += (int)effectValue;
+                    break;
+
+                case SkillEffectType.heal_bonus:
+                    // 治疗加成在计算治疗量时乘以这个系数
+                    member.healBonus += effectValue;
                     break;
 
                 case SkillEffectType.travel_speed:
-                    member.speed += skill.GetEffectValue();
+                    member.speed += effectValue;
                     break;
 
                 case SkillEffectType.trade_bonus:
@@ -283,11 +444,27 @@ namespace Game1
                     break;
 
                 case SkillEffectType.crit_rate:
-                    // 暴击率在战斗计算时应用
+                    // 暴击率效果需要在战斗计算时应用
+                    member.critBonus += effectValue;
                     break;
 
                 case SkillEffectType.exp_bonus:
                     // 经验加成在获得经验时应用
+                    break;
+
+                case SkillEffectType.hp_boost:
+                    // 生命值提升
+                    member.maxHpBonus += (int)(member.maxHp * effectValue);
+                    member.hp = Mathf.Min(member.hp, member.maxHp + member.maxHpBonus);
+                    break;
+
+                case SkillEffectType.single_target_crit:
+                case SkillEffectType.area_damage:
+                case SkillEffectType.shield:
+                case SkillEffectType.gold_to_health:
+                case SkillEffectType.group_heal:
+                case SkillEffectType.travel_speed_boost:
+                    // 这些是主动/终极技能效果，被动技能不使用
                     break;
             }
         }

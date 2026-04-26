@@ -428,6 +428,14 @@ namespace Game1
         }
 
         /// <summary>
+        /// 获取所有事件树模板
+        /// </summary>
+        public static List<EventTreeTemplate> GetAllTemplates()
+        {
+            return new List<EventTreeTemplate>(_templates.Values);
+        }
+
+        /// <summary>
         /// 随机获取一个事件树模板
         /// </summary>
         public static EventTreeTemplate GetRandomTemplate()

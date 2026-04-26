@@ -1,5 +1,3 @@
-using System.Xml;
-
 namespace Game1
 {
   public static class Utils

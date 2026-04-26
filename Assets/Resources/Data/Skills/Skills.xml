@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Skills>
+    <!-- 商贾被动技能 -->
+    <Skill id="Core.Skill.Passive.Merchant"
+           nameTextId="Core.Skill.Passive.Merchant.NameText"
+           descTextId="Core.Skill.Passive.Merchant.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="trade_bonus"
+           baseEffectValue="0.06"
+           effectValuePerLevel="0.06"
+           condition="None">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="100"/>
+            <Level level="3" cost="200"/>
+            <Level level="4" cost="400"/>
+            <Level level="5" cost="800"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 镖师被动技能 - 防御 -->
+    <Skill id="Core.Skill.Passive.Guardian"
+           nameTextId="Core.Skill.Passive.Guardian.NameText"
+           descTextId="Core.Skill.Passive.Guardian.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="defense_boost"
+           baseEffectValue="2"
+           effectValuePerLevel="1"
+           condition="None">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="80"/>
+            <Level level="3" cost="160"/>
+            <Level level="4" cost="320"/>
+            <Level level="5" cost="640"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 学者被动技能 - 经验加成 -->
+    <Skill id="Core.Skill.Passive.Scholar"
+           nameTextId="Core.Skill.Passive.Scholar.NameText"
+           descTextId="Core.Skill.Passive.Scholar.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="exp_bonus"
+           baseEffectValue="0.05"
+           effectValuePerLevel="0.03"
+           condition="None">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="120"/>
+            <Level level="3" cost="240"/>
+            <Level level="4" cost="480"/>
+            <Level level="5" cost="960"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 医者被动技能 - 治疗加成 -->
+    <Skill id="Core.Skill.Passive.Healer"
+           nameTextId="Core.Skill.Passive.Healer.NameText"
+           descTextId="Core.Skill.Passive.Healer.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="heal_bonus"
+           baseEffectValue="0.08"
+           effectValuePerLevel="0.04"
+           condition="None">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="90"/>
+            <Level level="3" cost="180"/>
+            <Level level="4" cost="360"/>
+            <Level level="5" cost="720"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 快捷步伐 - 旅行速度 -->
+    <Skill id="Core.Skill.Passive.SwiftStep"
+           nameTextId="Core.Skill.Passive.SwiftStep.NameText"
+           descTextId="Core.Skill.Passive.SwiftStep.DescText"
+           type="Passive"
+           maxLevel="3"
+           effectType="travel_speed"
+           baseEffectValue="0.04"
+           effectValuePerLevel="0.04"
+           condition="InTravel">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="150"/>
+            <Level level="3" cost="300"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 暴击精通 -->
+    <Skill id="Core.Skill.Passive.CritMaster"
+           nameTextId="Core.Skill.Passive.CritMaster.NameText"
+           descTextId="Core.Skill.Passive.CritMaster.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="crit_rate"
+           baseEffectValue="0.02"
+           effectValuePerLevel="0.01"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="100"/>
+            <Level level="3" cost="200"/>
+            <Level level="4" cost="400"/>
+            <Level level="5" cost="800"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 横扫 - 主动范围伤害 -->
+    <Skill id="Core.Skill.Active.Sweep"
+           nameTextId="Core.Skill.Active.Sweep.NameText"
+           descTextId="Core.Skill.Active.Sweep.DescText"
+           type="Active"
+           maxLevel="3"
+           effectType="area_damage"
+           baseEffectValue="0.5"
+           effectValuePerLevel="0.1"
+           cooldown="30"
+           baseCost="0"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="200"/>
+            <Level level="3" cost="400"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 治疗术 -->
+    <Skill id="Core.Skill.Active.Heal"
+           nameTextId="Core.Skill.Active.Heal.NameText"
+           descTextId="Core.Skill.Active.Heal.DescText"
+           type="Active"
+           maxLevel="3"
+           effectType="heal"
+           baseEffectValue="0.3"
+           effectValuePerLevel="0.05"
+           cooldown="45"
+           baseCost="0"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="180"/>
+            <Level level="3" cost="360"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 护盾 -->
+    <Skill id="Core.Skill.Active.Shield"
+           nameTextId="Core.Skill.Active.Shield.NameText"
+           descTextId="Core.Skill.Active.Shield.DescText"
+           type="Active"
+           maxLevel="3"
+           effectType="shield"
+           baseEffectValue="0.2"
+           effectValuePerLevel="0.1"
+           cooldown="60"
+           baseCost="0"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="150"/>
+            <Level level="3" cost="300"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 金币换生命 -->
+    <Skill id="Core.Skill.Active.GoldToHealth"
+           nameTextId="Core.Skill.Active.GoldToHealth.NameText"
+           descTextId="Core.Skill.Active.GoldToHealth.DescText"
+           type="Active"
+           maxLevel="3"
+           effectType="gold_to_health"
+           baseEffectValue="10"
+           effectValuePerLevel="5"
+           cooldown="90"
+           baseCost="100"
+           condition="OutOfCombat">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="250"/>
+            <Level level="3" cost="500"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 致命一击 - 终极技能 -->
+    <Skill id="Core.Skill.Ultimate.DeadlyStrike"
+           nameTextId="Core.Skill.Ultimate.DeadlyStrike.NameText"
+           descTextId="Core.Skill.Ultimate.DeadlyStrike.DescText"
+           type="Ultimate"
+           maxLevel="1"
+           effectType="single_target_crit"
+           baseEffectValue="3.0"
+           effectValuePerLevel="0"
+           cooldown="120"
+           baseCost="0"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="500"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 全体治疗 - 终极技能 -->
+    <Skill id="Core.Skill.Ultimate.GroupHeal"
+           nameTextId="Core.Skill.Ultimate.GroupHeal.NameText"
+           descTextId="Core.Skill.Ultimate.GroupHeal.DescText"
+           type="Ultimate"
+           maxLevel="1"
+           effectType="group_heal"
+           baseEffectValue="0.5"
+           effectValuePerLevel="0"
+           cooldown="180"
+           baseCost="0"
+           condition="InCombat">
+        <LevelRequirements>
+            <Level level="1" cost="600"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 速度爆发 -->
+    <Skill id="Core.Skill.Active.SpeedBurst"
+           nameTextId="Core.Skill.Active.SpeedBurst.NameText"
+           descTextId="Core.Skill.Active.SpeedBurst.DescText"
+           type="Active"
+           maxLevel="5"
+           effectType="travel_speed_boost"
+           baseEffectValue="0.1"
+           effectValuePerLevel="0.05"
+           cooldown="120"
+           baseCost="0"
+           condition="InTravel">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="80"/>
+            <Level level="3" cost="160"/>
+            <Level level="4" cost="320"/>
+            <Level level="5" cost="640"/>
+        </LevelRequirements>
+    </Skill>
+
+    <!-- 坚韧 -->
+    <Skill id="Core.Skill.Passive.Tenacity"
+           nameTextId="Core.Skill.Passive.Tenacity.NameText"
+           descTextId="Core.Skill.Passive.Tenacity.DescText"
+           type="Passive"
+           maxLevel="5"
+           effectType="hp_boost"
+           baseEffectValue="0.05"
+           effectValuePerLevel="0.03"
+           condition="None">
+        <LevelRequirements>
+            <Level level="1" cost="0"/>
+            <Level level="2" cost="70"/>
+            <Level level="3" cost="140"/>
+            <Level level="4" cost="280"/>
+            <Level level="5" cost="560"/>
+        </LevelRequirements>
+    </Skill>
+
+</Skills>

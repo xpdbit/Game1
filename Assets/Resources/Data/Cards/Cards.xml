@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Cards>
+    <!-- 角色卡 -->
+    <Card id="Core.Card.Character.Warrior"
+          nameTextId="Core.Card.Character.Warrior.NameText"
+          descTextId="Core.Card.Character.Warrior.DescText"
+          type="Character"
+          rarity="R"
+          attributeMultiplier="1.2"
+          affixIds="">
+        <SellPrice>100</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Character.Mage"
+          nameTextId="Core.Card.Character.Mage.NameText"
+          descTextId="Core.Card.Character.Mage.DescText"
+          type="Character"
+          rarity="SR"
+          attributeMultiplier="1.5"
+          affixIds="">
+        <SellPrice>500</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Character.Healer"
+          nameTextId="Core.Card.Character.Healer.NameText"
+          descTextId="Core.Card.Character.Healer.DescText"
+          type="Character"
+          rarity="SR"
+          attributeMultiplier="1.4"
+          affixIds="">
+        <SellPrice>450</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Character.Rogue"
+          nameTextId="Core.Card.Character.Rogue.NameText"
+          descTextId="Core.Card.Character.Rogue.DescText"
+          type="Character"
+          rarity="R"
+          attributeMultiplier="1.3"
+          affixIds="">
+        <SellPrice>150</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Character.Berserker"
+          nameTextId="Core.Card.Character.Berserker.NameText"
+          descTextId="Core.Card.Character.Berserker.DescText"
+          type="Character"
+          rarity="SSR"
+          attributeMultiplier="1.8"
+          affixIds="">
+        <SellPrice>2000</SellPrice>
+    </Card>
+
+    <!-- 装备卡 -->
+    <Card id="Core.Card.Equipment.Sword"
+          nameTextId="Core.Card.Equipment.Sword.NameText"
+          descTextId="Core.Card.Equipment.Sword.DescText"
+          type="Equipment"
+          rarity="N"
+          attributeMultiplier="1.0"
+          affixIds="ATK_BONUS_10">
+        <SellPrice>20</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Equipment.Shield"
+          nameTextId="Core.Card.Equipment.Shield.NameText"
+          descTextId="Core.Card.Equipment.Shield.DescText"
+          type="Equipment"
+          rarity="N"
+          attributeMultiplier="1.0"
+          affixIds="DEF_BONUS_10">
+        <SellPrice>20</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Equipment.Staff"
+          nameTextId="Core.Card.Equipment.Staff.NameText"
+          descTextId="Core.Card.Equipment.Staff.DescText"
+          type="Equipment"
+          rarity="R"
+          attributeMultiplier="1.2"
+          affixIds="MP_BONUS_50">
+        <SellPrice>120</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Equipment.Armor"
+          nameTextId="Core.Card.Equipment.Armor.NameText"
+          descTextId="Core.Card.Equipment.Armor.DescText"
+          type="Equipment"
+          rarity="R"
+          attributeMultiplier="1.2"
+          affixIds="DEF_BONUS_25">
+        <SellPrice>150</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Equipment.LegendaryBlade"
+          nameTextId="Core.Card.Equipment.LegendaryBlade.NameText"
+          descTextId="Core.Card.Equipment.LegendaryBlade.DescText"
+          type="Equipment"
+          rarity="UR"
+          attributeMultiplier="2.0"
+          affixIds="ATK_BONUS_100,CRIT_RATE_15">
+        <SellPrice>10000</SellPrice>
+    </Card>
+
+    <!-- 技能卡 -->
+    <Card id="Core.Card.Skill.Fireball"
+          nameTextId="Core.Card.Skill.Fireball.NameText"
+          descTextId="Core.Card.Skill.Fireball.DescText"
+          type="Skill"
+          rarity="R"
+          attributeMultiplier="1.3"
+          affixIds="SKILL_DAMAGE_50">
+        <SellPrice>180</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Skill.Heal"
+          nameTextId="Core.Card.Skill.Heal.NameText"
+          descTextId="Core.Card.Skill.Heal.DescText"
+          type="Skill"
+          rarity="R"
+          attributeMultiplier="1.2"
+          affixIds="SKILL_HEAL_30">
+        <SellPrice>160</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Skill.Thunder"
+          nameTextId="Core.Card.Skill.Thunder.NameText"
+          descTextId="Core.Card.Skill.Thunder.DescText"
+          type="Skill"
+          rarity="SR"
+          attributeMultiplier="1.5"
+          affixIds="SKILL_DAMAGE_80,STUN_CHANCE">
+        <SellPrice>800</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Skill.IceWall"
+          nameTextId="Core.Card.Skill.IceWall.NameText"
+          descTextId="Core.Card.Skill.IceWall.DescText"
+          type="Skill"
+          rarity="SR"
+          attributeMultiplier="1.4"
+          affixIds="SKILL_DEF_60">
+        <SellPrice>600</SellPrice>
+    </Card>
+
+    <!-- 道具卡 -->
+    <Card id="Core.Card.Item.HealthPotion"
+          nameTextId="Core.Card.Item.HealthPotion.NameText"
+          descTextId="Core.Card.Item.HealthPotion.DescText"
+          type="Item"
+          rarity="N"
+          attributeMultiplier="1.0"
+          affixIds="USE_HEAL_100">
+        <SellPrice>10</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Item.ManaPotion"
+          nameTextId="Core.Card.Item.ManaPotion.NameText"
+          descTextId="Core.Card.Item.ManaPotion.DescText"
+          type="Item"
+          rarity="N"
+          attributeMultiplier="1.0"
+          affixIds="USE_MP_50">
+        <SellPrice>10</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Item.Elixir"
+          nameTextId="Core.Card.Item.Elixir.NameText"
+          descTextId="Core.Card.Item.Elixir.DescText"
+          type="Item"
+          rarity="R"
+          attributeMultiplier="1.5"
+          affixIds="USE_BUFF_ALL">
+        <SellPrice>300</SellPrice>
+    </Card>
+
+    <!-- 事件卡 -->
+    <Card id="Core.Card.Event.Treasure"
+          nameTextId="Core.Card.Event.Treasure.NameText"
+          descTextId="Core.Card.Event.Treasure.DescText"
+          type="Event"
+          rarity="R"
+          attributeMultiplier="1.0"
+          affixIds="EVENT_GOLD_500">
+        <SellPrice>80</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Event.Merchant"
+          nameTextId="Core.Card.Event.Merchant.NameText"
+          descTextId="Core.Card.Event.Merchant.DescText"
+          type="Event"
+          rarity="SR"
+          attributeMultiplier="1.3"
+          affixIds="EVENT_DISCOUNT_20">
+        <SellPrice>500</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Event.Dragon"
+          nameTextId="Core.Card.Event.Dragon.NameText"
+          descTextId="Core.Card.Event.Dragon.DescText"
+          type="Event"
+          rarity="SSR"
+          attributeMultiplier="2.0"
+          affixIds="EVENT_BOSS_SPAWN">
+        <SellPrice>5000</SellPrice>
+    </Card>
+
+    <!-- GR级传说卡 -->
+    <Card id="Core.Card.Legend.Destiny"
+          nameTextId="Core.Card.Legend.Destiny.NameText"
+          descTextId="Core.Card.Legend.Destiny.DescText"
+          type="Character"
+          rarity="GR"
+          attributeMultiplier="3.0"
+          affixIds="ATK_BONUS_200,DEF_BONUS_200,CRIT_RATE_30,EXP_BONUS_50">
+        <SellPrice>50000</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Legend.AncientPower"
+          nameTextId="Core.Card.Legend.AncientPower.NameText"
+          descTextId="Core.Card.Legend.AncientPower.DescText"
+          type="Skill"
+          rarity="GR"
+          attributeMultiplier="3.0"
+          affixIds="ULTIMATE_DAMAGE_500,COOLDOWN_REDUCE_50">
+        <SellPrice>80000</SellPrice>
+    </Card>
+
+    <Card id="Core.Card.Legend.Blessing"
+          nameTextId="Core.Card.Legend.Blessing.NameText"
+          descTextId="Core.Card.Legend.Blessing.DescText"
+          type="Item"
+          rarity="GR"
+          attributeMultiplier="3.0"
+          affixIds="USE_FULL_RECOVERY,REVIVE_ONCE">
+        <SellPrice>100000</SellPrice>
+    </Card>
+
+</Cards>

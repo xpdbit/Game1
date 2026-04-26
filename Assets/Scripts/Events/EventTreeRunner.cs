@@ -44,6 +44,7 @@ namespace Game1
         public EventTreeTemplate currentTemplate => _currentTemplate;
         public EventTreeNode currentNode => _currentNode;
         public bool isRunning => _state == EventTreeState.Running || _state == EventTreeState.WaitingChoice;
+        public IReadOnlyList<string> history => _history.ToArray(); // 只读历史记录
 
         #region Public API
 
@@ -177,6 +178,31 @@ namespace Game1
             EnterNode(previousNodeId, false);
         }
 
+        /// <summary>
+        /// 获取完整历史记录（带节点信息）
+        /// </summary>
+        public List<EventTreeHistoryEntry> GetHistoryDetails()
+        {
+            var result = new List<EventTreeHistoryEntry>();
+            if (_currentTemplate == null) return result;
+
+            foreach (var nodeId in _history)
+            {
+                var node = _currentTemplate.GetNode(nodeId);
+                if (node != null)
+                {
+                    result.Add(new EventTreeHistoryEntry
+                    {
+                        nodeId = node.id,
+                        title = node.title,
+                        description = node.description,
+                        nodeType = node.type
+                    });
+                }
+            }
+            return result;
+        }
+
         #endregion
 
         #region Private Methods
@@ -278,6 +304,104 @@ namespace Game1
 
         #endregion
 
+        #region Save/Load
+
+        /// <summary>
+        /// 导出当前运行状态用于存档
+        /// </summary>
+        public EventTreeRunSaveData ExportSaveData()
+        {
+            if (_currentTemplate == null)
+                return null;
+
+            return new EventTreeRunSaveData
+            {
+                templateId = _currentTemplate.id,
+                currentNodeId = _currentNode?.id,
+                history = new List<string>(_history),
+                isRunning = isRunning
+            };
+        }
+
+        /// <summary>
+        /// 从存档数据恢复运行状态
+        /// </summary>
+        public bool LoadFromSaveData(EventTreeRunSaveData data)
+        {
+            if (data == null || string.IsNullOrEmpty(data.templateId))
+            {
+                Debug.LogWarning("[EventTreeRunner] Invalid save data");
+                return false;
+            }
+
+            var template = EventTreeManager.GetTemplate(data.templateId);
+            if (template == null)
+            {
+                Debug.LogWarning($"[EventTreeRunner] Template not found: {data.templateId}");
+                return false;
+            }
+
+            _currentTemplate = template;
+            _history.Clear();
+
+            if (data.history != null)
+            {
+                foreach (var nodeId in data.history)
+                {
+                    _history.Push(nodeId);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(data.currentNodeId))
+            {
+                var node = template.GetNode(data.currentNodeId);
+                if (node != null)
+                {
+                    _currentNode = node;
+                    _state = data.isRunning ? EventTreeState.Running : EventTreeState.Idle;
+                    return true;
+                }
+            }
+
+            Debug.LogWarning($"[EventTreeRunner] Node not found: {data.currentNodeId}");
+            return false;
+        }
+
+        /// <summary>
+        /// 保存当前状态
+        /// </summary>
+        public void SaveState()
+        {
+            if (!isRunning) return;
+
+            var saveData = ExportSaveData();
+            if (saveData != null)
+            {
+                // 通知UI层或GameMain需要保存
+                onTreeSaveRequested?.Invoke(saveData);
+            }
+        }
+
+        /// <summary>
+        /// 加载状态（由外部调用）
+        /// </summary>
+        public void RestoreState(EventTreeRunSaveData data)
+        {
+            if (data == null || !data.isRunning) return;
+
+            if (LoadFromSaveData(data))
+            {
+                Debug.Log($"[EventTreeRunner] Restored state: {data.templateId} -> {data.currentNodeId}");
+            }
+        }
+
+        /// <summary>
+        /// 请求存档事件（外部监听）
+        /// </summary>
+        public event Action<EventTreeRunSaveData> onTreeSaveRequested;
+
+        #endregion
+
         #region Utility
 
         /// <summary>
@@ -304,6 +428,21 @@ namespace Game1
                 return new List<EventTreeChoice>();
 
             return _currentNode.choices ?? new List<EventTreeChoice>();
+        }
+
+        #endregion
+
+        #region Data Structures
+
+        /// <summary>
+        /// 事件树历史条目
+        /// </summary>
+        public struct EventTreeHistoryEntry
+        {
+            public string nodeId;
+            public string title;
+            public string description;
+            public EventTreeNodeType nodeType;
         }
 
         #endregion

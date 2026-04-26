@@ -266,6 +266,14 @@ namespace Game1
         }
 
         /// <summary>
+        /// 获取所有事件模板
+        /// </summary>
+        public static List<EventTemplate> GetAllEventTemplates()
+        {
+            return new List<EventTemplate>(_templates.Values);
+        }
+
+        /// <summary>
         /// 按类型获取所有事件模板
         /// </summary>
         public static List<EventTemplate> GetTemplatesByType(GameEventType type)

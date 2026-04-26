@@ -51,6 +51,21 @@ namespace Game1
         public float speed = 1f;
 
         /// <summary>
+        /// 治疗加成（被动技能加成）
+        /// </summary>
+        public float healBonus = 0f;
+
+        /// <summary>
+        /// 暴击加成（被动技能加成）
+        /// </summary>
+        public float critBonus = 0f;
+
+        /// <summary>
+        /// 最大生命加成（被动技能加成）
+        /// </summary>
+        public int maxHpBonus = 0;
+
+        /// <summary>
         /// 魅力（交易NPC态度）
         /// </summary>
         public int charisma = 1;

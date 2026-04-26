@@ -28,11 +28,17 @@ namespace Game1
         /// <summary>治疗</summary>
         heal,
 
+        /// <summary>治疗加成</summary>
+        heal_bonus,
+
         /// <summary>交易加成</summary>
         trade_bonus,
 
         /// <summary>旅行速度</summary>
         travel_speed,
+
+        /// <summary>旅行速度提升（临时的）</summary>
+        travel_speed_boost,
 
         /// <summary>防御加成</summary>
         defense_boost,
@@ -50,7 +56,16 @@ namespace Game1
         shield,
 
         /// <summary>金币换生命</summary>
-        gold_to_health
+        gold_to_health,
+
+        /// <summary>生命值提升（被动）</summary>
+        hp_boost,
+
+        /// <summary>单体暴击伤害（终极）</summary>
+        single_target_crit,
+
+        /// <summary>群体治疗（终极）</summary>
+        group_heal
     }
 
     /// <summary>

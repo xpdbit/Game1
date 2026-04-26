@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Game1.Core.EventBus;
 
 namespace Game1
 {
@@ -50,8 +51,8 @@ namespace Game1
 
         #region UI Components
         [Header("模块")]
-        public UIInventory inventory;
         public UIGameDashboard gameDashboard;
+        public UIInventory inventory;
         public UITeam team;
 
         #endregion
