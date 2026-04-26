@@ -6,9 +6,9 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-23
+**Generated:** 2026-04-26
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** (待提交)
+**Commit:** 761f59e
 **Branch:** main
 
 ## OVERVIEW
@@ -236,6 +236,22 @@ Game1/
 - **禁止**: 空MonoBehaviour
 - **避免**: 同步加载大资源 (用Addressables/async)
 - **避免**: UnityEngine.Input (用InputSystem)
+
+### 非标准组织模式
+
+| 模式 | 描述 | 位置 |
+|------|------|------|
+| **废弃目录残留** | Combat/, Inventory/, Managers/ 标注废弃但目录仍存在 | Assets/Scripts/根目录 |
+| **测试代码混杂** | GamePlay目录包含AAGENTTestRunner和ASimulated*测试类 | Assets/Scripts/GamePlay/ |
+| **自实现数据绑定** | UI/DataBinding目录实现自定义数据绑定系统 | Assets/Scripts/UI/DataBinding/ |
+
+### TODO分布 (26个)
+
+高发区优先修复：
+- `Roguelike/MapGenerator.cs` - 4处
+- `UI/UICardPanel.cs` - 4处
+- `Modules/Skill/SkillDesign.cs` - 3处
+- `Modules/Travel/TravelManager.cs` - 3处
 
 ## UNIQUE STYLES
 
