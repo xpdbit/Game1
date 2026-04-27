@@ -39,6 +39,7 @@ namespace Game1
 
         // 统计
         private int _totalKeystrokes;
+        private int _totalMouseClicks;
         private int _totalComboCount;
         private float _maxComboMultiplierAchieved = 1.0f;
         #endregion
@@ -97,6 +98,7 @@ namespace Game1
             _keystrokeCount = 0;
             _lastKeystrokeTime = 0;
             _comboMultiplier = 1.0f;
+            _totalMouseClicks = 0;
 #if ENABLE_INPUT_SYSTEM
             _lastMousePosition = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
 #else
@@ -215,6 +217,15 @@ namespace Game1
         }
 
         /// <summary>
+        /// 处理鼠标点击
+        /// </summary>
+        public void OnMouseClick()
+        {
+            _totalMouseClicks++;
+            _lastInputTime = Time.time;
+        }
+
+        /// <summary>
         /// 将键盘敲击转换为脚程
         /// </summary>
         /// <param name="keystrokeCount">敲击次数</param>
@@ -309,6 +320,7 @@ namespace Game1
         {
             _keystrokeCount = 0;
             _comboMultiplier = 1.0f;
+            _totalMouseClicks = 0;
             onComboUpdated?.Invoke(_comboMultiplier);
         }
 
@@ -317,7 +329,7 @@ namespace Game1
         /// </summary>
         public (int totalKeystrokes, int totalCombo, float maxMultiplier) GetStatistics()
         {
-            return (_totalKeystrokes, _totalComboCount, _maxComboMultiplierAchieved);
+            return (_totalKeystrokes + _totalMouseClicks, _totalComboCount, _maxComboMultiplierAchieved);
         }
 
         #endregion

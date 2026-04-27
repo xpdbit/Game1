@@ -249,8 +249,7 @@ namespace Game1
             {
                 onLeftMouseClicked?.Invoke();
                 onMouseButtonPressed?.Invoke();
-
-                // 鼠标点击也转换为脚程
+                _inputConverter?.OnMouseClick();
                 _inputConverter?.OnMouseMove(Vector2.zero);
             }
 
@@ -259,6 +258,7 @@ namespace Game1
             {
                 onRightMouseClicked?.Invoke();
                 onMouseButtonPressed?.Invoke();
+                _inputConverter?.OnMouseClick();
             }
 
             // 中键点击
@@ -266,6 +266,7 @@ namespace Game1
             {
                 onMiddleMouseClicked?.Invoke();
                 onMouseButtonPressed?.Invoke();
+                _inputConverter?.OnMouseClick();
             }
 
             // 检测鼠标移动

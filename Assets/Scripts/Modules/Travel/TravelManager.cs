@@ -119,6 +119,12 @@ namespace Game1.Modules.Travel
         /// </summary>
         public void StartNewJourney(string seed)
         {
+            if (_player == null)
+            {
+                Debug.LogWarning("[TravelManager] StartNewJourney called but _player is null, skipping");
+                return;
+            }
+
             _worldMap.Generate(seed);
             ProgressManager.instance.Reset();
             _player.travelState.StartTravel(

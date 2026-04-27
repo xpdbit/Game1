@@ -1,14 +1,19 @@
-# 必须遵守
+# 强约束！
 
 1. 对话、思考、GITHUB的提交描述 均必须保持使用中文！
 2. 维持同样的代码风格！
    - C#: Assets/Scripts/命名空间/
+3. 因TOKEN消耗问题，Sisyphus只负责任务规划、构思，具体执行必须交给其他AGENT。
+   - Sisyphus的产出必须是一个结构化任务蓝图，包含：目标描述、子任务拆解、依赖关系、预期结果定义。
+   - Sisyphus绝不允许在输出中包含可被直接执行的代码、完整文案、数据查询结果或工具调用参数。
+   - Sisyphus需要尽可能节俭高效的表达，禁止重复描述，减少TOKEN消耗。
+   - Sisyphus是执行层，发出的是绝对的命令。
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-26
+**Generated:** 2026-04-27
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** 761f59e
+**Commit:** 4a79459
 **Branch:** main
 
 ## OVERVIEW
@@ -30,6 +35,7 @@ Game1/
 │   │   │   │   ├── GlobalKeyboardHook.cs      # 全局键盘钩子（Windows API）
 │   │   │   │   └── InputConverter.cs           # 虚实交互输入转换
 │   │   │   ├── Debug/      # GameDebug调试信息
+│   │   │   ├── Audio/      # 音频系统 (AudioManager, AudioPresets)
 │   │   │   └── Utils/      # 工具类 (ResourceManager, Utils, UniTaskProgress)
 │   │   ├── Combat/         # 战斗系统 (已废弃，请使用 Modules/Combat/)
 │   │   ├── Entities/       # 实体
@@ -42,25 +48,29 @@ Game1/
 │   │   │   ├── Idle/       # IdleRewardModule
 │   │   │   ├── Travel/     # TravelManager, ProgressManager
 │   │   │   ├── Combat/     # CombatSystem (移动自根目录 Combat/)
+│   │   │   │   ├── Commands/ # 战斗命令系统 (ICombatCommand, AttackCommand, 等)
+│   │   │   │   └── State/   # 战斗状态机 (CombatContext, CombatPhase, CombatStateMachine)
 │   │   │   ├── Team/       # TeamDesign, TeamManager, TeamMemberData, JobSystem
 │   │   │   ├── Inventory/  # InventoryDesign, ItemManager, InventoryEvents, InventoryItemData, EquipmentSystem
 │   │   │   ├── Skill/      # SkillDesign, SkillManager, SkillData
 │   │   │   ├── Card/       # CardDesign, CardManager, CardData
 │   │   │   ├── Prestige/   # PrestigeManager
 │   │   │   ├── PVP/        # PVPMatchManager, PVPArenaManager
-│   │   │   ├── Pet/         # PetCompanionModule (随队宠物)
+│   │   │   ├── Pet/         # PetCompanionModule, PetCompanionPanel (随队宠物)
 │   │   │   └── Activity/   # ActivityMonitorModule (活跃度监测)
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
 │   │   │   ├── EventManager.cs    # 事件管理器(模板加载)
 │   │   │   ├── EventTreeManager.cs # 事件树管理器(配置加载)
-│   │   │   └── EventTreeRunner.cs  # 事件树运行器(分支叙事)
+│   │   │   ├── EventTreeRunner.cs  # 事件树运行器(分支叙事)
+│   │   │   └── Editor/xNode_Legacy/ # xNode事件树编辑器 (EventTreeEditorWindow, EventTreeGraph, 节点类型)
 │   │   ├── Roguelike/      # MapGenerator
 │   │   ├── UI/             # UI系统
 │   │   │   ├── Dialog/     # UISelectionDialog
 │   │   │   ├── Map/        # UIMapPath
 │   │   │   ├── Editor/     # Unity编辑器扩展
+│   │   │   ├── DataBinding/ # 数据绑定系统 (BaseDataSource, EventDrivenProgressBar, 等)
 │   │   │   ├── UITeam.cs   # 队伍UI
 │   │   │   ├── UIInventory.cs
 │   │   │   ├── UIManager.cs
@@ -70,6 +80,7 @@ Game1/
 │   │   │   ├── UIListItems.cs
 │   │   │   └── Utils/      # UI工具
 │   │   ├── Managers/       # 管理器 (已废弃，请使用 Modules/Inventory/)
+│   │   ├── Editor/GamePlaySimulator/ # 游戏模拟器 (AAGENTTestRunner, AGameSimulator, ASimulated*)
 │   │   ├── GameMain.cs     # 游戏入口
 │   │   └── GameTest.cs     # 测试类
 │   ├── Scenes/            # Unity场景
@@ -116,6 +127,18 @@ Game1/
 | 地图路径 | Assets/Scripts/UI/Map/ | UIMapPath |
 | 队伍系统 | Assets/Scripts/Modules/Team/ | TeamDesign, TeamManager |
 | 队伍UI | Assets/Scripts/UI/UITeam.cs | 队伍面板 |
+| RawInputManager | Assets/Scripts/Core/Input/ | Windows Raw Input API键盘输入 |
+| AudioManager | Assets/Scripts/Core/Audio/ | 音频管理器 |
+| 战斗命令系统 | Assets/Scripts/Modules/Combat/Commands/ | ICombatCommand命令队列 |
+| 战斗状态机 | Assets/Scripts/Modules/Combat/State/ | CombatStateMachine |
+| UI数据绑定 | Assets/Scripts/UI/DataBinding/ | EventDrivenProgressBar |
+| UIMapPathV2 | Assets/Scripts/UI/Map/ | 新版地图路径UI |
+| UICanvasManager | Assets/Scripts/UI/ | Canvas管理 |
+| UIGameDashboard | Assets/Scripts/UI/ | 游戏仪表盘 |
+| UISelectionDialogEx | Assets/Scripts/UI/Dialog/ | 扩展选择对话框 |
+| PetCompanionPanel | Assets/Scripts/Modules/Pet/ | 宠物面板 |
+| 游戏模拟器 | Assets/Scripts/Editor/GamePlaySimulator/ | 游戏模拟器测试工具 |
+| EventTreeDialogRunner | Assets/Scripts/Events/ | 事件树对话框运行器 |
 
 ## CODE MAP
 
@@ -129,7 +152,10 @@ Game1/
 | SaveManager | Core/SaveSystem/ | 存档管理 |
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
 | BackgroundInputManager | Core/Input/ | 后台输入管理（UniWindowController） |
+| RawInputManager | Core/Input/ | Windows Raw Input API键盘输入 |
 | GameDebug | Core/Debug/ | 调试信息管理器（运行时显示） |
+| AudioManager | Core/Audio/ | 音频管理器 |
+| AudioPresets | Core/Audio/ | 音频预设配置 |
 | ResourceManager | Core/Utils/ | 资源加载（JSON/XML/手动解析） |
 | PlayerActor | Entities/Player/ | 玩家数据+模块 |
 | IModule | Entities/Player/PlayerActor.cs | 模块接口 |
@@ -143,7 +169,20 @@ Game1/
 | NPCSystem | Entities/NPC/ | NPC系统 |
 | ActorManager | Entities/Actor/ | 角色模板管理器（统一Actor设计） |
 | CombatSystem | Modules/Combat/ | 战斗系统 |
+| CombatModule | Modules/Combat/ | 战斗模块 |
 | CombatEventEx | Modules/Combat/CombatSystem.cs | 战斗事件扩展（virtual/override多态） |
+| ICombatCommand | Modules/Combat/Commands/ | 战斗命令接口 |
+| AttackCommand | Modules/Combat/Commands/ | 攻击命令 |
+| DefendCommand | Modules/Combat/Commands/ | 防御命令 |
+| HealCommand | Modules/Combat/Commands/ | 治疗命令 |
+| UseSkillCommand | Modules/Combat/Commands/ | 使用技能命令 |
+| CombatCommandQueue | Modules/Combat/Commands/ | 命令队列 |
+| CombatContext | Modules/Combat/State/ | 战斗上下文 |
+| CombatPhase | Modules/Combat/State/ | 战斗阶段枚举 |
+| CombatStateMachine | Modules/Combat/State/ | 战斗状态机 |
+| CombatEffects | Modules/Combat/ | 战斗特效 |
+| CombatAnimationDispatcher | Modules/Combat/ | 战斗动画调度 |
+| DeathAnimationHandler | Modules/Combat/ | 死亡动画处理 |
 | TeamDesign | Modules/Team/ | 队伍核心逻辑（单例） |
 | TeamManager | Modules/Team/ | 队伍管理器（静态API） |
 | TeamMemberData | Modules/Team/ | 队伍成员数据结构 |
@@ -169,6 +208,7 @@ Game1/
 | PVPArenaManager | Modules/PVP/ | PVP竞技场管理器 |
 | ActivityMonitorModule | Modules/Activity/ | 活跃度监测模块 |
 | PetCompanionModule | Modules/Pet/ | 随队宠物模块 |
+| PetCompanionPanel | Modules/Pet/ | 宠物面板 |
 | PendingEventManager | Modules/Idle/ | 积压事件管理器 |
 | BatchProcessor | Modules/Idle/ | 批量处理系统 |
 | GlobalKeyboardHook | Core/Input/ | Windows全局键盘钩子 |
@@ -183,6 +223,7 @@ Game1/
 | EventManager | Events/EventManager.cs | 事件模板管理器（XML加载） |
 | EventTreeManager | Events/EventTreeManager.cs | 事件树模板管理器（XML加载） |
 | EventTreeRunner | Events/EventTreeRunner.cs | 事件树运行器（分支叙事执行） |
+| EventTreeDialogRunner | Events/ | 事件树对话框运行器 |
 | EventTreeState | Events/EventTreeRunner.cs | 事件树运行状态枚举 |
 | EventTemplate | Events/EventManager.cs | 事件模板数据结构 |
 | EventTreeTemplate | Events/EventTreeManager.cs | 事件树模板数据结构 |
@@ -203,7 +244,18 @@ Game1/
 | LayoutSender | UI/UILayout.cs | 布局参数传递 |
 | UIListItems | UI/UIListItems.cs | 列表管理 |
 | UISelectionDialog | UI/Dialog/ | 选择对话框 |
+| UISelectionDialogEx | UI/Dialog/ | 扩展选择对话框 |
+| DialogAnimationComponents | UI/Dialog/ | 对话框动画组件 |
 | UIMapPath | UI/Map/ | 地图路径UI |
+| UIMapPathV2 | UI/Map/ | 新版地图路径UI |
+| UICanvasManager | UI/ | Canvas管理 |
+| UIGameDashboard | UI/ | 游戏仪表盘 |
+| EventDrivenProgressBar | UI/DataBinding/ | 事件驱动进度条 |
+| BaseDataSource | UI/DataBinding/ | 数据源基类 |
+| IDataSource | UI/DataBinding/ | 数据源接口 |
+| ProgressDataSource | UI/DataBinding/ | 进度数据源 |
+| IProgressBarOwner | UI/DataBinding/ | 进度条所有者接口 |
+| ProgressBarConfig | UI/DataBinding/ | 进度条配置 |
 | XUniTaskProgress | UI/Utils/UniTaskProgress.cs | 任务进度 |
 | XObjectPool | UI/Utils/UIUtils.cs | 对象池 |
 | InventoryItemData | Modules/Inventory/ | 物品数据+状态 |
@@ -257,7 +309,7 @@ Game1/
 
 - **透明悬浮窗**: UniWindowController + D3D11 + FlipModel禁用
 - **前台悬浮**: 无边框、置顶、点击穿透
-- **输入系统**: New Input System (com.unity.inputsystem)
+- **输入系统**: New Input System (com.unity.inputsystem) + RawInputManager (Windows Raw Input API后端)
 - **UI架构**: UIManager状态机 + EventBus解耦
 
 ## INITIALIZATION ORDER
@@ -397,6 +449,7 @@ unity -batchmode -runTests -testPlatform playmode
   - UITeam: UI面板，继承BaseUIPanel
 - 全局输入系统（NEW）:
   - GlobalKeyboardHook: 使用Windows API SetWindowsHookEx实现全局键盘监听
+  - RawInputManager: 使用Windows Raw Input API，消息驱动WM_INPUT，性能优于WH_KEYBOARD_LL钩子
   - InputConverter: 键盘敲击转脚程、鼠标移动转校准、连击加成计算
   - BackgroundInputManager: 集成UniWindowController鼠标 + GlobalKeyboardHook键盘
 - 虚实交互输入转换算法:

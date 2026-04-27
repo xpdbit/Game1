@@ -22,6 +22,8 @@ namespace Game1
         private bool _showIdleInfo = true;
         private bool _showEventInfo = false;
         private bool _showPerformanceInfo = false;
+        private bool _showActivityInfo = true;
+        private bool _showGameInfo = true;
 
         // 缓存
         private float _lastUpdateTime;
@@ -74,6 +76,24 @@ namespace Game1
         }
 
         /// <summary>
+        /// 是否显示活跃度信息
+        /// </summary>
+        public bool showActivityInfo
+        {
+            get => _showActivityInfo;
+            set => _showActivityInfo = value;
+        }
+
+        /// <summary>
+        /// 是否显示游戏信息
+        /// </summary>
+        public bool showGameInfo
+        {
+            get => _showGameInfo;
+            set => _showGameInfo = value;
+        }
+
+        /// <summary>
         /// 更新调试信息显示
         /// </summary>
         public void Update()
@@ -81,6 +101,23 @@ namespace Game1
             if (_debugText == null) return;
 
             _sb.Clear();
+
+            // 游戏信息
+            if (_showGameInfo)
+            {
+                var gm = GameMain.instance;
+                if (gm != null)
+                {
+                    var saveManager = gm.GetService<SaveManager>();
+                    if (saveManager?.currentSave != null)
+                    {
+                        long totalSeconds = saveManager.currentSave.playTime;
+                        var ts = System.TimeSpan.FromSeconds(totalSeconds);
+                        _sb.AppendLine($"游戏时间: {ts.Hours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}");
+                        _sb.AppendLine($"输入次数: {saveManager.currentSave.totalInputCount}");
+                    }
+                }
+            }
 
             // 性能信息
             if (_showPerformanceInfo)
@@ -116,6 +153,11 @@ namespace Game1
                 }
             }
 
+            // 积压事件
+            int pendingCount = GameMain.instance?.eventQueue?.pendingCount ?? 0;
+            if (pendingCount > 0)
+                _sb.AppendLine($"积压事件: {pendingCount}");
+
             // 事件信息
             if (_showEventInfo)
             {
@@ -125,10 +167,19 @@ namespace Game1
                     _sb.AppendLine($"EventTree: {runner.currentTemplate?.name ?? "Unknown"}");
                     _sb.AppendLine($"State: {runner.state}");
                 }
+            }
 
-                // 显示待处理事件数量
-                int pendingCount = GameMain.instance?.eventQueue?.pendingCount ?? 0;
-                _sb.AppendLine($"Pending Events: {pendingCount}");
+            // 活跃度信息
+            if (_showActivityInfo)
+            {
+                var activityModule = Modules.Activity.ActivityMonitorModule.instance;
+                if (activityModule != null)
+                {
+                    _sb.AppendLine($"活跃点数: {activityModule.GetCurrentActivity()}");
+                    _sb.AppendLine($"衰减活跃: {activityModule.GetDecayedActivity()}");
+                    _sb.AppendLine($"历史峰值: {activityModule.peakActivity}");
+                    _sb.AppendLine($"活跃率: {activityModule.activityRate:P1}");
+                }
             }
 
             _debugText.text = _sb.ToString();

@@ -266,6 +266,7 @@ namespace Game1
         public PlayerSaveData player;
         public WorldSaveData world;
         public long playTime; // 总游玩时间(秒)
+        public int totalInputCount; // 总输入次数
         public EventTreeRunSaveData eventTreeRun; // 事件树运行状态
     }
 
@@ -397,10 +398,9 @@ namespace Game1
     /// </summary>
     public class SaveManager
     {
-        private const string SAVE_FOLDER = "Saves";
-        private const string SAVE_FILE = "gamesave.json";
-        private const string BASE_SAVE_FILE = "gamesave.base.json";
-        private const string INCREMENTAL_FILE = "gamesave.inc.json";
+        private const string SAVE_FILE = "GameSave.save";
+        private const string BASE_SAVE_FILE = "GameSave.base.save";
+        private const string INCREMENTAL_FILE = "GameSave.inc.save";
         private const int COMPRESSION_LEVEL = 6;
 
         private GameSaveData _currentSave;
@@ -408,7 +408,7 @@ namespace Game1
         private bool _isDirty = false;
         private bool _isIncrementalDirty = false;  // 增量存档标记
         private float _autoSaveTimer = 0f;
-        private float _autoSaveInterval = 300f; // 5分钟
+        private float _autoSaveInterval = 1f; // 1秒
 
         private ISaveBackend _backend;
         private SaveSlot _changedSlots = SaveSlot.None; // 变更槽位追踪
@@ -423,7 +423,7 @@ namespace Game1
         /// </summary>
         public void SetBackend(ISaveBackend backend)
         {
-            _backend = backend ?? new LocalSaveBackend(Path.Combine(Application.persistentDataPath, SAVE_FOLDER));
+            _backend = backend ?? new LocalSaveBackend(Path.Combine(Application.persistentDataPath, "Saves"));
         }
 
         public SaveManager()
@@ -496,7 +496,7 @@ namespace Game1
                     _baseSave = CloneSaveData(_currentSave);
                     SaveBase(); // 保存基准文件
 
-                    Debug.Log($"[SaveManager] Full save compressed to {compressed.Length} bytes");
+                    // Debug.Log($"[SaveManager] Full save compressed to {compressed.Length} bytes");
                 }
                 else
                 {
@@ -508,7 +508,7 @@ namespace Game1
                         var compressed = Compress(Encoding.UTF8.GetBytes(json));
                         File.WriteAllBytes(GetIncrementalPath(), compressed);
 
-                        Debug.Log($"[SaveManager] Incremental save compressed to {compressed.Length} bytes");
+                        // Debug.Log($"[SaveManager] Incremental save compressed to {compressed.Length} bytes");
                     }
                     else
                     {
@@ -521,7 +521,7 @@ namespace Game1
                 _isIncrementalDirty = false;
                 _changedSlots = SaveSlot.None;
 
-                Debug.Log($"[SaveManager] Game saved to {path}");
+                // Debug.Log($"[SaveManager] Game saved to {path}");
             }
             catch (Exception ex)
             {
@@ -598,6 +598,7 @@ namespace Game1
                 {
                     Debug.Log("[SaveManager] No save file found, creating new save");
                     CreateNewSave();
+                    Save(); // 立即持久化初始存档
                     return;
                 }
 
@@ -727,14 +728,11 @@ namespace Game1
         /// </summary>
         public void Tick(float deltaTime)
         {
-            if (_isDirty)
+            _autoSaveTimer += deltaTime;
+            if (_autoSaveTimer >= _autoSaveInterval)
             {
-                _autoSaveTimer += deltaTime;
-                if (_autoSaveTimer >= _autoSaveInterval)
-                {
-                    Save();
-                    _autoSaveTimer = 0f;
-                }
+                Save();
+                _autoSaveTimer = 0f;
             }
         }
 
@@ -795,38 +793,34 @@ namespace Game1
         /// <param name="offlineTime">离线时间</param>
         public void TickWithPlayer(float deltaTime, PlayerActor player, float offlineTime)
         {
-            // 实时同步玩家数据到存档（不频繁保存，只更新状态）
             if (player != null && _currentSave != null)
             {
-                // 每帧更新offlineAccumulatedTime
                 _currentSave.player.offlineAccumulatedTime = offlineTime;
             }
-
-            // 自动存档检测
-            if (_isDirty)
+            _autoSaveTimer += deltaTime;
+            if (_autoSaveTimer >= _autoSaveInterval)
             {
-                _autoSaveTimer += deltaTime;
-                if (_autoSaveTimer >= _autoSaveInterval)
-                {
-                    Save();
-                    _autoSaveTimer = 0f;
-                }
+                Save();
+                _autoSaveTimer = 0f;
             }
         }
 
         private string GetSavePath()
         {
-            return Path.Combine(Application.persistentDataPath, SAVE_FOLDER, SAVE_FILE);
+            string exeDir = Directory.GetParent(Application.dataPath).FullName;
+            return Path.Combine(exeDir, "Save", SAVE_FILE);
         }
 
         private string GetBasePath()
         {
-            return Path.Combine(Application.persistentDataPath, SAVE_FOLDER, BASE_SAVE_FILE);
+            string exeDir = Directory.GetParent(Application.dataPath).FullName;
+            return Path.Combine(exeDir, "Save", BASE_SAVE_FILE);
         }
 
         private string GetIncrementalPath()
         {
-            return Path.Combine(Application.persistentDataPath, SAVE_FOLDER, INCREMENTAL_FILE);
+            string exeDir = Directory.GetParent(Application.dataPath).FullName;
+            return Path.Combine(exeDir, "Save", INCREMENTAL_FILE);
         }
 
         /// <summary>

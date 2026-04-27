@@ -43,6 +43,9 @@ namespace Game1
         private const int GWLP_WNDPROC = -4;
 
         [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -141,6 +144,7 @@ namespace Game1
         // WndProc 委托 - 需要保持引用防止 GC
         private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
         private WndProcDelegate _wndProcDelegate;
+        private GCHandle _wndProcGCHandle;  // 防止委托被 GC
 
         // 统计
         private int _totalKeyDowns;
@@ -165,6 +169,14 @@ namespace Game1
                 Debug.LogError("[RawInputManager] Cannot initialize - already disposed");
                 return false;
             }
+
+#if UNITY_EDITOR
+            // 在 Unity Editor 中，UnityWndClass 窗口属于 Editor 主线程，
+            // 托管代码无法通过 GetWindowLongPtr/SetWindowLongPtr 子类化它。
+            // 回退到 GlobalKeyboardHook 作为后备方案（BackgroundInputManager 会自动处理）。
+            Debug.Log("[RawInputManager] Editor mode detected - Raw Input not supported, falling back to GlobalKeyboardHook");
+            return false;
+#endif
 
             try
             {
@@ -350,12 +362,12 @@ namespace Game1
         {
             if (_windowHandle == IntPtr.Zero) return false;
 
-            // 保存原始窗口过程
-            _originalWndProc = SetWindowLongPtr(_windowHandle, GWLP_WNDPROC, IntPtr.Zero);
+            // 获取原始窗口过程 - 使用 GetWindowLongPtr
+            _originalWndProc = GetWindowLongPtr(_windowHandle, GWLP_WNDPROC);
             if (_originalWndProc == IntPtr.Zero)
             {
                 int error = Marshal.GetLastWin32Error();
-                Debug.LogError($"[RawInputManager] SetWindowLongPtr failed with error {error}");
+                Debug.LogError($"[RawInputManager] GetWindowLongPtr failed with error {error}");
                 return false;
             }
 
@@ -363,7 +375,7 @@ namespace Game1
             _wndProcDelegate = MyWndProc;
 
             // 使用 GCHandle 防止委托被 GC
-            GCHandle.Alloc(_wndProcDelegate, GCHandleType.Pinned);
+            _wndProcGCHandle = GCHandle.Alloc(_wndProcDelegate, GCHandleType.Pinned);
             _ourWndProcPtr = Marshal.GetFunctionPointerForDelegate(_wndProcDelegate);
 
             // 设置新的窗口过程
@@ -494,20 +506,12 @@ namespace Game1
                 Debug.Log("[RawInputManager] Window subclassing removed");
             }
 
-            // 释放委托
-            if (_wndProcDelegate != null)
+            // 释放 GCHandle
+            if (_wndProcGCHandle.IsAllocated)
             {
-                try
-                {
-                    GCHandle handle = GCHandle.Alloc(_wndProcDelegate, GCHandleType.Pinned);
-                    if (handle.IsAllocated)
-                    {
-                        handle.Free();
-                    }
-                }
-                catch { }
-                _wndProcDelegate = null;
+                _wndProcGCHandle.Free();
             }
+            _wndProcDelegate = null;
 
             _ourWndProcPtr = IntPtr.Zero;
             _originalWndProc = IntPtr.Zero;

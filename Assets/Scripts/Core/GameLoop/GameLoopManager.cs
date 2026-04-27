@@ -3,6 +3,7 @@ using VContainer;
 using Game1.Core.GameLoop;
 using Game1.Modules.Travel;
 using Game1.Modules.Combat;
+using Game1.Modules.Activity;
 
 namespace Game1
 {
@@ -23,6 +24,8 @@ namespace Game1
         private SaveManager _saveManager;
         private BackgroundInputManager _backgroundInput;
         private CombatModule _combatModule;
+        private ActivityMonitorModule _activityModule;
+        private float _totalGameTime;
 
         // 更新频率
         [SerializeField] private float _tickInterval = 0.1f;
@@ -115,6 +118,11 @@ namespace Game1
             _idleModule = new IdleRewardModule();
             _idleModule.Initialize(_player);
 
+            // 2.1 初始化活跃度监控模块
+            _activityModule = ActivityMonitorModule.instance;
+            _activityModule.Initialize(_player);
+            _player.AddModule(_activityModule);
+
             // 3. 使用共享的TravelManager单例
             _travelModule = TravelManager.instance;
             _travelModule.Initialize(_player);
@@ -126,7 +134,7 @@ namespace Game1
             _eventQueue = new EventQueue();
             _travelModule.SetEventQueue(_eventQueue);
 
-            _saveManager = new SaveManager();
+            _saveManager = GameMain.instance.Container.Resolve<SaveManager>();
 
             // 4. 尝试加载存档（如果没有则创建新存档）
             _saveManager.Load();
@@ -141,6 +149,9 @@ namespace Game1
             {
                 Debug.Log("[GameLoopManager] No save data to apply, using default PlayerActor");
             }
+
+            // 恢复游戏时间
+            _totalGameTime = _saveManager.currentSave?.playTime ?? 0f;
 
             // 6. 注册加成模块到PlayerActor
             var bonusModule = new BonusMultiplierModule
@@ -186,16 +197,25 @@ namespace Game1
             // 1. 挂机收益
             _idleModule.Tick(deltaTime);
 
+            // 1.1 活跃度监控
+            _activityModule.Tick(deltaTime);
+
             // 2. 旅行进度
             _travelModule.Tick(deltaTime);
 
             // 3. 事件处理
             _eventQueue.Tick(deltaTime);
 
-            // 4. 自动存档（同步PlayerActor数据，offlineTime只在退出时保存）
+            // 4. 更新游戏时间和输入次数
+            _totalGameTime += deltaTime;
+            _saveManager.currentSave.playTime = (long)_totalGameTime;
+            var (totalKeystrokes, _, _) = _backgroundInput?.GetInputStatistics() ?? (0, 0, 1f);
+            _saveManager.currentSave.totalInputCount = totalKeystrokes;
+
+            // 5. 自动存档（同步PlayerActor数据，offlineTime只在退出时保存）
             _saveManager.TickWithPlayer(deltaTime, _player, 0f);
 
-            // 5. 更新调试信息显示
+            // 6. 更新调试信息显示
             GameDebug.instance?.Update();
         }
 
@@ -210,6 +230,7 @@ namespace Game1
             if (typeof(T) == typeof(EventQueue)) return _eventQueue as T;
             if (typeof(T) == typeof(SaveManager)) return _saveManager as T;
             if (typeof(T) == typeof(CombatModule)) return _combatModule as T;
+            if (typeof(T) == typeof(ActivityMonitorModule)) return _activityModule as T;
             return null;
         }
 
