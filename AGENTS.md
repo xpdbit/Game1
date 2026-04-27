@@ -11,7 +11,7 @@
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-27
+**Generated:** 2026-04-28
 **Project:** Game1 - Unity 6 游戏开发项目
 **Commit:** 4a79459
 **Branch:** main
@@ -271,14 +271,15 @@ Game1/
 | TeamCapacity | Modules/Team/TeamDesign.cs | 队伍容量配置 |
 | TeamEventData | Modules/Team/TeamDesign.cs | 队伍事件数据 |
 
-## CONVENTIONS (C#)
+## 代码规范
 
 - **命名空间**: `Game1` (根)
 - **命名**: PascalCase (MonoBehaviour方法: UpdateScore)
-- **私有字段**: `_camelCase` 或 `m_CamelCase`
+- **私有字段**: `_camelCase` 或 `m_CamelCase` (来自.editorconfig)
 - **SerializeField**: private字段需序列化时显式标记
 - **MonoBehaviour**: 避免空脚本
 - **Input**: 使用 `UnityEngine.InputSystem` (Keyboard.current)
+- **Editorconfig**: `E:\UnityProgram\Game1\.editorconfig` (核心规则：space缩进4, utf-8, CRLF)
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -304,6 +305,26 @@ Game1/
 - `UI/UICardPanel.cs` - 4处
 - `Modules/Skill/SkillDesign.cs` - 3处
 - `Modules/Travel/TravelManager.cs` - 3处
+
+### 测试规范
+
+测试目录：`Assets/Tests/EditMode/` (NUnit框架)
+测试类命名：`[ClassName]Tests` (如 `InventoryDesignTests`)
+测试方法：`Method_Scenario_ExpectedResult` (如 `AddItem_Success_SingleItem`)
+
+运行命令：
+```bash
+unity -batchmode -projectPath . -runTests -testMode EditMode
+```
+
+### CI/CD
+
+3个GitHub Workflows：
+- `build.yml`: game-ci官方action，多平台矩阵(Windows64/OSX/Linux64/WebGL)
+- `ci.yml`: 自定义Unity容器，PR触发
+- `release.yml`: Release发布流水线
+
+必需Secrets: UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD, SLACK_WEBHOOK_URL
 
 ## UNIQUE STYLES
 

@@ -658,21 +658,25 @@ namespace Game1
         /// <summary>
         /// 导出所有角色技能数据用于存档
         /// </summary>
-        public SerializableDictionary<int, List<SkillSaveData>> Export()
+        public List<MemberSkillSaveData> Export()
         {
-            var saveData = new SerializableDictionary<int, List<SkillSaveData>>();
+            var saveData = new List<MemberSkillSaveData>();
             foreach (var kvp in _memberSkills)
             {
-                var memberSkills = new List<SkillSaveData>();
+                var memberSkillSaveData = new MemberSkillSaveData
+                {
+                    memberId = kvp.Key,
+                    skills = new List<SkillSaveData>()
+                };
                 foreach (var skill in kvp.Value)
                 {
-                    memberSkills.Add(new SkillSaveData
+                    memberSkillSaveData.skills.Add(new SkillSaveData
                     {
                         skillId = skill.id,
                         currentLevel = skill.currentLevel
                     });
                 }
-                saveData[kvp.Key] = memberSkills;
+                saveData.Add(memberSkillSaveData);
             }
             return saveData;
         }
@@ -680,16 +684,16 @@ namespace Game1
         /// <summary>
         /// 从存档恢复角色技能数据
         /// </summary>
-        public void Import(SerializableDictionary<int, List<SkillSaveData>> saveData)
+        public void Import(List<MemberSkillSaveData> saveData)
         {
             _memberSkills.Clear();
             if (saveData == null) return;
 
-            foreach (var kvp in saveData)
+            foreach (var memberData in saveData)
             {
-                var memberId = kvp.Key;
+                var memberId = memberData.memberId;
                 var skills = new List<SkillData>();
-                foreach (var savedSkill in kvp.Value)
+                foreach (var savedSkill in memberData.skills)
                 {
                     var template = GetTemplate(savedSkill.skillId);
                     if (template == null) continue;

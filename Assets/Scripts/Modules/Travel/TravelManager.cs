@@ -115,6 +115,51 @@ namespace Game1.Modules.Travel
         #region Journey Control
 
         /// <summary>
+        /// 导出当前旅行状态到存档数据
+        /// </summary>
+        public WorldSaveData ExportToSaveData()
+        {
+            var saveData = new WorldSaveData
+            {
+                currentMapSeed = _worldMap?.seed ?? string.Empty,
+                currentNodeIndex = _worldMap?.currentNodeIndex ?? 0,
+                travelProgress = _player?.travelState.progress ?? 0f,
+                timestamp = DateTime.Now.Ticks
+            };
+            return saveData;
+        }
+
+        /// <summary>
+        /// 从存档数据恢复旅行状态
+        /// </summary>
+        public void ImportFromSaveData(WorldSaveData saveData)
+        {
+            if (saveData == null || string.IsNullOrEmpty(saveData.currentMapSeed))
+            {
+                Debug.LogWarning("[TravelManager] ImportFromSaveData called with null or empty saveData, skipping");
+                return;
+            }
+
+            // 重新生成地图
+            _worldMap?.Generate(saveData.currentMapSeed);
+
+            // 定位到存档节点（如果 WorldMap 支持此方法）
+            // _worldMap?.SeekToNode(saveData.currentNodeIndex);
+
+            // 恢复玩家旅行进度
+            if (_player != null && saveData.travelProgress > 0)
+            {
+                _player.travelState.progress = saveData.travelProgress;
+                _player.travelState.currentState = TravelState.State.Traveling;
+            }
+
+            // 设置状态为旅行中
+            SetStatus(TravelStatus.Traveling);
+
+            Debug.Log($"[TravelManager] Restored travel state: seed={saveData.currentMapSeed}, node={saveData.currentNodeIndex}, progress={saveData.travelProgress}");
+        }
+
+        /// <summary>
         /// 开始新旅程
         /// </summary>
         public void StartNewJourney(string seed)

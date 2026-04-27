@@ -150,6 +150,18 @@ namespace Game1
                 Debug.Log("[GameLoopManager] No save data to apply, using default PlayerActor");
             }
 
+            // 5.1 从存档恢复世界旅行状态
+            if (_saveManager.currentSave?.world != null &&
+                !string.IsNullOrEmpty(_saveManager.currentSave.world.currentMapSeed))
+            {
+                _travelModule.ImportFromSaveData(_saveManager.currentSave.world);
+                Debug.Log($"[GameLoopManager] Restored world state: seed={_saveManager.currentSave.world.currentMapSeed}, nodeIndex={_saveManager.currentSave.world.currentNodeIndex}");
+            }
+            else
+            {
+                Debug.Log("[GameLoopManager] No world save data to restore, will start new journey in GameMain");
+            }
+
             // 恢复游戏时间
             _totalGameTime = _saveManager.currentSave?.playTime ?? 0f;
 

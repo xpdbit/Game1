@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
+using System.Xml.Serialization;
 using UnityEngine;
 using Game1.Modules.Combat;
 
@@ -182,16 +182,26 @@ namespace Game1
         // 模块数据
         public List<InventorySaveData> inventoryItems;   // 背包物品
         public List<TeamMemberData> teamMembers;        // 队伍成员
-        public SerializableDictionary<int, List<SkillSaveData>> skillsByMemberId; // 角色技能列表
+        public List<MemberSkillSaveData> skillsByMemberId; // 角色技能列表
         public CombatSaveData combatData;               // 战斗统计
 
         public PlayerSaveData()
         {
             inventoryItems = new List<InventorySaveData>();
             teamMembers = new List<TeamMemberData>();
-            skillsByMemberId = new SerializableDictionary<int, List<SkillSaveData>>();
+            skillsByMemberId = new List<MemberSkillSaveData>();
             combatData = new CombatSaveData();
         }
+    }
+
+    /// <summary>
+    /// 角色技能存档数据（用于XmlSerializer）
+    /// </summary>
+    [Serializable]
+    public class MemberSkillSaveData
+    {
+        public int memberId;
+        public List<SkillSaveData> skills = new List<SkillSaveData>();
     }
 
     /// <summary>
@@ -279,7 +289,7 @@ namespace Game1
         public long baseTimestamp;          // 基准时间戳
         public long timestamp;              // 当前时间戳
         public List<string> changedSlots;   // 已变更的槽位列表
-        public byte[] compressedData;       // 压缩后的变更数据
+        public string slotData;             // XML 格式的变更数据（明文）
     }
 
     /// <summary>
@@ -398,10 +408,9 @@ namespace Game1
     /// </summary>
     public class SaveManager
     {
-        private const string SAVE_FILE = "GameSave.save";
-        private const string BASE_SAVE_FILE = "GameSave.base.save";
-        private const string INCREMENTAL_FILE = "GameSave.inc.save";
-        private const int COMPRESSION_LEVEL = 6;
+        private const string SAVE_FILE = "GameSave.xml";
+        private const string BASE_SAVE_FILE = "GameSave.base.xml";
+        private const string INCREMENTAL_FILE = "GameSave.inc.xml";
 
         private GameSaveData _currentSave;
         private GameSaveData _baseSave;           // 基准存档（用于增量计算）
@@ -413,6 +422,10 @@ namespace Game1
         private ISaveBackend _backend;
         private SaveSlot _changedSlots = SaveSlot.None; // 变更槽位追踪
         private readonly MigrationManager _migrationManager;
+
+        // XmlSerializer 实例（减少重复创建开销）
+        private static readonly XmlSerializer _xmlSerializer = new XmlSerializer(typeof(GameSaveData));
+        private static readonly XmlSerializer _incrementalSerializer = new XmlSerializer(typeof(IncrementalSaveData));
 
         public GameSaveData currentSave => _currentSave;
         public ISaveBackend backend => _backend;
@@ -473,9 +486,21 @@ namespace Game1
 
             try
             {
-                _currentSave.timestamp = DateTime.Now.Ticks;
+            _currentSave.timestamp = DateTime.Now.Ticks;
 
-                var path = GetSavePath();
+            // 填充世界存档数据（如果尚未填充）
+            if (string.IsNullOrEmpty(_currentSave.world.currentMapSeed)
+                && Game1.Modules.Travel.TravelManager.instance != null)
+            {
+                var worldData = Game1.Modules.Travel.TravelManager.instance.ExportToSaveData();
+                if (worldData != null)
+                {
+                    _currentSave.world = worldData;
+                    _changedSlots |= SaveSlot.World;
+                }
+            }
+
+            var path = GetSavePath();
                 var directory = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 {
@@ -756,6 +781,14 @@ namespace Game1
             _currentSave.player = player.ExportToSaveData();
             _currentSave.player.offlineAccumulatedTime = offlineTime;
             _currentSave.timestamp = DateTime.Now.Ticks;
+
+            // 填充世界存档数据
+            var worldData = Game1.Modules.Travel.TravelManager.instance.ExportToSaveData();
+            if (worldData != null)
+            {
+                _currentSave.world = worldData;
+                _changedSlots |= SaveSlot.World;
+            }
 
             MarkSlotDirty(SaveSlot.Player | SaveSlot.PlayTime);
             Save();

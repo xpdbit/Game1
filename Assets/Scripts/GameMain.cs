@@ -173,9 +173,23 @@ namespace Game1
         /// </summary>
         private void StartGame()
         {
-            // 开始新旅程
-            string seed = System.DateTime.Now.Ticks.ToString();
-            travelManager?.StartNewJourney(seed);
+            // 获取存档管理器
+            var saveManager = Container.Resolve<SaveManager>();
+
+            // 检查是否有有效世界存档
+            if (saveManager?.currentSave?.world != null && !string.IsNullOrEmpty(saveManager.currentSave.world.currentMapSeed))
+            {
+                // 恢复旅行
+                travelManager?.ImportFromSaveData(saveManager.currentSave.world);
+                Debug.Log("[GameMain] Restored journey from save");
+            }
+            else
+            {
+                // 开始新旅程
+                string seed = System.DateTime.Now.Ticks.ToString();
+                travelManager?.StartNewJourney(seed);
+                Debug.Log("[GameMain] Started new journey");
+            }
 
             Debug.Log("[GameMain] Game started");
         }
@@ -210,8 +224,21 @@ namespace Game1
         /// </summary>
         public void SaveGame()
         {
+            var saveManager = Container.Resolve<SaveManager>();
+
+            // 同步世界数据
+            var worldData = travelManager?.ExportToSaveData();
+            if (worldData != null)
+            {
+                saveManager.currentSave.world = worldData;
+            }
+
             // 保存事件树状态
             EventTreeRunner.instance.SaveState();
+
+            // 标记世界槽位脏
+            saveManager?.MarkSlotDirty(SaveSlot.World);
+
             Debug.Log("[GameMain] SaveGame called");
         }
 

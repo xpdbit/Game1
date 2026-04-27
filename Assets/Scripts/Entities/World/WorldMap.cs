@@ -264,5 +264,26 @@ namespace Game1
             _currentNodeIndex = 0;
             _maxNodeIndex = 0;
         }
+
+        /// <summary>
+        /// 定位到指定节点（用于存档恢复）
+        /// </summary>
+        public void SeekToNode(int index, int maxIndex)
+        {
+            if (index < 0 || index >= _path.Count)
+            {
+                UnityEngine.Debug.LogWarning($"[WorldMap] SeekToNode: index {index} out of range (0~{_path.Count - 1})");
+                return;
+            }
+
+            _currentNodeIndex = index;
+            _maxNodeIndex = Math.Max(maxIndex, index);
+
+            // 确保 _maxNodeIndex 不超过实际路径范围
+            if (_maxNodeIndex >= _path.Count)
+                _maxNodeIndex = _path.Count - 1;
+
+            UnityEngine.Debug.Log($"[WorldMap] SeekToNode: restored to node {index} ({_path[index].locationName}), maxNodeIndex = {_maxNodeIndex}");
+        }
     }
 }
