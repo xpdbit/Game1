@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<GameSaveData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <timestamp>639129701827838880</timestamp>
+  <version>1</version>
+  <player>
+    <timestamp>0</timestamp>
+    <level>0</level>
+    <gold>0</gold>
+    <offlineAccumulatedTime>0</offlineAccumulatedTime>
+    <inventoryItems />
+    <teamMembers />
+    <skillsByMemberId />
+    <combatData>
+      <totalBattles>0</totalBattles>
+      <victories>0</victories>
+      <defeats>0</defeats>
+      <totalDamageDealt>0</totalDamageDealt>
+      <totalDamageTaken>0</totalDamageTaken>
+      <totalGoldEarned>0</totalGoldEarned>
+    </combatData>
+  </player>
+  <world>
+    <timestamp>639129701827843944</timestamp>
+    <currentNodeIndex>0</currentNodeIndex>
+    <currentMapSeed />
+    <travelProgress>0</travelProgress>
+  </world>
+  <playTime>0</playTime>
+  <totalInputCount>0</totalInputCount>
+</GameSaveData>

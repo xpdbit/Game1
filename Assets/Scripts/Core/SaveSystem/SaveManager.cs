@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Xml.Serialization;
+using System.Xml;
 using UnityEngine;
 using Game1.Modules.Combat;
 
@@ -15,6 +15,16 @@ namespace Game1
     public abstract class SaveDataBase
     {
         public long timestamp;
+
+        /// <summary>
+        /// 序列化为XML字符串
+        /// </summary>
+        public abstract string ToXml();
+
+        /// <summary>
+        /// 从XML元素解析
+        /// </summary>
+        public abstract void ParseFromXml(XmlElement element);
     }
 
     /// <summary>
@@ -122,7 +132,7 @@ namespace Game1
     /// 战斗存档数据
     /// </summary>
     [Serializable]
-    public class CombatSaveData
+    public class CombatSaveData : SaveDataBase
     {
         public int totalBattles;
         public int victories;
@@ -165,6 +175,182 @@ namespace Game1
                 totalGoldEarned = totalGoldEarned
             };
         }
+
+        public override string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<CombatSaveData>");
+            sb.Append($"<totalBattles>{totalBattles}</totalBattles>");
+            sb.Append($"<victories>{victories}</victories>");
+            sb.Append($"<defeats>{defeats}</defeats>");
+            sb.Append($"<totalDamageDealt>{totalDamageDealt}</totalDamageDealt>");
+            sb.Append($"<totalDamageTaken>{totalDamageTaken}</totalDamageTaken>");
+            sb.Append($"<totalGoldEarned>{totalGoldEarned}</totalGoldEarned>");
+            sb.Append("</CombatSaveData>");
+            return sb.ToString();
+        }
+
+        public override void ParseFromXml(XmlElement element)
+        {
+            totalBattles = int.Parse(element.SelectSingleNode("totalBattles")?.InnerText ?? "0");
+            victories = int.Parse(element.SelectSingleNode("victories")?.InnerText ?? "0");
+            defeats = int.Parse(element.SelectSingleNode("defeats")?.InnerText ?? "0");
+            totalDamageDealt = int.Parse(element.SelectSingleNode("totalDamageDealt")?.InnerText ?? "0");
+            totalDamageTaken = int.Parse(element.SelectSingleNode("totalDamageTaken")?.InnerText ?? "0");
+            totalGoldEarned = int.Parse(element.SelectSingleNode("totalGoldEarned")?.InnerText ?? "0");
+        }
+    }
+
+    /// <summary>
+    /// 角色技能存档数据
+    /// </summary>
+    [Serializable]
+    public class MemberSkillSaveData
+    {
+        public int memberId;
+        public List<SkillSaveData> skills = new List<SkillSaveData>();
+
+        public string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<MemberSkillSaveData>");
+            sb.Append($"<memberId>{memberId}</memberId>");
+            sb.Append("<skills>");
+            foreach (var skill in skills)
+            {
+                sb.Append(skill.ToXml());
+            }
+            sb.Append("</skills>");
+            sb.Append("</MemberSkillSaveData>");
+            return sb.ToString();
+        }
+
+        public void ParseFromXml(XmlElement element)
+        {
+            memberId = int.Parse(element.SelectSingleNode("memberId")?.InnerText ?? "0");
+            var skillsNode = element.SelectSingleNode("skills");
+            if (skillsNode != null)
+            {
+                skills.Clear();
+                foreach (XmlNode childNode in skillsNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element)
+                    {
+                        var skill = new SkillSaveData();
+                        skill.ParseFromXml((XmlElement)childNode);
+                        skills.Add(skill);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 技能存档数据
+    /// </summary>
+    [Serializable]
+    public class SkillSaveData
+    {
+        public string skillId;
+        public int level;
+        public int exp;
+
+        public string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<SkillSaveData>");
+            sb.Append($"<skillId>{EscapeXml(skillId)}</skillId>");
+            sb.Append($"<level>{level}</level>");
+            sb.Append($"<exp>{exp}</exp>");
+            sb.Append("</SkillSaveData>");
+            return sb.ToString();
+        }
+
+        public void ParseFromXml(XmlElement element)
+        {
+            skillId = element.SelectSingleNode("skillId")?.InnerText ?? string.Empty;
+            level = int.Parse(element.SelectSingleNode("level")?.InnerText ?? "0");
+            exp = int.Parse(element.SelectSingleNode("exp")?.InnerText ?? "0");
+        }
+    }
+
+    /// <summary>
+    /// 背包物品存档数据
+    /// </summary>
+    [Serializable]
+    public class InventorySaveData
+    {
+        public string templateId;
+        public int instanceId;
+        public int amount;
+
+        public string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<InventorySaveData>");
+            sb.Append($"<templateId>{EscapeXml(templateId)}</templateId>");
+            sb.Append($"<instanceId>{instanceId}</instanceId>");
+            sb.Append($"<amount>{amount}</amount>");
+            sb.Append("</InventorySaveData>");
+            return sb.ToString();
+        }
+
+        public void ParseFromXml(XmlElement element)
+        {
+            templateId = element.SelectSingleNode("templateId")?.InnerText ?? string.Empty;
+            instanceId = int.Parse(element.SelectSingleNode("instanceId")?.InnerText ?? "0");
+            amount = int.Parse(element.SelectSingleNode("amount")?.InnerText ?? "0");
+        }
+    }
+
+    /// <summary>
+    /// 队伍成员存档数据
+    /// </summary>
+    [Serializable]
+    public class TeamMemberData
+    {
+        public int memberId;
+        public string actorId;
+        public string name;
+        public int level;
+        public int currentHp;
+        public int maxHp;
+        public int attack;
+        public int defense;
+        public float speed;
+        public string jobType;
+
+        public string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<TeamMemberData>");
+            sb.Append($"<memberId>{memberId}</memberId>");
+            sb.Append($"<actorId>{EscapeXml(actorId)}</actorId>");
+            sb.Append($"<name>{EscapeXml(name)}</name>");
+            sb.Append($"<level>{level}</level>");
+            sb.Append($"<currentHp>{currentHp}</currentHp>");
+            sb.Append($"<maxHp>{maxHp}</maxHp>");
+            sb.Append($"<attack>{attack}</attack>");
+            sb.Append($"<defense>{defense}</defense>");
+            sb.Append($"<speed>{speed}</speed>");
+            sb.Append($"<jobType>{EscapeXml(jobType)}</jobType>");
+            sb.Append("</TeamMemberData>");
+            return sb.ToString();
+        }
+
+        public void ParseFromXml(XmlElement element)
+        {
+            memberId = int.Parse(element.SelectSingleNode("memberId")?.InnerText ?? "0");
+            actorId = element.SelectSingleNode("actorId")?.InnerText ?? string.Empty;
+            name = element.SelectSingleNode("name")?.InnerText ?? string.Empty;
+            level = int.Parse(element.SelectSingleNode("level")?.InnerText ?? "0");
+            currentHp = int.Parse(element.SelectSingleNode("currentHp")?.InnerText ?? "0");
+            maxHp = int.Parse(element.SelectSingleNode("maxHp")?.InnerText ?? "0");
+            attack = int.Parse(element.SelectSingleNode("attack")?.InnerText ?? "0");
+            defense = int.Parse(element.SelectSingleNode("defense")?.InnerText ?? "0");
+            speed = float.Parse(element.SelectSingleNode("speed")?.InnerText ?? "0");
+            jobType = element.SelectSingleNode("jobType")?.InnerText ?? string.Empty;
+        }
     }
 
     /// <summary>
@@ -180,10 +366,10 @@ namespace Game1
         public float offlineAccumulatedTime;
 
         // 模块数据
-        public List<InventorySaveData> inventoryItems;   // 背包物品
-        public List<TeamMemberData> teamMembers;        // 队伍成员
-        public List<MemberSkillSaveData> skillsByMemberId; // 角色技能列表
-        public CombatSaveData combatData;               // 战斗统计
+        public List<InventorySaveData> inventoryItems = new List<InventorySaveData>();
+        public List<TeamMemberData> teamMembers = new List<TeamMemberData>();
+        public List<MemberSkillSaveData> skillsByMemberId = new List<MemberSkillSaveData>();
+        public CombatSaveData combatData = new CombatSaveData();
 
         public PlayerSaveData()
         {
@@ -192,47 +378,114 @@ namespace Game1
             skillsByMemberId = new List<MemberSkillSaveData>();
             combatData = new CombatSaveData();
         }
-    }
 
-    /// <summary>
-    /// 角色技能存档数据（用于XmlSerializer）
-    /// </summary>
-    [Serializable]
-    public class MemberSkillSaveData
-    {
-        public int memberId;
-        public List<SkillSaveData> skills = new List<SkillSaveData>();
-    }
-
-    /// <summary>
-    /// 可序列化的Dictionary（用于JsonUtility）
-    /// </summary>
-    [Serializable]
-    public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
-    {
-        [SerializeField]
-        private List<TKey> keys = new();
-
-        [SerializeField]
-        private List<TValue> values = new();
-
-        public void OnBeforeSerialize()
+        public override string ToXml()
         {
-            keys.Clear();
-            values.Clear();
-            foreach (var kvp in this)
+            var sb = new StringBuilder();
+            sb.Append("<PlayerSaveData>");
+            sb.Append($"<timestamp>{timestamp}</timestamp>");
+            sb.Append($"<actorId>{EscapeXml(actorId)}</actorId>");
+            sb.Append($"<actorName>{EscapeXml(actorName)}</actorName>");
+            sb.Append($"<level>{level}</level>");
+            sb.Append($"<gold>{gold}</gold>");
+            sb.Append($"<offlineAccumulatedTime>{offlineAccumulatedTime}</offlineAccumulatedTime>");
+
+            // 背包物品
+            sb.Append("<inventoryItems>");
+            foreach (var item in inventoryItems)
             {
-                keys.Add(kvp.Key);
-                values.Add(kvp.Value);
+                sb.Append(item.ToXml());
             }
+            sb.Append("</inventoryItems>");
+
+            // 队伍成员
+            sb.Append("<teamMembers>");
+            foreach (var member in teamMembers)
+            {
+                sb.Append(member.ToXml());
+            }
+            sb.Append("</teamMembers>");
+
+            // 技能数据
+            sb.Append("<skillsByMemberId>");
+            foreach (var skill in skillsByMemberId)
+            {
+                sb.Append(skill.ToXml());
+            }
+            sb.Append("</skillsByMemberId>");
+
+            // 战斗数据
+            sb.Append("<combatData>");
+            sb.Append(combatData.ToXml());
+            sb.Append("</combatData>");
+
+            sb.Append("</PlayerSaveData>");
+            return sb.ToString();
         }
 
-        public void OnAfterDeserialize()
+        public override void ParseFromXml(XmlElement element)
         {
-            Clear();
-            for (int i = 0; i < keys.Count; i++)
+            timestamp = long.Parse(element.SelectSingleNode("timestamp")?.InnerText ?? "0");
+            actorId = element.SelectSingleNode("actorId")?.InnerText ?? string.Empty;
+            actorName = element.SelectSingleNode("actorName")?.InnerText ?? string.Empty;
+            level = int.Parse(element.SelectSingleNode("level")?.InnerText ?? "0");
+            gold = int.Parse(element.SelectSingleNode("gold")?.InnerText ?? "0");
+            offlineAccumulatedTime = float.Parse(element.SelectSingleNode("offlineAccumulatedTime")?.InnerText ?? "0");
+
+            // 背包物品
+            var inventoryNode = element.SelectSingleNode("inventoryItems");
+            inventoryItems.Clear();
+            if (inventoryNode != null)
             {
-                Add(keys[i], values[i]);
+                foreach (XmlNode childNode in inventoryNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element)
+                    {
+                        var item = new InventorySaveData();
+                        item.ParseFromXml((XmlElement)childNode);
+                        inventoryItems.Add(item);
+                    }
+                }
+            }
+
+            // 队伍成员
+            var teamNode = element.SelectSingleNode("teamMembers");
+            teamMembers.Clear();
+            if (teamNode != null)
+            {
+                foreach (XmlNode childNode in teamNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element)
+                    {
+                        var member = new TeamMemberData();
+                        member.ParseFromXml((XmlElement)childNode);
+                        teamMembers.Add(member);
+                    }
+                }
+            }
+
+            // 技能数据
+            var skillsNode = element.SelectSingleNode("skillsByMemberId");
+            skillsByMemberId.Clear();
+            if (skillsNode != null)
+            {
+                foreach (XmlNode childNode in skillsNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element)
+                    {
+                        var skillData = new MemberSkillSaveData();
+                        skillData.ParseFromXml((XmlElement)childNode);
+                        skillsByMemberId.Add(skillData);
+                    }
+                }
+            }
+
+            // 战斗数据
+            var combatNode = element.SelectSingleNode("combatData");
+            if (combatNode != null)
+            {
+                combatData = new CombatSaveData();
+                combatData.ParseFromXml((XmlElement)combatNode);
             }
         }
     }
@@ -246,7 +499,26 @@ namespace Game1
         public int currentNodeIndex;
         public string currentMapSeed;
         public float travelProgress;
-        // TODO: 添加更多世界数据
+
+        public override string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<WorldSaveData>");
+            sb.Append($"<timestamp>{timestamp}</timestamp>");
+            sb.Append($"<currentNodeIndex>{currentNodeIndex}</currentNodeIndex>");
+            sb.Append($"<currentMapSeed>{EscapeXml(currentMapSeed)}</currentMapSeed>");
+            sb.Append($"<travelProgress>{travelProgress}</travelProgress>");
+            sb.Append("</WorldSaveData>");
+            return sb.ToString();
+        }
+
+        public override void ParseFromXml(XmlElement element)
+        {
+            timestamp = long.Parse(element.SelectSingleNode("timestamp")?.InnerText ?? "0");
+            currentNodeIndex = int.Parse(element.SelectSingleNode("currentNodeIndex")?.InnerText ?? "0");
+            currentMapSeed = element.SelectSingleNode("currentMapSeed")?.InnerText ?? string.Empty;
+            travelProgress = float.Parse(element.SelectSingleNode("travelProgress")?.InnerText ?? "0");
+        }
     }
 
     /// <summary>
@@ -255,14 +527,53 @@ namespace Game1
     [Serializable]
     public class EventTreeRunSaveData : SaveDataBase
     {
-        public string templateId;          // 当前事件树模板ID
-        public string currentNodeId;       // 当前节点ID
-        public List<string> history;      // 历史记录栈（先进后出）
-        public bool isRunning;            // 是否正在运行
+        public string templateId;
+        public string currentNodeId;
+        public List<string> history = new List<string>();
+        public bool isRunning;
 
         public EventTreeRunSaveData()
         {
             history = new List<string>();
+        }
+
+        public override string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<EventTreeRunSaveData>");
+            sb.Append($"<timestamp>{timestamp}</timestamp>");
+            sb.Append($"<templateId>{EscapeXml(templateId)}</templateId>");
+            sb.Append($"<currentNodeId>{EscapeXml(currentNodeId)}</currentNodeId>");
+            sb.Append($"<isRunning>{isRunning}</isRunning>");
+            sb.Append("<history>");
+            foreach (var h in history)
+            {
+                sb.Append($"<item>{EscapeXml(h)}</item>");
+            }
+            sb.Append("</history>");
+            sb.Append("</EventTreeRunSaveData>");
+            return sb.ToString();
+        }
+
+        public override void ParseFromXml(XmlElement element)
+        {
+            timestamp = long.Parse(element.SelectSingleNode("timestamp")?.InnerText ?? "0");
+            templateId = element.SelectSingleNode("templateId")?.InnerText ?? string.Empty;
+            currentNodeId = element.SelectSingleNode("currentNodeId")?.InnerText ?? string.Empty;
+            isRunning = bool.Parse(element.SelectSingleNode("isRunning")?.InnerText ?? "false");
+
+            var historyNode = element.SelectSingleNode("history");
+            history.Clear();
+            if (historyNode != null)
+            {
+                foreach (XmlNode childNode in historyNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element && childNode.Name == "item")
+                    {
+                        history.Add(childNode.InnerText);
+                    }
+                }
+            }
         }
     }
 
@@ -272,12 +583,91 @@ namespace Game1
     [Serializable]
     public class GameSaveData : SaveDataBase
     {
-        public int version = 1; // 存档版本，用于版本迁移
-        public PlayerSaveData player;
-        public WorldSaveData world;
-        public long playTime; // 总游玩时间(秒)
-        public int totalInputCount; // 总输入次数
-        public EventTreeRunSaveData eventTreeRun; // 事件树运行状态
+        public int version = 1;
+        public PlayerSaveData player = new PlayerSaveData();
+        public WorldSaveData world = new WorldSaveData();
+        public long playTime;
+        public int totalInputCount;
+        public EventTreeRunSaveData eventTreeRun = new EventTreeRunSaveData();
+
+        public override string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<GameSaveData>");
+            sb.Append($"<version>{version}</version>");
+            sb.Append($"<timestamp>{timestamp}</timestamp>");
+            sb.Append($"<playTime>{playTime}</playTime>");
+            sb.Append($"<totalInputCount>{totalInputCount}</totalInputCount>");
+
+            // 玩家数据
+            sb.Append("<player>");
+            sb.Append(player.ToXml());
+            sb.Append("</player>");
+
+            // 世界数据
+            sb.Append("<world>");
+            sb.Append(world.ToXml());
+            sb.Append("</world>");
+
+            // 事件树运行数据
+            sb.Append("<eventTreeRun>");
+            sb.Append(eventTreeRun.ToXml());
+            sb.Append("</eventTreeRun>");
+
+            sb.Append("</GameSaveData>");
+            return sb.ToString();
+        }
+
+        public override void ParseFromXml(XmlElement element)
+        {
+            version = int.Parse(element.SelectSingleNode("version")?.InnerText ?? "1");
+            timestamp = long.Parse(element.SelectSingleNode("timestamp")?.InnerText ?? "0");
+            playTime = long.Parse(element.SelectSingleNode("playTime")?.InnerText ?? "0");
+            totalInputCount = int.Parse(element.SelectSingleNode("totalInputCount")?.InnerText ?? "0");
+
+            // 玩家数据
+            var playerNode = element.SelectSingleNode("player");
+            if (playerNode != null)
+            {
+                player = new PlayerSaveData();
+                player.ParseFromXml((XmlElement)playerNode);
+            }
+
+            // 世界数据
+            var worldNode = element.SelectSingleNode("world");
+            if (worldNode != null)
+            {
+                world = new WorldSaveData();
+                world.ParseFromXml((XmlElement)worldNode);
+            }
+
+            // 事件树运行数据
+            var eventTreeNode = element.SelectSingleNode("eventTreeRun");
+            if (eventTreeNode != null)
+            {
+                eventTreeRun = new EventTreeRunSaveData();
+                eventTreeRun.ParseFromXml((XmlElement)eventTreeNode);
+            }
+        }
+
+        /// <summary>
+        /// 解析XML字符串创建GameSaveData
+        /// </summary>
+        public static GameSaveData ParseFromXmlString(string xmlString)
+        {
+            if (string.IsNullOrEmpty(xmlString))
+                return null;
+
+            var doc = new XmlDocument();
+            doc.LoadXml(xmlString);
+            var root = doc.DocumentElement;
+            if (root == null || root.Name != "GameSaveData")
+                return null;
+
+            var saveData = new GameSaveData();
+            saveData.ParseFromXml(root);
+            return saveData;
+        }
     }
 
     /// <summary>
@@ -286,10 +676,64 @@ namespace Game1
     [Serializable]
     public class IncrementalSaveData
     {
-        public long baseTimestamp;          // 基准时间戳
-        public long timestamp;              // 当前时间戳
-        public List<string> changedSlots;   // 已变更的槽位列表
-        public string slotData;             // XML 格式的变更数据（明文）
+        public long baseTimestamp;
+        public long timestamp;
+        public List<string> changedSlots = new List<string>();
+        public string slotData;
+
+        public string ToXml()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<IncrementalSaveData>");
+            sb.Append($"<baseTimestamp>{baseTimestamp}</baseTimestamp>");
+            sb.Append($"<timestamp>{timestamp}</timestamp>");
+            sb.Append("<changedSlots>");
+            foreach (var slot in changedSlots)
+            {
+                sb.Append($"<slot>{EscapeXml(slot)}</slot>");
+            }
+            sb.Append("</changedSlots>");
+            sb.Append($"<slotData><![CDATA[{slotData}]]></slotData>");
+            sb.Append("</IncrementalSaveData>");
+            return sb.ToString();
+        }
+
+        public void ParseFromXml(XmlElement element)
+        {
+            baseTimestamp = long.Parse(element.SelectSingleNode("baseTimestamp")?.InnerText ?? "0");
+            timestamp = long.Parse(element.SelectSingleNode("timestamp")?.InnerText ?? "0");
+
+            var slotsNode = element.SelectSingleNode("changedSlots");
+            changedSlots.Clear();
+            if (slotsNode != null)
+            {
+                foreach (XmlNode childNode in slotsNode.ChildNodes)
+                {
+                    if (childNode.NodeType == XmlNodeType.Element && childNode.Name == "slot")
+                    {
+                        changedSlots.Add(childNode.InnerText);
+                    }
+                }
+            }
+
+            slotData = element.SelectSingleNode("slotData")?.InnerText ?? string.Empty;
+        }
+
+        public static IncrementalSaveData ParseFromXmlString(string xmlString)
+        {
+            if (string.IsNullOrEmpty(xmlString))
+                return null;
+
+            var doc = new XmlDocument();
+            doc.LoadXml(xmlString);
+            var root = doc.DocumentElement;
+            if (root == null || root.Name != "IncrementalSaveData")
+                return null;
+
+            var data = new IncrementalSaveData();
+            data.ParseFromXml(root);
+            return data;
+        }
     }
 
     /// <summary>
@@ -413,19 +857,15 @@ namespace Game1
         private const string INCREMENTAL_FILE = "GameSave.inc.xml";
 
         private GameSaveData _currentSave;
-        private GameSaveData _baseSave;           // 基准存档（用于增量计算）
+        private GameSaveData _baseSave;
         private bool _isDirty = false;
-        private bool _isIncrementalDirty = false;  // 增量存档标记
+        private bool _isIncrementalDirty = false;
         private float _autoSaveTimer = 0f;
-        private float _autoSaveInterval = 1f; // 1秒
+        private float _autoSaveInterval = 1f;
 
         private ISaveBackend _backend;
-        private SaveSlot _changedSlots = SaveSlot.None; // 变更槽位追踪
+        private SaveSlot _changedSlots = SaveSlot.None;
         private readonly MigrationManager _migrationManager;
-
-        // XmlSerializer 实例（减少重复创建开销）
-        private static readonly XmlSerializer _xmlSerializer = new XmlSerializer(typeof(GameSaveData));
-        private static readonly XmlSerializer _incrementalSerializer = new XmlSerializer(typeof(IncrementalSaveData));
 
         public GameSaveData currentSave => _currentSave;
         public ISaveBackend backend => _backend;
@@ -445,13 +885,12 @@ namespace Game1
             _currentSave = new GameSaveData();
             _currentSave.player = new PlayerSaveData();
             _currentSave.world = new WorldSaveData();
-            SetBackend(null); // 使用默认本地后端
+            SetBackend(null);
         }
 
         /// <summary>
         /// 注册存档迁移处理器
         /// </summary>
-        /// <param name="handler">迁移处理器</param>
         public void RegisterMigrationHandler(IMigrationHandler handler)
         {
             _migrationManager.RegisterHandler(handler);
@@ -478,50 +917,68 @@ namespace Game1
         }
 
         /// <summary>
-        /// 主动保存（压缩+增量）
+        /// 主动保存（逐一转换XML）
         /// </summary>
         public void Save()
         {
-            if (_currentSave == null) return;
+            if (_currentSave == null)
+            {
+                Debug.LogError("[SaveManager] Save called but _currentSave is null");
+                return;
+            }
 
             try
             {
-            _currentSave.timestamp = DateTime.Now.Ticks;
+                _currentSave.timestamp = DateTime.Now.Ticks;
 
-            // 填充世界存档数据（如果尚未填充）
-            if (string.IsNullOrEmpty(_currentSave.world.currentMapSeed)
-                && Game1.Modules.Travel.TravelManager.instance != null)
-            {
-                var worldData = Game1.Modules.Travel.TravelManager.instance.ExportToSaveData();
-                if (worldData != null)
+                // 填充世界存档数据
+                if (string.IsNullOrEmpty(_currentSave.world?.currentMapSeed)
+                    && Game1.Modules.Travel.TravelManager.instance != null)
                 {
-                    _currentSave.world = worldData;
-                    _changedSlots |= SaveSlot.World;
+                    var worldData = Game1.Modules.Travel.TravelManager.instance.ExportToSaveData();
+                    if (worldData != null)
+                    {
+                        _currentSave.world = worldData;
+                        _changedSlots |= SaveSlot.World;
+                    }
                 }
-            }
 
-            var path = GetSavePath();
+                // 检查并修复潜在的问题
+                if (_currentSave.player == null)
+                {
+                    Debug.LogWarning("[SaveManager] _currentSave.player is null, creating new PlayerSaveData");
+                    _currentSave.player = new PlayerSaveData();
+                }
+
+                // 确保所有列表初始化
+                if (_currentSave.player.inventoryItems == null)
+                    _currentSave.player.inventoryItems = new List<InventorySaveData>();
+                if (_currentSave.player.teamMembers == null)
+                    _currentSave.player.teamMembers = new List<TeamMemberData>();
+                if (_currentSave.player.skillsByMemberId == null)
+                    _currentSave.player.skillsByMemberId = new List<MemberSkillSaveData>();
+                if (_currentSave.player.combatData == null)
+                    _currentSave.player.combatData = new CombatSaveData();
+
+                var path = GetSavePath();
                 var directory = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
 
-                // 检查是否需要全量保存（首次或重大变更）
+                // 检查是否需要全量保存
                 bool needsFullSave = _baseSave == null || _changedSlots == SaveSlot.All;
 
                 if (needsFullSave)
                 {
-                    // 全量保存
-                    var json = JsonUtility.ToJson(_currentSave, true);
-                    var compressed = Compress(Encoding.UTF8.GetBytes(json));
-                    File.WriteAllBytes(path, compressed);
+                    // 全量保存 - 使用逐一转换的ToXml方法
+                    string xmlContent = _currentSave.ToXml();
+                    File.WriteAllText(path, xmlContent, Encoding.UTF8);
 
                     // 更新基准存档
                     _baseSave = CloneSaveData(_currentSave);
-                    SaveBase(); // 保存基准文件
-
-                    // Debug.Log($"[SaveManager] Full save compressed to {compressed.Length} bytes");
+                    SaveBase();
                 }
                 else
                 {
@@ -529,15 +986,10 @@ namespace Game1
                     var incData = CreateIncrementalSave();
                     if (incData != null)
                     {
-                        var json = JsonUtility.ToJson(incData, true);
-                        var compressed = Compress(Encoding.UTF8.GetBytes(json));
-                        File.WriteAllBytes(GetIncrementalPath(), compressed);
-
-                        // Debug.Log($"[SaveManager] Incremental save compressed to {compressed.Length} bytes");
+                        File.WriteAllText(GetIncrementalPath(), incData.ToXml(), Encoding.UTF8);
                     }
                     else
                     {
-                        // 无变更，跳过保存
                         Debug.Log("[SaveManager] No changes detected, skipping save");
                     }
                 }
@@ -545,12 +997,13 @@ namespace Game1
                 _isDirty = false;
                 _isIncrementalDirty = false;
                 _changedSlots = SaveSlot.None;
-
-                // Debug.Log($"[SaveManager] Game saved to {path}");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[SaveManager] Failed to save: {ex.Message}");
+                var msg = $"[SaveManager] Failed to save: {ex.GetType().Name}: {ex.Message}";
+                if (ex.InnerException != null)
+                    msg += $"\n  Inner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}\n  Inner StackTrace: {ex.InnerException?.StackTrace}";
+                Debug.LogError(msg);
             }
         }
 
@@ -564,10 +1017,8 @@ namespace Game1
             try
             {
                 _currentSave.timestamp = DateTime.Now.Ticks;
-                var json = JsonUtility.ToJson(_currentSave, true);
-                var compressed = Compress(Encoding.UTF8.GetBytes(json));
-
-                return await _backend.SaveAsync(SAVE_FILE, compressed);
+                var xmlBytes = Encoding.UTF8.GetBytes(_currentSave.ToXml());
+                return await _backend.SaveAsync(SAVE_FILE, xmlBytes);
             }
             catch (Exception ex)
             {
@@ -590,10 +1041,9 @@ namespace Game1
                     return false;
                 }
 
-                var json = Decompress(data);
-                if (json == null) return false;
+                var xmlString = Encoding.UTF8.GetString(data);
+                _currentSave = GameSaveData.ParseFromXmlString(xmlString);
 
-                _currentSave = JsonUtility.FromJson<GameSaveData>(Encoding.UTF8.GetString(json));
                 if (_currentSave == null)
                 {
                     Debug.LogWarning("[SaveManager] Failed to parse cloud save");
@@ -612,7 +1062,7 @@ namespace Game1
         }
 
         /// <summary>
-        /// 加载存档（支持压缩+增量）
+        /// 加载存档
         /// </summary>
         public void Load()
         {
@@ -623,24 +1073,13 @@ namespace Game1
                 {
                     Debug.Log("[SaveManager] No save file found, creating new save");
                     CreateNewSave();
-                    Save(); // 立即持久化初始存档
+                    Save();
                     return;
                 }
 
-                var bytes = File.ReadAllBytes(path);
-                var json = Decompress(bytes);
-
-                if (json == null || json.Length == 0)
-                {
-                    // 尝试直接读取（兼容旧格式）
-                    var text = System.Text.Encoding.UTF8.GetString(bytes);
-                    _currentSave = JsonUtility.FromJson<GameSaveData>(text);
-                }
-                else
-                {
-                    var text = System.Text.Encoding.UTF8.GetString(json);
-                    _currentSave = JsonUtility.FromJson<GameSaveData>(text);
-                }
+                // 使用逐一转换的ParseFromXmlString方法
+                string xmlContent = File.ReadAllText(path, Encoding.UTF8);
+                _currentSave = GameSaveData.ParseFromXmlString(xmlContent);
 
                 if (_currentSave == null)
                 {
@@ -658,16 +1097,12 @@ namespace Game1
                 {
                     try
                     {
-                        var incBytes = File.ReadAllBytes(incPath);
-                        var incJson = Decompress(incBytes);
-                        if (incJson != null)
+                        var incXmlContent = File.ReadAllText(incPath, Encoding.UTF8);
+                        var incData = IncrementalSaveData.ParseFromXmlString(incXmlContent);
+                        if (incData != null)
                         {
-                            var incData = JsonUtility.FromJson<IncrementalSaveData>(System.Text.Encoding.UTF8.GetString(incJson));
-                            if (incData != null)
-                            {
-                                ApplyIncrementalSave(incData);
-                                Debug.Log($"[SaveManager] Applied incremental save with {incData.changedSlots.Count} changes");
-                            }
+                            ApplyIncrementalSave(incData);
+                            Debug.Log($"[SaveManager] Applied incremental save with {incData.changedSlots.Count} changes");
                         }
                     }
                     catch (Exception ex)
@@ -717,14 +1152,8 @@ namespace Game1
                     return;
                 }
 
-                var bytes = File.ReadAllBytes(path);
-                var json = Decompress(bytes);
-
-                if (json != null && json.Length > 0)
-                {
-                    var text = System.Text.Encoding.UTF8.GetString(json);
-                    _baseSave = JsonUtility.FromJson<GameSaveData>(text);
-                }
+                var xmlContent = File.ReadAllText(path, Encoding.UTF8);
+                _baseSave = GameSaveData.ParseFromXmlString(xmlContent);
 
                 if (_baseSave == null)
                     _baseSave = CloneSaveData(_currentSave);
@@ -764,8 +1193,6 @@ namespace Game1
         /// <summary>
         /// 使用PlayerActor数据保存存档
         /// </summary>
-        /// <param name="player">玩家数据</param>
-        /// <param name="offlineTime">离线时间（秒）</param>
         public void SaveWithPlayer(PlayerActor player, float offlineTime)
         {
             if (player == null) return;
@@ -821,9 +1248,6 @@ namespace Game1
         /// <summary>
         /// 带PlayerActor数据的Tick
         /// </summary>
-        /// <param name="deltaTime">时间增量</param>
-        /// <param name="player">玩家数据（用于实时同步）</param>
-        /// <param name="offlineTime">离线时间</param>
         public void TickWithPlayer(float deltaTime, PlayerActor player, float offlineTime)
         {
             if (player != null && _currentSave != null)
@@ -864,40 +1288,43 @@ namespace Game1
             if (_baseSave == null || _changedSlots == SaveSlot.None)
                 return null;
 
-            // 构建变更数据字典
-            var changes = new Dictionary<string, object>();
-
-            if ((_changedSlots & SaveSlot.Player) != 0)
-                changes["player"] = _currentSave.player;
-
-            if ((_changedSlots & SaveSlot.World) != 0)
-                changes["world"] = _currentSave.world;
-
-            if ((_changedSlots & SaveSlot.EventTree) != 0)
-                changes["eventTreeRun"] = _currentSave.eventTreeRun;
-
-            if ((_changedSlots & SaveSlot.PlayTime) != 0)
-                changes["playTime"] = _currentSave.playTime;
-
-            if (changes.Count == 0)
-                return null;
-
-            var changeJson = JsonUtility.ToJson(new SerializationProxy(changes), false);
-            var compressed = Compress(Encoding.UTF8.GetBytes(changeJson));
-
             var incData = new IncrementalSaveData
             {
                 baseTimestamp = _baseSave.timestamp,
                 timestamp = _currentSave.timestamp,
-                changedSlots = new List<string>(),
-                compressedData = compressed
+                changedSlots = new List<string>()
             };
 
-            if ((_changedSlots & SaveSlot.Player) != 0) incData.changedSlots.Add("player");
-            if ((_changedSlots & SaveSlot.World) != 0) incData.changedSlots.Add("world");
-            if ((_changedSlots & SaveSlot.EventTree) != 0) incData.changedSlots.Add("eventTreeRun");
-            if ((_changedSlots & SaveSlot.PlayTime) != 0) incData.changedSlots.Add("playTime");
+            var slotDataBuilder = new StringBuilder();
 
+            if ((_changedSlots & SaveSlot.Player) != 0)
+            {
+                incData.changedSlots.Add("player");
+                slotDataBuilder.Append(_currentSave.player.ToXml());
+            }
+
+            if ((_changedSlots & SaveSlot.World) != 0)
+            {
+                incData.changedSlots.Add("world");
+                slotDataBuilder.Append(_currentSave.world.ToXml());
+            }
+
+            if ((_changedSlots & SaveSlot.EventTree) != 0)
+            {
+                incData.changedSlots.Add("eventTreeRun");
+                slotDataBuilder.Append(_currentSave.eventTreeRun.ToXml());
+            }
+
+            if ((_changedSlots & SaveSlot.PlayTime) != 0)
+            {
+                incData.changedSlots.Add("playTime");
+                slotDataBuilder.Append($"<playTime>{_currentSave.playTime}</playTime>");
+            }
+
+            if (incData.changedSlots.Count == 0)
+                return null;
+
+            incData.slotData = slotDataBuilder.ToString();
             return incData;
         }
 
@@ -906,38 +1333,37 @@ namespace Game1
         /// </summary>
         private bool ApplyIncrementalSave(IncrementalSaveData incData)
         {
-            if (_baseSave == null || incData.compressedData == null)
+            if (_baseSave == null || string.IsNullOrEmpty(incData.slotData))
                 return false;
 
             try
             {
-                var json = Decompress(incData.compressedData);
-                if (json == null) return false;
+                // 解析增量数据中的XML片段
+                var doc = new XmlDocument();
+                doc.LoadXml(incData.slotData);
 
-                var proxy = JsonUtility.FromJson<SerializationProxy>(Encoding.UTF8.GetString(json));
-                if (proxy == null || proxy.data == null) return false;
-
-                // 应用变更
                 foreach (var slot in incData.changedSlots)
                 {
-                    if (proxy.data.TryGetValue(slot, out var value))
+                    var node = doc.SelectSingleNode($"//{slot}");
+                    if (node == null) continue;
+
+                    switch (slot)
                     {
-                        switch (slot)
-                        {
-                            case "player":
-                                _currentSave.player = value as PlayerSaveData;
-                                break;
-                            case "world":
-                                _currentSave.world = value as WorldSaveData;
-                                break;
-                            case "eventTreeRun":
-                                _currentSave.eventTreeRun = value as EventTreeRunSaveData;
-                                break;
-                            case "playTime":
-                                if (value is long pt) _currentSave.playTime = pt;
-                                else if (value is int pti) _currentSave.playTime = pti;
-                                break;
-                        }
+                        case "player":
+                            _currentSave.player = new PlayerSaveData();
+                            _currentSave.player.ParseFromXml((XmlElement)node);
+                            break;
+                        case "world":
+                            _currentSave.world = new WorldSaveData();
+                            _currentSave.world.ParseFromXml((XmlElement)node);
+                            break;
+                        case "eventTreeRun":
+                            _currentSave.eventTreeRun = new EventTreeRunSaveData();
+                            _currentSave.eventTreeRun.ParseFromXml((XmlElement)node);
+                            break;
+                        case "playTime":
+                            _currentSave.playTime = long.Parse(node.InnerText);
+                            break;
                     }
                 }
 
@@ -958,9 +1384,12 @@ namespace Game1
             try
             {
                 var path = GetBasePath();
-                var json = JsonUtility.ToJson(_baseSave, true);
-                var compressed = Compress(Encoding.UTF8.GetBytes(json));
-                File.WriteAllBytes(path, compressed);
+                var directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                File.WriteAllText(path, _baseSave.ToXml(), Encoding.UTF8);
             }
             catch (Exception ex)
             {
@@ -969,63 +1398,27 @@ namespace Game1
         }
 
         /// <summary>
-        /// 压缩数据
-        /// </summary>
-        private byte[] Compress(byte[] data)
-        {
-            using (var output = new MemoryStream())
-            {
-                using (var gzip = new GZipStream(output, System.IO.Compression.CompressionMode.Compress))
-                {
-                    gzip.Write(data, 0, data.Length);
-                }
-                return output.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// 解压数据
-        /// </summary>
-        private byte[] Decompress(byte[] data)
-        {
-            try
-            {
-                using (var input = new MemoryStream(data))
-                using (var gzip = new GZipStream(input, CompressionMode.Decompress))
-                using (var output = new MemoryStream())
-                {
-                    gzip.CopyTo(output);
-                    return output.ToArray();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[SaveManager] Decompress failed: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
         /// 深度克隆存档数据
         /// </summary>
         private GameSaveData CloneSaveData(GameSaveData source)
         {
-            var json = JsonUtility.ToJson(source, false);
-            return JsonUtility.FromJson<GameSaveData>(json);
+            if (source == null) return null;
+            var xmlString = source.ToXml();
+            return GameSaveData.ParseFromXmlString(xmlString);
         }
 
         /// <summary>
-        /// 序列化代理类（用于Dictionary转Json）
+        /// XML特殊字符转义
         /// </summary>
-        [Serializable]
-        private class SerializationProxy
+        private static string EscapeXml(string text)
         {
-            public Dictionary<string, object> data;
-
-            public SerializationProxy(Dictionary<string, object> data)
-            {
-                this.data = data;
-            }
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            return text
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;")
+                .Replace("'", "&apos;");
         }
     }
 }

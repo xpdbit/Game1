@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 
 namespace Game1
@@ -123,11 +124,13 @@ namespace Game1
         /// <summary>
         /// 是否存活
         /// </summary>
+        [XmlIgnore]
         public bool IsAlive => hp > 0;
 
         /// <summary>
         /// HP百分比
         /// </summary>
+        [XmlIgnore]
         public float hpPercent => maxHp > 0 ? (float)hp / maxHp : 0;
 
         public TeamMemberData() { }

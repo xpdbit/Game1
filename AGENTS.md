@@ -1,19 +1,8 @@
-# 强约束！
-
-1. 对话、思考、GITHUB的提交描述 均必须保持使用中文！
-2. 维持同样的代码风格！
-   - C#: Assets/Scripts/命名空间/
-3. 因TOKEN消耗问题，Sisyphus只负责任务规划、构思，具体执行必须交给其他AGENT。
-   - Sisyphus的产出必须是一个结构化任务蓝图，包含：目标描述、子任务拆解、依赖关系、预期结果定义。
-   - Sisyphus绝不允许在输出中包含可被直接执行的代码、完整文案、数据查询结果或工具调用参数。
-   - Sisyphus需要尽可能节俭高效的表达，禁止重复描述，减少TOKEN消耗。
-   - Sisyphus是执行层，发出的是绝对的命令。
-
 # PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-04-28
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** 4a79459
+**Commit:** 7c3d8f1
 **Branch:** main
 
 ## OVERVIEW
@@ -149,7 +138,7 @@ Game1/
 | GameMain | GameMain.cs | Unity入口，单例 |
 | GameConfig | GameMain.cs | 游戏配置（占位） |
 | GameLoopManager | Core/GameLoop/ | 主循环Tick协调 |
-| SaveManager | Core/SaveSystem/ | 存档管理 |
+| SaveManager | Core/SaveSystem/ | 存档管理，手动XML序列化(ToXml/ParseFromXml) |
 | EventBus | Core/EventBus/ | 事件发布-订阅 |
 | BackgroundInputManager | Core/Input/ | 后台输入管理（UniWindowController） |
 | RawInputManager | Core/Input/ | Windows Raw Input API键盘输入 |
@@ -400,6 +389,7 @@ unity -batchmode -runTests -testPlatform playmode
 - ItemTemplate.ParseFromXml使用SelectSingleNode路径解析
 - ResourceManager.Load<T>(path)提供资源查找入口
 - ItemManager.Initialize使用[RuntimeInitializeOnLoadMethod]在场景加载前初始化
+- **存档序列化**: 所有存档数据类(SaveDataBase, PlayerSaveData, CombatSaveData等)使用手动ToXml/ParseFromXml方法替代XmlSerializer，实现逐一转换模式
 - InventoryDesign是纯逻辑类（非MonoBehaviour），提供背包核心操作
 - UIListItems使用对象池(XObjectPool)管理列表项实例
 - EventChain提供事件链/分支叙事功能

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 using Game1.Modules.Combat;
 
@@ -299,6 +300,7 @@ namespace Game1
         private class ModuleWrapper
         {
             public string moduleId;
+            [XmlIgnore]  // IModule is an interface and cannot be serialized by XmlSerializer
             public IModule module;
         }
 
