@@ -212,5 +212,55 @@ namespace Game1
         {
             _activeNPCs.Clear();
         }
+
+        /// <summary>
+        /// 导出NPC数据到存档文件
+        /// </summary>
+        public NpcSaveFile ExportToNpcSaveFile()
+        {
+            var saveFile = new NpcSaveFile();
+            foreach (var npc in _activeNPCs)
+            {
+                saveFile.npcs.Add(new NpcSaveFile.NpcEntry
+                {
+                    instanceId = npc.instanceId,
+                    templateId = npc.template?.id ?? string.Empty,
+                    currentType = npc.currentType.ToString(),
+                    currentHp = npc.currentHp,
+                    isDefeated = npc.isDefeated
+                });
+            }
+            return saveFile;
+        }
+
+        /// <summary>
+        /// 从存档文件恢复NPC数据
+        /// </summary>
+        public void ImportFromNpcSaveFile(NpcSaveFile saveFile)
+        {
+            if (saveFile == null || saveFile.npcs == null) return;
+
+            _activeNPCs.Clear();
+            foreach (var entry in saveFile.npcs)
+            {
+                if (string.IsNullOrEmpty(entry.templateId) || !_templates.TryGetValue(entry.templateId, out var template))
+                    continue;
+
+                var npc = new NPCInstance(template)
+                {
+                    instanceId = entry.instanceId,
+                    currentHp = entry.currentHp,
+                    isDefeated = entry.isDefeated
+                };
+
+                // Parse currentType from string
+                if (System.Enum.TryParse<NPCType>(entry.currentType, out var npcType))
+                {
+                    npc.currentType = npcType;
+                }
+
+                _activeNPCs.Add(npc);
+            }
+        }
     }
 }

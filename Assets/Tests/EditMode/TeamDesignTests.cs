@@ -412,9 +412,9 @@ namespace Game1.Tests.EditMode
         [Test]
         public void TeamMemberData_Heal_IncreasesHP()
         {
-            // Arrange
+            // Arrange - defense=3, so TakeDamage(13) results in actualDamage=max(1,13-3)=10, hp=10
             var member = new TeamMemberData("Warrior", 1, 20, 5, 3);
-            member.TakeDamage(10);
+            member.TakeDamage(13);  // actual damage = 10, hp = 20-10 = 10
 
             // Act
             member.Heal(5);

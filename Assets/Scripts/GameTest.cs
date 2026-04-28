@@ -710,7 +710,7 @@ namespace Game1
             Debug.Log($"[TeamTest] Exported {exported.Count} members");
             foreach (var m in exported)
             {
-                Debug.Log($"[TeamTest]   - {m.name}: Lv.{m.level}, ID={m.id}");
+                Debug.Log($"[TeamTest]   - {m.name}: Lv.{m.level}, ID={m.memberId}");
             }
 
             // 清空后导入

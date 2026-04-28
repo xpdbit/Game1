@@ -368,6 +368,21 @@ namespace Game1
         }
 
         /// <summary>
+        /// 从存档恢复输入统计（解决读档后_inputKeystrokes重置为0的问题）
+        /// </summary>
+        /// <param name="count">要恢复的总敲击次数</param>
+        public void RestoreInputCount(int count)
+        {
+            if (_inputConverter == null)
+            {
+                Debug.LogError("[BackgroundInputManager] Cannot restore input count - InputConverter is null!");
+                return;
+            }
+            _inputConverter.RestoreTotalKeystrokes(count);
+            Debug.Log("[BackgroundInputManager] Input count restored successfully");
+        }
+
+        /// <summary>
         /// 获取输入转换统计
         /// </summary>
         public (int totalKeystrokes, int totalCombo, float maxMultiplier) GetInputStatistics()

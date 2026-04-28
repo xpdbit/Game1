@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Game1.Modules.PendingEvent;
 
 namespace Game1
 {
@@ -97,6 +98,12 @@ namespace Game1
             _totalEarned += reward;
 
             Debug.Log($"[IdleRewardModule] Offline reward applied: +{Mathf.FloorToInt(reward)} gold for {offlineSeconds / 3600f:F1} hours");
+
+            // 生成积压事件
+            if (offlineSeconds > 60f) // 超过1分钟离线才生成
+            {
+                PendingEventManager.GeneratePendingEvents(offlineSeconds);
+            }
         }
 
         #region IModule Members

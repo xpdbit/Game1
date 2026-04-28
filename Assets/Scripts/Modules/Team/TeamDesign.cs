@@ -285,35 +285,51 @@ namespace Game1
         /// <summary>
         /// 导出数据用于存档
         /// </summary>
-        public List<TeamMemberData> Export()
+        public List<TeamMemberSaveData> Export()
         {
-            return new List<TeamMemberData>(_members);
+            var list = new List<TeamMemberSaveData>(_members.Count);
+            foreach (var member in _members)
+            {
+                list.Add(new TeamMemberSaveData
+                {
+                    memberId = member.id,
+                    name = member.name,
+                    level = member.level,
+                    currentHp = member.hp,
+                    maxHp = member.maxHp,
+                    attack = member.attack,
+                    defense = member.defense,
+                    speed = member.speed
+                });
+            }
+            return list;
         }
 
         /// <summary>
         /// 从存档恢复
         /// </summary>
-        public void Import(List<TeamMemberData> saveData)
+        public void Import(List<TeamMemberSaveData> saveData)
         {
             Clear();
             foreach (var data in saveData)
             {
                 var member = new TeamMemberData
                 {
-                    id = data.id,
+                    id = data.memberId,
                     name = data.name,
                     level = data.level,
-                    hp = data.hp,
+                    hp = data.currentHp,
                     maxHp = data.maxHp,
                     attack = data.attack,
-                    defense = data.defense
+                    defense = data.defense,
+                    speed = data.speed
                 };
 
                 _members.Add(member);
-                _membersById[data.id] = member;
+                _membersById[member.id] = member;
 
-                if (data.id > _memberIdCounter)
-                    _memberIdCounter = data.id;
+                if (data.memberId > _memberIdCounter)
+                    _memberIdCounter = data.memberId;
             }
 
             PublishEvent(TeamEventData.CapacityChanged());

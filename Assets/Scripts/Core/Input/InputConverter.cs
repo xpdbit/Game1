@@ -98,6 +98,7 @@ namespace Game1
             _keystrokeCount = 0;
             _lastKeystrokeTime = 0;
             _comboMultiplier = 1.0f;
+            _totalKeystrokes = 0;
             _totalMouseClicks = 0;
 #if ENABLE_INPUT_SYSTEM
             _lastMousePosition = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
@@ -108,7 +109,7 @@ namespace Game1
             _lastInputTime = Time.time;
             isPrecisionCalibration = false;
 
-            Debug.Log("[InputConverter] Initialized");
+            Debug.Log("[InputConverter] Initialized counters to 0");
         }
 
         /// <summary>
@@ -322,6 +323,17 @@ namespace Game1
             _comboMultiplier = 1.0f;
             _totalMouseClicks = 0;
             onComboUpdated?.Invoke(_comboMultiplier);
+        }
+
+        /// <summary>
+        /// 从存档恢复总敲击次数（解决读档后_inputKeystrokes重置为0的问题）
+        /// </summary>
+        /// <param name="count">要恢复的敲击次数</param>
+        public void RestoreTotalKeystrokes(int count)
+        {
+            _totalKeystrokes = count;
+            _totalMouseClicks = 0; // Reset mouse clicks since totalInputCount is keystrokes + mouseClicks
+            Debug.Log($"[InputConverter] Restored total keystrokes: {count}");
         }
 
         /// <summary>

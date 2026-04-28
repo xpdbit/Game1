@@ -174,6 +174,37 @@ namespace Game1
         }
 
         /// <summary>
+        /// 导出宠物数据到存档文件
+        /// </summary>
+        public PetSaveFile ExportToPetSaveFile()
+        {
+            return new PetSaveFile
+            {
+                happiness = _mood.happiness,
+                excitement = _mood.excitement,
+                sadness = _mood.sadness,
+                currentState = _currentState.ToString(),
+                isUnlocked = true
+            };
+        }
+
+        /// <summary>
+        /// 从存档文件恢复宠物数据
+        /// </summary>
+        public void ImportFromPetSaveFile(PetSaveFile saveFile)
+        {
+            if (saveFile == null) return;
+            _mood.happiness = saveFile.happiness;
+            _mood.excitement = saveFile.excitement;
+            _mood.sadness = saveFile.sadness;
+
+            if (System.Enum.TryParse<PetState>(saveFile.currentState, out var state))
+            {
+                _currentState = state;
+            }
+        }
+
+        /// <summary>
         /// 触发开心状态
         /// </summary>
         public void TriggerHappy(float intensity = 1f)

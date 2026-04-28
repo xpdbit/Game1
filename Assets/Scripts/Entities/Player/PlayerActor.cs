@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
 using Game1.Modules.Combat;
+using Game1.Modules.PendingEvent;
 
 namespace Game1
 {
@@ -121,7 +122,49 @@ namespace Game1
         }
 
         /// <summary>
-        /// 从存档数据恢复玩家数据
+        /// 从职能存档文件恢复玩家数据
+        /// </summary>
+        public void ApplyFromSaveData(PlayerSaveFile saveFile)
+        {
+            if (saveFile == null)
+            {
+                Debug.LogWarning("[PlayerActor] ApplyFromSaveData(PlayerSaveFile): saveFile is null, creating new actor");
+                id = Guid.NewGuid().ToString();
+                actorName = "行者";
+                level = 1;
+                carryItems.gold = 0;
+                stats.currentHp = stats.maxHp;
+                return;
+            }
+
+            id = saveFile.actorId;
+            actorName = saveFile.actorName;
+            level = saveFile.level;
+            carryItems.gold = saveFile.gold;
+            carryItems.maxCapacity = 100;
+
+            stats.currentHp = stats.maxHp;
+
+            Debug.Log($"[PlayerActor] Applied save file data: ID={id}, Name={actorName}, Level={level}, Gold={carryItems.gold}");
+        }
+
+        /// <summary>
+        /// 导出玩家数据到职能存档文件
+        /// </summary>
+        public PlayerSaveFile ExportToPlayerSaveFile()
+        {
+            return new PlayerSaveFile
+            {
+                actorId = id,
+                actorName = actorName,
+                level = level,
+                gold = carryItems.gold,
+                offlineAccumulatedTime = 0f
+            };
+        }
+
+        /// <summary>
+        /// 从存档数据恢复玩家数据（旧版PlayerSaveData兼容）
         /// </summary>
         public void ApplyFromSaveData(PlayerSaveData saveData)
         {
@@ -178,6 +221,12 @@ namespace Game1
                 combatModule.Import(saveData.combatData);
             }
 
+            // 积压事件数据
+            if (saveData.pendingEventData != null)
+            {
+                PendingEventDesign.instance.Import(saveData.pendingEventData);
+            }
+
             Debug.Log($"[PlayerActor] Applied save data: ID={id}, Name={actorName}, Level={level}, Gold={carryItems.gold}");
         }
 
@@ -212,6 +261,9 @@ namespace Game1
             {
                 saveData.combatData = combatModule.Export();
             }
+
+            // 积压事件数据
+            saveData.pendingEventData = PendingEventManager.Export();
 
             return saveData;
         }

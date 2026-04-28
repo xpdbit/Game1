@@ -109,12 +109,13 @@ namespace Game1
                 if (gm != null)
                 {
                     var saveManager = gm.GetService<SaveManager>();
-                    if (saveManager?.currentSave != null)
+                    var playerFile = saveManager?.GetFile<PlayerSaveFile>();
+                    if (playerFile != null)
                     {
-                        long totalSeconds = saveManager.currentSave.playTime;
+                        long totalSeconds = playerFile.playTime;
                         var ts = System.TimeSpan.FromSeconds(totalSeconds);
                         _sb.AppendLine($"游戏时间: {ts.Hours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}");
-                        _sb.AppendLine($"输入次数: {saveManager.currentSave.totalInputCount}");
+                        _sb.AppendLine($"输入次数: {playerFile.totalInputCount}");
                     }
                 }
             }

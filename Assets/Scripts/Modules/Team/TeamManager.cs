@@ -122,7 +122,7 @@ namespace Game1
         /// <summary>
         /// 导出队伍数据用于存档
         /// </summary>
-        public static List<TeamMemberData> ExportTeam()
+        public static List<TeamMemberSaveData> ExportTeam()
         {
             return TeamDesign.instance.Export();
         }
@@ -130,7 +130,7 @@ namespace Game1
         /// <summary>
         /// 从存档恢复队伍数据
         /// </summary>
-        public static void ImportTeam(List<TeamMemberData> saveData)
+        public static void ImportTeam(List<TeamMemberSaveData> saveData)
         {
             TeamDesign.instance.Import(saveData);
         }

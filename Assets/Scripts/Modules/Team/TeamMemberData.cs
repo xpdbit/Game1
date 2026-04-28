@@ -160,7 +160,8 @@ namespace Game1
         /// </summary>
         public void Heal(int amount)
         {
-            hp += amount;
+            int actualHeal = (int)(amount * (1 + healBonus));
+            hp += actualHeal;
             if (hp > maxHp) hp = maxHp;
         }
 

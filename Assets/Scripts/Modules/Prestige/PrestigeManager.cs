@@ -157,6 +157,63 @@ namespace Game1
         }
 
         /// <summary>
+        /// 导出轮回数据到存档文件
+        /// </summary>
+        public PrestigeSaveFile ExportToPrestigeSaveFile()
+        {
+            var saveFile = new PrestigeSaveFile
+            {
+                prestigeCount = _prestigeCount,
+                prestigePoints = _prestigePoints,
+                goldRetentionRate = _goldRetentionRate,
+                expRetentionRate = _expRetentionRate,
+                retainedSkills = new List<string>(_retainedSkills)
+            };
+
+            foreach (var kvp in _upgrades)
+            {
+                saveFile.purchasedUpgrades.Add(new PrestigeSaveFile.UpgradeEntry
+                {
+                    id = kvp.Key,
+                    isPurchased = kvp.Value.isPurchased,
+                    currentLevel = kvp.Value.currentLevel
+                });
+            }
+
+            return saveFile;
+        }
+
+        /// <summary>
+        /// 从存档文件恢复轮回数据
+        /// </summary>
+        public void ImportFromPrestigeSaveFile(PrestigeSaveFile saveFile)
+        {
+            if (saveFile == null) return;
+
+            _prestigeCount = saveFile.prestigeCount;
+            _prestigePoints = saveFile.prestigePoints;
+            _goldRetentionRate = saveFile.goldRetentionRate;
+            _expRetentionRate = saveFile.expRetentionRate;
+            _retainedSkills.Clear();
+            if (saveFile.retainedSkills != null)
+            {
+                _retainedSkills.AddRange(saveFile.retainedSkills);
+            }
+
+            if (saveFile.purchasedUpgrades != null)
+            {
+                foreach (var entry in saveFile.purchasedUpgrades)
+                {
+                    if (_upgrades.TryGetValue(entry.id, out var upgrade))
+                    {
+                        upgrade.isPurchased = entry.isPurchased;
+                        upgrade.currentLevel = entry.currentLevel;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 获取玩家数据引用
         /// </summary>
         public PlayerActor GetPlayerActor()

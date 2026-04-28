@@ -161,6 +161,7 @@ namespace Game1
             }
 
             // 创建新堆叠
+            int lastInstanceId = 0;
             while (remaining > 0)
             {
                 // 检查容量
@@ -171,6 +172,7 @@ namespace Game1
                     return InventoryOperationResult.WeightExceeded($"Weight would exceed limit ({_totalWeight}/{_capacity.maxWeight})");
 
                 int instanceId = GenerateInstanceId();
+                lastInstanceId = instanceId;
                 int stackAmount = Mathf.Min(remaining, maxStack);
 
                 var newItem = new ItemInstance(template, stackAmount);
@@ -191,7 +193,7 @@ namespace Game1
                 PublishEvent(InventoryEventData.CapacityChanged());
             }
 
-            return InventoryOperationResult.Ok();
+            return InventoryOperationResult.Ok(lastInstanceId, amount);
         }
 
         /// <summary>
@@ -510,15 +512,6 @@ namespace Game1
         }
         #endregion
     }
-
-    /// <summary>
-    /// 背包存档数据结构
-    /// </summary>
-    [Serializable]
-    public class InventorySaveData
-    {
-        public string templateId;
-        public int instanceId;
-        public int amount;
-    }
 }
+
+    

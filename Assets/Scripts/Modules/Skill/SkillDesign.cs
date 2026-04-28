@@ -666,11 +666,11 @@ namespace Game1
                 var memberSkillSaveData = new MemberSkillSaveData
                 {
                     memberId = kvp.Key,
-                    skills = new List<SkillSaveData>()
+                    skills = new List<SkillSaveDataLite>()
                 };
                 foreach (var skill in kvp.Value)
                 {
-                    memberSkillSaveData.skills.Add(new SkillSaveData
+                    memberSkillSaveData.skills.Add(new SkillSaveDataLite
                     {
                         skillId = skill.id,
                         currentLevel = skill.currentLevel
@@ -716,7 +716,7 @@ namespace Game1
     /// 技能存档数据结构（精简版，用于存档）
     /// </summary>
     [Serializable]
-    public class SkillSaveData
+    public class SkillSaveDataLite
     {
         public string skillId;
         public int currentLevel;

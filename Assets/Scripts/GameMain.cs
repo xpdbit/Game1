@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -64,7 +65,23 @@ namespace Game1
             // 初始化玩家（等待GameLoopManager完成初始化）
             InitializePlayer();
 
-            // 开始游戏
+            // 延迟启动，等待GameLoopManager完成初始化（注册存档文件等）
+            // GameMain和GameLoopManager的Start()调用顺序不确定
+            // 使用协程等待GameLoopManager初始化完成后再开始游戏
+            StartCoroutine(StartGameWhenReady());
+        }
+
+        /// <summary>
+        /// 等待GameLoopManager初始化完成后开始游戏
+        /// </summary>
+        private IEnumerator StartGameWhenReady()
+        {
+            // 等待GameLoopManager完成初始化（注册存档文件、加载存档等）
+            while (gameLoopManager == null || !gameLoopManager.IsInitialized)
+            {
+                yield return null;
+            }
+
             StartGame();
         }
 
@@ -130,6 +147,9 @@ namespace Game1
             // 技能系统（SkillDesign在Game1命名空间）
             SkillDesign.instance.Initialize();
 
+            // 积压事件系统
+            Game1.Modules.PendingEvent.PendingEventDesign.instance.Initialize();
+
             // 设置旅行管理器的事件队列引用
             travelManager?.SetEventQueue(eventQueue);
 
@@ -143,7 +163,15 @@ namespace Game1
         private void OnEventTreeSaveRequested(EventTreeRunSaveData data)
         {
             var saveManager = GetService<SaveManager>();
-            saveManager?.SetEventTreeRunData(data);
+            var eventTreeFile = saveManager?.GetFile<EventTreeSaveFile>();
+            if (eventTreeFile != null && data != null)
+            {
+                eventTreeFile.templateId = data.templateId;
+                eventTreeFile.currentNodeId = data.currentNodeId;
+                eventTreeFile.isRunning = data.isRunning;
+                eventTreeFile.history = data.history;
+                saveManager.SaveFile<EventTreeSaveFile>();
+            }
         }
 
         /// <summary>
@@ -177,10 +205,11 @@ namespace Game1
             var saveManager = Container.Resolve<SaveManager>();
 
             // 检查是否有有效世界存档
-            if (saveManager?.currentSave?.world != null && !string.IsNullOrEmpty(saveManager.currentSave.world.currentMapSeed))
+            var worldFile = saveManager?.GetFile<WorldSaveFile>();
+            if (worldFile != null && !string.IsNullOrEmpty(worldFile.currentMapSeed))
             {
                 // 恢复旅行
-                travelManager?.ImportFromSaveData(saveManager.currentSave.world);
+                travelManager?.ImportFromSaveData(worldFile);
                 Debug.Log("[GameMain] Restored journey from save");
             }
             else
@@ -226,18 +255,25 @@ namespace Game1
         {
             var saveManager = Container.Resolve<SaveManager>();
 
-            // 同步世界数据
-            var worldData = travelManager?.ExportToSaveData();
-            if (worldData != null)
+            // 同步世界数据到WorldSaveFile
+            var worldFile = saveManager?.GetFile<WorldSaveFile>();
+            if (worldFile != null)
             {
-                saveManager.currentSave.world = worldData;
+                var worldData = travelManager?.ExportToWorldSaveFile();
+                if (worldData != null)
+                {
+                    worldFile.currentMapSeed = worldData.currentMapSeed;
+                    worldFile.currentMapIndex = worldData.currentMapIndex;
+                    worldFile.travelProgress = worldData.travelProgress;
+                }
+                saveManager.SaveFile<WorldSaveFile>();
             }
 
             // 保存事件树状态
             EventTreeRunner.instance.SaveState();
 
-            // 标记世界槽位脏
-            saveManager?.MarkSlotDirty(SaveSlot.World);
+            // 保存所有文件
+            saveManager?.SaveAll();
 
             Debug.Log("[GameMain] SaveGame called");
         }
@@ -247,11 +283,18 @@ namespace Game1
         /// </summary>
         public void LoadGame()
         {
-            // 获取SaveManager中的事件树数据并恢复
+            // 从EventTreeSaveFile恢复事件树数据
             var saveManager = GetService<SaveManager>();
-            var eventTreeData = saveManager?.GetEventTreeRunData();
-            if (eventTreeData != null)
+            var eventTreeFile = saveManager?.GetFile<EventTreeSaveFile>();
+            if (eventTreeFile != null && eventTreeFile.isRunning)
             {
+                var eventTreeData = new EventTreeRunSaveData
+                {
+                    templateId = eventTreeFile.templateId,
+                    currentNodeId = eventTreeFile.currentNodeId,
+                    isRunning = eventTreeFile.isRunning,
+                    history = eventTreeFile.history
+                };
                 EventTreeRunner.instance.RestoreState(eventTreeData);
             }
             Debug.Log("[GameMain] LoadGame called");

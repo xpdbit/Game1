@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using Game1.Core.GameLoop;
 using Game1.Modules.Travel;
 using Game1.Modules.Combat;
 using Game1.Modules.Activity;
+using Game1.Modules.PendingEvent;
 
 namespace Game1
 {
@@ -72,32 +74,22 @@ namespace Game1
 
         private void OnDisable()
         {
-            // 当组件被禁用或场景改变时也要清理，防止残留钩子
-            Debug.Log("[GameLoopManager] OnDisable - disposing BackgroundInputManager");
             _backgroundInput?.Dispose();
             GlobalKeyboardHook.ForceReset();
         }
 
         private void OnDestroy()
         {
-            Debug.Log("[GameLoopManager] Saving on quit");
-            // 保存时传入离线时间用于下次加载计算离线收益
-            float offlineTime = _idleModule?.accumulatedTime ?? 0f;
-            _saveManager?.SaveWithPlayer(_player, offlineTime);
+            // 退出时先同步所有模块数据到存档文件，再保存
+            SyncAllSaveData();
+            _saveManager?.SaveAll();
 
-            // 清理后台输入系统（关键：确保Windows键盘钩子被正确卸载）
-            Debug.Log("[GameLoopManager] Disposing BackgroundInputManager");
             _backgroundInput?.Dispose();
-
-            // 强制重置GlobalKeyboardHook单例（确保域重新加载后能正常初始化）
             GlobalKeyboardHook.ForceReset();
-            Debug.Log("[GameLoopManager] Force reset GlobalKeyboardHook singleton");
         }
 
         private void OnApplicationQuit()
         {
-            Debug.Log("[GameLoopManager] Application quitting - ensuring cleanup");
-            // 确保在应用程序退出时也进行清理
             _backgroundInput?.Dispose();
             GlobalKeyboardHook.ForceReset();
         }
@@ -136,56 +128,435 @@ namespace Game1
 
             _saveManager = GameMain.instance.Container.Resolve<SaveManager>();
 
-            // 4. 尝试加载存档（如果没有则创建新存档）
-            _saveManager.Load();
+            // 3.2 初始化战斗模块（需要在加载存档数据之前，以便ApplyLoadedSaveData可以恢复战斗数据）
+            _combatModule = new CombatModule();
+            _combatModule.Initialize(_player);
+            _player.AddModule(_combatModule);
 
-            // 5. 将存档数据应用到PlayerActor（关键：修复双实例不同步问题）
-            if (_saveManager.currentSave != null && _saveManager.currentSave.player != null)
+            // 3.3 注册所有职能存档文件到SaveManager
+            RegisterSaveFiles();
+
+            // 4. 加载所有职能存档文件
+            _saveManager.LoadAll();
+
+            // 4.1 应用加载的数据到各模块
+            ApplyLoadedSaveData();
+
+            // 7. 计算并应用离线收益（如果有存档且非首次新建）
+            var playerFile = _saveManager.GetFile<PlayerSaveFile>();
+            if (playerFile != null && (playerFile.level > 1 || playerFile.playTime > 0))
             {
-                _player.ApplyFromSaveData(_saveManager.currentSave.player);
-                Debug.Log($"[GameLoopManager] Applied save data to PlayerActor: {_player.id}");
+                float offlineTime = playerFile.offlineAccumulatedTime;
+                if (offlineTime > 0)
+                {
+                    _idleModule.ApplyOfflineReward(offlineTime);
+                    Debug.Log($"[GameLoopManager] Applied offline reward for {offlineTime / 3600f:F1} hours");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 注册所有职能存档文件
+        /// </summary>
+        private void RegisterSaveFiles()
+        {
+            _saveManager.RegisterFiles(
+                new PlayerSaveFile(),
+                new WorldSaveFile(),
+                new InventorySaveFile(),
+                new TeamSaveFile(),
+                new SkillSaveFile(),
+                new CombatSaveFile(),
+                new EventTreeSaveFile(),
+                new NpcSaveFile(),
+                new PendingEventSaveFile(),
+                new PrestigeSaveFile(),
+                new ActivitySaveFile(),
+                new PetSaveFile()
+            );
+        }
+
+        /// <summary>
+        /// 将加载的存档数据应用到各模块（所有12个职能文件）
+        /// </summary>
+        private void ApplyLoadedSaveData()
+        {
+            // 1. 应用玩家数据
+            var playerFile = _saveManager.GetFile<PlayerSaveFile>();
+            if (playerFile != null)
+            {
+                _player.ApplyFromSaveData(playerFile);
             }
             else
             {
-                Debug.Log("[GameLoopManager] No save data to apply, using default PlayerActor");
+                Debug.Log("[GameLoopManager] No player save data to apply, using default PlayerActor");
             }
 
-            // 5.1 从存档恢复世界旅行状态
-            if (_saveManager.currentSave?.world != null &&
-                !string.IsNullOrEmpty(_saveManager.currentSave.world.currentMapSeed))
+            // 2. 恢复输入统计
+            if (playerFile != null)
             {
-                _travelModule.ImportFromSaveData(_saveManager.currentSave.world);
-                Debug.Log($"[GameLoopManager] Restored world state: seed={_saveManager.currentSave.world.currentMapSeed}, nodeIndex={_saveManager.currentSave.world.currentNodeIndex}");
+                Debug.Log($"[GameLoopManager] Restoring input count: {playerFile.totalInputCount}");
+                _backgroundInput.RestoreInputCount((int)playerFile.totalInputCount);
+                Debug.Log("[GameLoopManager] Input count restored successfully");
+            }
+
+            // 3. 恢复世界/旅行状态
+            var worldFile = _saveManager.GetFile<WorldSaveFile>();
+            if (worldFile != null && !string.IsNullOrEmpty(worldFile.currentMapSeed))
+            {
+                _travelModule.ImportFromSaveData(worldFile);
+                Debug.Log($"[GameLoopManager] Restored world state: seed={worldFile.currentMapSeed}, nodeIndex={worldFile.currentMapIndex}");
             }
             else
             {
                 Debug.Log("[GameLoopManager] No world save data to restore, will start new journey in GameMain");
             }
 
-            // 恢复游戏时间
-            _totalGameTime = _saveManager.currentSave?.playTime ?? 0f;
+            // 4. 恢复游戏时间
+            _totalGameTime = playerFile?.playTime ?? 0f;
 
-            // 6. 注册加成模块到PlayerActor
-            var bonusModule = new BonusMultiplierModule
+            // 5. 恢复背包数据（桥接旧InventorySaveData到新InventorySaveFile）
+            var inventoryFile = _saveManager.GetFile<InventorySaveFile>();
+            if (inventoryFile != null && inventoryFile.items.Count > 0)
             {
-                multiplierType = "idle",
-                multiplierValue = 0.5f  // 默认提供50%额外挂机加成
-            };
-            _player.AddModule(bonusModule);
-
-            // 7. 注册战斗模块到PlayerActor
-            _combatModule = new CombatModule();
-            _combatModule.Initialize(_player);
-            _player.AddModule(_combatModule);
-
-            // 7. 计算并应用离线收益（如果有存档且非首次新建）
-            if (_saveManager.currentSave != null && _saveManager.currentSave.player != null)
-            {
-                float offlineTime = _saveManager.currentSave.player.offlineAccumulatedTime;
-                if (offlineTime > 0)
+                var oldItems = new System.Collections.Generic.List<InventorySaveData>();
+                foreach (var item in inventoryFile.items)
                 {
-                    _idleModule.ApplyOfflineReward(offlineTime);
-                    Debug.Log($"[GameLoopManager] Applied offline reward for {offlineTime / 3600f:F1} hours");
+                    oldItems.Add(new InventorySaveData
+                    {
+                        templateId = item.templateId,
+                        instanceId = item.instanceId,
+                        amount = item.amount
+                    });
+                }
+                InventoryDesign.instance.Import(oldItems);
+                Debug.Log($"[GameLoopManager] Restored {oldItems.Count} inventory items");
+            }
+
+            // 6. 恢复队伍数据（桥接旧TeamMemberSaveData到新TeamSaveFile）
+            var teamFile = _saveManager.GetFile<TeamSaveFile>();
+            if (teamFile != null && teamFile.members.Count > 0)
+            {
+                var oldMembers = new System.Collections.Generic.List<TeamMemberSaveData>();
+                foreach (var m in teamFile.members)
+                {
+                    oldMembers.Add(new TeamMemberSaveData
+                    {
+                        memberId = m.memberId,
+                        actorId = m.actorId,
+                        name = m.name,
+                        level = m.level,
+                        currentHp = m.currentHp,
+                        maxHp = m.maxHp,
+                        attack = m.attack,
+                        defense = m.defense,
+                        speed = m.speed,
+                        jobType = m.jobType
+                    });
+                }
+                TeamDesign.instance.Import(oldMembers);
+                Debug.Log($"[GameLoopManager] Restored {oldMembers.Count} team members");
+            }
+
+            // 7. 恢复技能数据（桥接旧MemberSkillSaveData到新SkillSaveFile）
+            var skillFile = _saveManager.GetFile<SkillSaveFile>();
+            if (skillFile != null && skillFile.skillGroups.Count > 0)
+            {
+                var oldSkillGroups = new System.Collections.Generic.List<MemberSkillSaveData>();
+                foreach (var g in skillFile.skillGroups)
+                {
+                    var group = new MemberSkillSaveData { memberId = g.memberId };
+                    foreach (var s in g.skills)
+                    {
+                        group.skills.Add(new SkillSaveDataLite
+                        {
+                            skillId = s.skillId,
+                            currentLevel = s.currentLevel
+                        });
+                    }
+                    oldSkillGroups.Add(group);
+                }
+                SkillDesign.instance.Import(oldSkillGroups);
+                Debug.Log($"[GameLoopManager] Restored {oldSkillGroups.Count} skill groups");
+            }
+
+            // 8. 恢复战斗数据（桥接旧CombatSaveData到新CombatSaveFile）
+            var combatFile = _saveManager.GetFile<CombatSaveFile>();
+            if (combatFile != null && _combatModule != null)
+            {
+                var oldCombat = new CombatSaveData
+                {
+                    totalBattles = combatFile.totalBattles,
+                    victories = combatFile.victories,
+                    defeats = combatFile.defeats,
+                    totalDamageDealt = combatFile.totalDamageDealt,
+                    totalDamageTaken = combatFile.totalDamageTaken,
+                    totalGoldEarned = combatFile.totalGoldEarned
+                };
+                _combatModule.Import(oldCombat);
+                Debug.Log("[GameLoopManager] Restored combat data");
+            }
+
+            // 9. 恢复NPC数据
+            var npcFile = _saveManager.GetFile<NpcSaveFile>();
+            if (npcFile != null)
+            {
+                NPCManager.instance.ImportFromNpcSaveFile(npcFile);
+                Debug.Log($"[GameLoopManager] Restored {npcFile.npcs?.Count ?? 0} NPCs");
+            }
+
+            // 10. 恢复积压事件数据（桥接旧PendingEventSaveData到新PendingEventSaveFile）
+            var pendingFile = _saveManager.GetFile<PendingEventSaveFile>();
+            if (pendingFile != null && pendingFile.pendingEvents.Count > 0)
+            {
+                var oldPending = new PendingEventSaveData();
+                foreach (var e in pendingFile.pendingEvents)
+                {
+                    oldPending.pendingEvents.Add(new PendingEventData
+                    {
+                        eventId = e.eventId,
+                        templateId = e.templateId,
+                        rarity = (Game1.Modules.PendingEvent.PendingEventRarity)e.rarity,
+                        timestamp = e.timestamp,
+                        offlineSeconds = e.offlineSeconds,
+                        isProcessed = e.isProcessed,
+                        goldReward = e.goldReward
+                    });
+                }
+                Game1.Modules.PendingEvent.PendingEventDesign.instance.Import(oldPending);
+                Debug.Log($"[GameLoopManager] Restored {oldPending.pendingEvents.Count} pending events");
+            }
+
+            // 11. 恢复轮回数据
+            var prestigeFile = _saveManager.GetFile<PrestigeSaveFile>();
+            if (prestigeFile != null)
+            {
+                PrestigeManager.instance.ImportFromPrestigeSaveFile(prestigeFile);
+                Debug.Log("[GameLoopManager] Restored prestige data");
+            }
+
+            // 12. 恢复活跃度数据
+            var activityFile = _saveManager.GetFile<ActivitySaveFile>();
+            if (activityFile != null)
+            {
+                _activityModule?.ImportFromActivitySaveFile(activityFile);
+                Debug.Log("[GameLoopManager] Restored activity data");
+            }
+
+            // 13. 恢复宠物数据
+            var petFile = _saveManager.GetFile<PetSaveFile>();
+            if (petFile != null)
+            {
+                var petModule = _player?.modules.GetModule<PetCompanionModule>();
+                petModule?.ImportFromPetSaveFile(petFile);
+                Debug.Log("[GameLoopManager] Restored pet data");
+            }
+
+            // 14. 恢复事件树运行状态
+            var eventTreeFile = _saveManager.GetFile<EventTreeSaveFile>();
+            if (eventTreeFile != null && eventTreeFile.isRunning)
+            {
+                var eventTreeData = new EventTreeRunSaveData
+                {
+                    templateId = eventTreeFile.templateId,
+                    currentNodeId = eventTreeFile.currentNodeId,
+                    isRunning = eventTreeFile.isRunning,
+                    history = eventTreeFile.history ?? new List<string>()
+                };
+                EventTreeRunner.instance.RestoreState(eventTreeData);
+                Debug.Log("[GameLoopManager] Restored EventTreeRunner state");
+            }
+        }
+
+        /// <summary>
+        /// 将所有模块的当前数据同步到各自的ISaveFile（保存前调用）
+        /// </summary>
+        private void SyncAllSaveData()
+        {
+            // 1. 玩家数据
+            var playerFile = _saveManager.GetFile<PlayerSaveFile>();
+            if (playerFile != null && _player != null)
+            {
+                var exported = _player.ExportToPlayerSaveFile();
+                playerFile.actorId = exported.actorId;
+                playerFile.actorName = exported.actorName;
+                playerFile.level = exported.level;
+                playerFile.gold = exported.gold;
+                // playTime 和 totalInputCount 已在 Tick 中同步
+            }
+
+            // 2. 世界数据
+            var worldFile = _saveManager.GetFile<WorldSaveFile>();
+            if (worldFile != null && _travelModule != null)
+            {
+                var currentWorld = _travelModule.ExportToWorldSaveFile();
+                worldFile.currentMapSeed = currentWorld.currentMapSeed;
+                worldFile.currentMapIndex = currentWorld.currentMapIndex;
+                worldFile.travelProgress = currentWorld.travelProgress;
+            }
+
+            // 3. 背包数据（桥接InventorySaveData到InventorySaveFile）
+            var inventoryFile = _saveManager.GetFile<InventorySaveFile>();
+            if (inventoryFile != null)
+            {
+                inventoryFile.items.Clear();
+                var oldItems = InventoryDesign.instance.Export();
+                foreach (var item in oldItems)
+                {
+                    inventoryFile.items.Add(new InventorySaveFile.ItemEntry
+                    {
+                        templateId = item.templateId,
+                        instanceId = item.instanceId,
+                        amount = item.amount
+                    });
+                }
+            }
+
+            // 4. 队伍数据（桥接TeamMemberSaveData到TeamSaveFile）
+            var teamFile = _saveManager.GetFile<TeamSaveFile>();
+            if (teamFile != null)
+            {
+                teamFile.members.Clear();
+                var oldMembers = TeamDesign.instance.Export();
+                foreach (var m in oldMembers)
+                {
+                    teamFile.members.Add(new TeamSaveFile.MemberEntry
+                    {
+                        memberId = m.memberId,
+                        actorId = m.actorId,
+                        name = m.name,
+                        level = m.level,
+                        currentHp = m.currentHp,
+                        maxHp = m.maxHp,
+                        attack = m.attack,
+                        defense = m.defense,
+                        speed = m.speed,
+                        jobType = m.jobType
+                    });
+                }
+            }
+
+            // 5. 技能数据（桥接MemberSkillSaveData到SkillSaveFile）
+            var skillFile = _saveManager.GetFile<SkillSaveFile>();
+            if (skillFile != null)
+            {
+                skillFile.skillGroups.Clear();
+                var oldSkillGroups = SkillDesign.instance.Export();
+                foreach (var g in oldSkillGroups)
+                {
+                    var group = new SkillSaveFile.MemberSkillGroup { memberId = g.memberId };
+                    foreach (var s in g.skills)
+                    {
+                        group.skills.Add(new SkillSaveFile.SkillEntry
+                        {
+                            skillId = s.skillId,
+                            currentLevel = s.currentLevel
+                        });
+                    }
+                    skillFile.skillGroups.Add(group);
+                }
+            }
+
+            // 6. 战斗数据（桥接CombatSaveData到CombatSaveFile）
+            var combatFile = _saveManager.GetFile<CombatSaveFile>();
+            if (combatFile != null && _combatModule != null)
+            {
+                var oldCombat = _combatModule.Export();
+                combatFile.totalBattles = oldCombat.totalBattles;
+                combatFile.victories = oldCombat.victories;
+                combatFile.defeats = oldCombat.defeats;
+                combatFile.totalDamageDealt = oldCombat.totalDamageDealt;
+                combatFile.totalDamageTaken = oldCombat.totalDamageTaken;
+                combatFile.totalGoldEarned = oldCombat.totalGoldEarned;
+            }
+
+            // 7. NPC数据
+            var npcFile = _saveManager.GetFile<NpcSaveFile>();
+            if (npcFile != null)
+            {
+                var exported = NPCManager.instance.ExportToNpcSaveFile();
+                npcFile.npcs = exported.npcs;
+            }
+
+            // 8. 积压事件数据（桥接PendingEventSaveData到PendingEventSaveFile）
+            var pendingFile = _saveManager.GetFile<PendingEventSaveFile>();
+            if (pendingFile != null)
+            {
+                pendingFile.pendingEvents.Clear();
+                var oldPending = Game1.Modules.PendingEvent.PendingEventDesign.instance.Export();
+                foreach (var e in oldPending.pendingEvents)
+                {
+                    pendingFile.pendingEvents.Add(new PendingEventSaveFile.PendingEventEntry
+                    {
+                        eventId = e.eventId,
+                        templateId = e.templateId,
+                        rarity = (int)e.rarity,
+                        timestamp = e.timestamp,
+                        offlineSeconds = e.offlineSeconds,
+                        isProcessed = e.isProcessed,
+                        goldReward = e.goldReward
+                    });
+                }
+            }
+
+            // 9. 轮回数据
+            var prestigeFile = _saveManager.GetFile<PrestigeSaveFile>();
+            if (prestigeFile != null)
+            {
+                var exported = PrestigeManager.instance.ExportToPrestigeSaveFile();
+                prestigeFile.prestigeCount = exported.prestigeCount;
+                prestigeFile.prestigePoints = exported.prestigePoints;
+                prestigeFile.goldRetentionRate = exported.goldRetentionRate;
+                prestigeFile.expRetentionRate = exported.expRetentionRate;
+                prestigeFile.purchasedUpgrades = exported.purchasedUpgrades;
+                prestigeFile.retainedSkills = exported.retainedSkills;
+            }
+
+            // 10. 活跃度数据
+            var activityFile = _saveManager.GetFile<ActivitySaveFile>();
+            if (activityFile != null && _activityModule != null)
+            {
+                var exported = _activityModule.ExportToActivitySaveFile();
+                activityFile.accumulatedActivity = exported.accumulatedActivity;
+                activityFile.displayedActivity = exported.displayedActivity;
+                activityFile.peakActivity = exported.peakActivity;
+            }
+
+            // 11. 宠物数据
+            var petFile = _saveManager.GetFile<PetSaveFile>();
+            if (petFile != null && _player != null)
+            {
+                var petModule = _player.modules.GetModule<PetCompanionModule>();
+                if (petModule != null)
+                {
+                    var exported = petModule.ExportToPetSaveFile();
+                    petFile.happiness = exported.happiness;
+                    petFile.excitement = exported.excitement;
+                    petFile.sadness = exported.sadness;
+                    petFile.currentState = exported.currentState;
+                    petFile.isUnlocked = exported.isUnlocked;
+                }
+            }
+
+            // 12. 事件树数据（同步运行中的事件树状态到EventTreeSaveFile）
+            var eventTreeFile = _saveManager.GetFile<EventTreeSaveFile>();
+            if (eventTreeFile != null)
+            {
+                var runner = EventTreeRunner.instance;
+                if (runner.isRunning)
+                {
+                    var exportData = runner.ExportSaveData();
+                    if (exportData != null)
+                    {
+                        eventTreeFile.templateId = exportData.templateId;
+                        eventTreeFile.currentNodeId = exportData.currentNodeId;
+                        eventTreeFile.isRunning = exportData.isRunning;
+                        eventTreeFile.history = exportData.history;
+                    }
+                }
+                else
+                {
+                    eventTreeFile.isRunning = false;
                 }
             }
         }
@@ -218,14 +589,21 @@ namespace Game1
             // 3. 事件处理
             _eventQueue.Tick(deltaTime);
 
-            // 4. 更新游戏时间和输入次数
+            // 4. 更新游戏时间和输入次数（直接写入PlayerSaveFile）
             _totalGameTime += deltaTime;
-            _saveManager.currentSave.playTime = (long)_totalGameTime;
-            var (totalKeystrokes, _, _) = _backgroundInput?.GetInputStatistics() ?? (0, 0, 1f);
-            _saveManager.currentSave.totalInputCount = totalKeystrokes;
+            var playerFile = _saveManager.GetFile<PlayerSaveFile>();
+            if (playerFile != null)
+            {
+                playerFile.playTime = (long)_totalGameTime;
+                var (totalKeystrokes, _, _) = _backgroundInput?.GetInputStatistics() ?? (0, 0, 1f);
+                playerFile.totalInputCount = totalKeystrokes;
+            }
 
-            // 5. 自动存档（同步PlayerActor数据，offlineTime只在退出时保存）
-            _saveManager.TickWithPlayer(deltaTime, _player, 0f);
+            // 5. 同步所有模块数据到各自的存档文件
+            SyncAllSaveData();
+
+            // 6. 自动存档（SaveManager.Tick内部调用SaveAll）
+            _saveManager.Tick(deltaTime);
 
             // 6. 更新调试信息显示
             GameDebug.instance?.Update();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Game1.Modules.Combat;
+using Game1;
 
 namespace Game1.Modules.Travel
 {
@@ -130,7 +131,44 @@ namespace Game1.Modules.Travel
         }
 
         /// <summary>
-        /// 从存档数据恢复旅行状态
+        /// 从职能存档文件恢复旅行状态
+        /// </summary>
+        public void ImportFromSaveData(WorldSaveFile saveFile)
+        {
+            if (saveFile == null || string.IsNullOrEmpty(saveFile.currentMapSeed))
+            {
+                Debug.LogWarning("[TravelManager] ImportFromSaveData(WorldSaveFile) called with null or empty, skipping");
+                return;
+            }
+
+            _worldMap?.Generate(saveFile.currentMapSeed);
+
+            if (_player != null && saveFile.travelProgress > 0)
+            {
+                _player.travelState.progress = saveFile.travelProgress;
+                _player.travelState.currentState = TravelState.State.Traveling;
+            }
+
+            SetStatus(TravelStatus.Traveling);
+
+            Debug.Log($"[TravelManager] Restored travel state from file: seed={saveFile.currentMapSeed}, node={saveFile.currentMapIndex}, progress={saveFile.travelProgress}");
+        }
+
+        /// <summary>
+        /// 导出当前旅行状态到职能存档文件
+        /// </summary>
+        public WorldSaveFile ExportToWorldSaveFile()
+        {
+            return new WorldSaveFile
+            {
+                currentMapSeed = _worldMap?.seed ?? string.Empty,
+                currentMapIndex = _worldMap?.currentNodeIndex ?? 0,
+                travelProgress = _player?.travelState.progress ?? 0f
+            };
+        }
+
+        /// <summary>
+        /// 从存档数据恢复旅行状态（旧版WorldSaveData兼容）
         /// </summary>
         public void ImportFromSaveData(WorldSaveData saveData)
         {

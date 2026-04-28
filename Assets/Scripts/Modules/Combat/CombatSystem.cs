@@ -62,6 +62,7 @@ namespace Game1.Modules.Combat
         public int damage;
         public float critChance;
         public float critMultiplier;
+        public float dodgeChance;
 
         public bool IsDead => hp <= 0;
 
@@ -155,6 +156,7 @@ namespace Game1.Modules.Combat
                 enemy.maxHp = enemy.hp;
                 enemy.critChance = 0.05f;
                 enemy.critMultiplier = 1.5f;
+                if (enemy.dodgeChance <= 0f) enemy.dodgeChance = 0.05f;
             }
 
             int round = 0;
@@ -170,8 +172,8 @@ namespace Game1.Modules.Combat
                 // === 玩家回合：攻击当前目标 ===
                 var currentTarget = aliveEnemies[currentTargetIndex];
 
-                // 检查是否闪避（敌人攻击玩家时检查玩家的闪避）
-                bool dodged = UnityEngine.Random.value < (playerDodgeChance * 0.5f);
+                // 检查敌人是否闪避
+                bool dodged = UnityEngine.Random.value < currentTarget.dodgeChance;
 
                 if (!dodged)
                 {
@@ -229,7 +231,7 @@ namespace Game1.Modules.Combat
                 if (currentTargetIndex < 0)
                     break;
 
-                // === 敌人回合：所有敌人攻击玩家 ===
+                // === 敌人回合：每个敌人依次攻击（带死亡检查） ===
                 foreach (var enemy in aliveEnemies)
                 {
                     if (enemy.IsDead) continue;
@@ -246,6 +248,7 @@ namespace Game1.Modules.Combat
                             defenderHpAfter = playerHp,
                             wasCritical = false
                         });
+                        // 如果玩家死于闪避（不可能，但保持一致性继续）
                         continue;
                     }
 
@@ -272,6 +275,12 @@ namespace Game1.Modules.Combat
                         defenderHpAfter = playerHp,
                         wasCritical = isCrit
                     });
+
+                    // 关键修复：玩家在敌人反击中死亡时立即结束战斗
+                    if (playerHp <= 0)
+                    {
+                        break;
+                    }
                 }
 
                 // 移除死亡敌人
@@ -357,7 +366,8 @@ namespace Game1.Modules.Combat
                 armor = template.defense,
                 damage = template.attack,
                 critChance = 0.05f,
-                critMultiplier = 1.5f
+                critMultiplier = 1.5f,
+                dodgeChance = 0.05f
             };
         }
 
@@ -397,13 +407,14 @@ namespace Game1.Modules.Combat
             // 获取敌人暴击/闪避属性（从敌人属性推算）
             float enemyCritChance = 0.05f;  // 敌人默认暴击率5%
             float enemyCritMultiplier = 1.5f; // 敌人暴击伤害150%
+            float enemyDodgeChance = 0.05f; // 敌人默认闪避率5%
 
             while (playerHp > 0 && currentEnemyHp > 0 && round < maxRounds)
             {
                 if (isPlayerTurn)
                 {
                     // 检查敌人是否闪避
-                    if (UnityEngine.Random.value < enemyCritChance * 0.5f) // 敌人闪避率打折（简化）
+                    if (UnityEngine.Random.value < enemyDodgeChance)
                     {
                         result.combatLog.Add(new CombatLogEntry
                         {
@@ -510,7 +521,9 @@ namespace Game1.Modules.Combat
         }
 
         /// <summary>
-        /// 计算伤害（伤害 = 攻击方攻击力 - 防御方护甲，最小为1）
+        /// 计算伤害（百分比减伤公式：防御力提供递减减伤）
+        /// 公式：damage = attack * (1 - defense / (defense + 100))
+        /// 100防御 = 50%减伤，200防御 = 67%减伤
         /// </summary>
         /// <param name="attack">攻击力</param>
         /// <param name="defense">防御力</param>
@@ -520,7 +533,8 @@ namespace Game1.Modules.Combat
         /// <returns>最终伤害值</returns>
         public int CalculateDamage(int attack, int defense, float critChance, float critMultiplier, out bool isCrit)
         {
-            int baseDamage = Mathf.Max(1, attack - defense);
+            float reduction = defense / (defense + 100f);
+            int baseDamage = Mathf.Max(1, Mathf.FloorToInt(attack * (1f - reduction)));
 
             // 暴击判定（使用暴击率而非等级）
             if (critChance > 0f && UnityEngine.Random.value < critChance)

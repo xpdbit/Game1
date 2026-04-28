@@ -155,6 +155,30 @@ namespace Game1.Modules.Activity
         }
 
         /// <summary>
+        /// 导出活跃度数据到存档文件
+        /// </summary>
+        public ActivitySaveFile ExportToActivitySaveFile()
+        {
+            return new ActivitySaveFile
+            {
+                accumulatedActivity = _accumulatedActivity,
+                displayedActivity = _displayedActivity,
+                peakActivity = _peakActivity
+            };
+        }
+
+        /// <summary>
+        /// 从存档文件恢复活跃度数据
+        /// </summary>
+        public void ImportFromActivitySaveFile(ActivitySaveFile saveFile)
+        {
+            if (saveFile == null) return;
+            _accumulatedActivity = saveFile.accumulatedActivity;
+            _displayedActivity = saveFile.displayedActivity;
+            _peakActivity = saveFile.peakActivity;
+        }
+
+        /// <summary>
         /// 获取衰减后活跃度
         /// </summary>
         public int GetDecayedActivity()
