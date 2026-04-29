@@ -1,8 +1,8 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-28
+**Generated:** 2026-04-29
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** accef38
+**Commit:** 5e78657
 **Branch:** main
 
 ## OVERVIEW
@@ -46,13 +46,17 @@ Game1/
 │   │   │   ├── Prestige/   # PrestigeManager
 │   │   │   ├── PVP/        # PVPMatchManager, PVPArenaManager
 │   │   │   ├── Pet/         # PetCompanionModule, PetCompanionPanel (随队宠物)
-│   │   │   └── Activity/   # ActivityMonitorModule (活跃度监测)
+│   │   │   ├── Activity/   # ActivityMonitorModule (活跃度监测)
+│   │   │   ├── Achievement/ # AchievementDesign, AchievementManager (成就系统)
+│   │   │   └── Task/        # TaskDesign, TaskManager (任务系统)
 │   │   ├── Events/         # 事件系统
 │   │   │   ├── EventQueue.cs
 │   │   │   ├── EventChain.cs
 │   │   │   ├── EventManager.cs    # 事件管理器(模板加载)
 │   │   │   ├── EventTreeManager.cs # 事件树管理器(配置加载)
 │   │   │   ├── EventTreeRunner.cs  # 事件树运行器(分支叙事)
+│   │   │   ├── EventTreeDialogRunner.cs # 事件树对话框运行器
+│   │   │   ├── Effect/     # EffectSystem (效果系统：伤害计算、状态效果)
 │   │   │   └── Editor/xNode_Legacy/ # xNode事件树编辑器 (EventTreeEditorWindow, EventTreeGraph, 节点类型)
 │   │   ├── Roguelike/      # MapGenerator
 │   │   ├── UI/             # UI系统
@@ -80,7 +84,10 @@ Game1/
             ├── Items/         # 物品配置 (Items.xml)
             ├── Actors/       # 角色配置 (Actors.xml) - 统一Actor设计
             ├── Events/       # 事件配置 (Events.xml)
-            └── EventTrees/   # 事件树配置 (EventTrees.xml)
+            ├── EventTrees/   # 事件树配置 (EventTrees.xml)
+            ├── Achievements/ # 成就配置 (Achievements.xml)
+            ├── Tasks/       # 任务配置 (Tasks.xml)
+            └── Prestige/    # 轮回配置 (Prestige.xml)
 ├── Packages/             # Unity包 (含UniWindowController)
 ├── ProjectSettings/      # 项目配置
 ├── Docs/                 # 文档
@@ -126,8 +133,11 @@ Game1/
 | UIGameDashboard | Assets/Scripts/UI/ | 游戏仪表盘 |
 | UISelectionDialogEx | Assets/Scripts/UI/Dialog/ | 扩展选择对话框 |
 | PetCompanionPanel | Assets/Scripts/Modules/Pet/ | 宠物面板 |
+| 成就系统 | Assets/Scripts/Modules/Achievement/ | AchievementDesign, AchievementManager |
+| 任务系统 | Assets/Scripts/Modules/Task/ | TaskDesign, TaskManager |
 | 游戏模拟器 | Assets/Scripts/Editor/GamePlaySimulator/ | 游戏模拟器测试工具 |
 | EventTreeDialogRunner | Assets/Scripts/Events/ | 事件树对话框运行器 |
+| 伤害计算器 | Assets/Scripts/Modules/Combat/DamageCalculator.cs | 战斗伤害计算 |
 
 ## CODE MAP
 
@@ -198,8 +208,14 @@ Game1/
 | ActivityMonitorModule | Modules/Activity/ | 活跃度监测模块 |
 | PetCompanionModule | Modules/Pet/ | 随队宠物模块 |
 | PetCompanionPanel | Modules/Pet/ | 宠物面板 |
+| AchievementDesign | Modules/Achievement/ | 成就核心逻辑（单例） |
+| AchievementManager | Modules/Achievement/ | 成就管理器（静态API） |
+| TaskDesign | Modules/Task/ | 任务核心逻辑（单例） |
+| TaskManager | Modules/Task/ | 任务管理器（静态API） |
 | PendingEventManager | Modules/Idle/ | 积压事件管理器 |
 | BatchProcessor | Modules/Idle/ | 批量处理系统 |
+| DamageCalculator | Modules/Combat/ | 战斗伤害计算器 |
+| CombatStateMachineIntegration | Modules/Combat/State/ | 状态机集成 |
 | GlobalKeyboardHook | Core/Input/ | Windows全局键盘钩子 |
 | InputConverter | Core/Input/ | 虚实交互输入转换 |
 | EventQueue | Events/ | 事件队列 |
@@ -259,6 +275,8 @@ Game1/
 | TeamOperationResult | Modules/Team/TeamDesign.cs | 队伍操作结果 |
 | TeamCapacity | Modules/Team/TeamDesign.cs | 队伍容量配置 |
 | TeamEventData | Modules/Team/TeamDesign.cs | 队伍事件数据 |
+| CardAnimationController | UI/ | 卡牌动画控制器 |
+| UIAchievementPanel | UI/ | 成就面板 |
 
 ## 代码规范
 

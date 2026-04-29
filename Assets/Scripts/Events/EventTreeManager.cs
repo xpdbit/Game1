@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using Game1.Events.Effect;
 
 namespace Game1
 {
@@ -53,6 +54,32 @@ namespace Game1
         public string nextNodeId;      // 下一个节点ID
         public List<Effect> effects;   // 选择效果
         public List<EventTreeCondition> conditions; // 选择条件
+
+        public List<UnifiedEffect> GetUnifiedEffects()
+        {
+            // Convert old effects lazily
+            if (_unifiedEffects == null)
+            {
+                _unifiedEffects = new List<UnifiedEffect>();
+                foreach (var oldEffect in effects)
+                {
+                    var legacyStr = $"{oldEffect.type.ToString().ToLowerInvariant()}:{oldEffect.value}";
+                    if (oldEffect.quantity > 1)
+                        legacyStr += $":{oldEffect.quantity}";
+                    var unified = EffectParser.ParseLegacyString(legacyStr);
+                    _unifiedEffects.Add(unified);
+                }
+                // Also parse the raw XML if available (for EventTree attributes like goldCost, setFlag)
+                if (_choiceNode != null)
+                {
+                    var attrEffects = EffectParser.ParseEventTreeChoiceEffects(_choiceNode);
+                    _unifiedEffects.AddRange(attrEffects);
+                }
+            }
+            return _unifiedEffects;
+        }
+        private List<UnifiedEffect> _unifiedEffects;
+        private XmlNode _choiceNode; // store the original XML node if available
 
         public static EventTreeChoice ParseFromXml(XmlElement element)
         {
@@ -156,6 +183,22 @@ namespace Game1
         public List<EventTreeCondition> conditions; // 进入条件
         public List<Effect> rewards;           // 节点奖励
         public bool isStartNode;               // 是否为起始节点
+
+        public List<UnifiedEffect> GetUnifiedRewards()
+        {
+            if (_unifiedRewards == null)
+            {
+                _unifiedRewards = new List<UnifiedEffect>();
+                foreach (var oldEffect in rewards)
+                {
+                    var legacyStr = $"{oldEffect.type.ToString().ToLowerInvariant()}:{oldEffect.value}";
+                    var unified = EffectParser.ParseLegacyString(legacyStr);
+                    _unifiedRewards.Add(unified);
+                }
+            }
+            return _unifiedRewards;
+        }
+        private List<UnifiedEffect> _unifiedRewards;
 
         public static EventTreeNode ParseFromXml(XmlElement element)
         {

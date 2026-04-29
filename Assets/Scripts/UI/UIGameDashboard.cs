@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace Game1
 {
-    public class UIGameDashboard : MonoBehaviour
+    public class UIGameDashboard : MonoBehaviour, IInventoryEventSubscriber
     {
         public UIProgressBar travelProgressBar;
         public UIProgressBar xpProgressBar;
@@ -30,6 +30,11 @@ namespace Game1
         private Transform _hudRoot;
 
         private IdleRewardModule _idleModule;
+
+        // 事件驱动缓存
+        private int _lastGoldAmount = -1;          // -1 = 未初始化
+        private float _travelRateUpdateTimer = 0f;
+        private const float TRAVEL_RATE_UPDATE_INTERVAL = 0.5f; // 500ms
 
         public void Initialize()
         {
@@ -77,6 +82,15 @@ namespace Game1
             {
                 GameDebug.instance.debugText = debugText;
             }
+
+            // 订阅背包事件，替代每帧轮询
+            InventoryEventBus.instance.Subscribe(InventoryEventType.ItemAdded, this);
+            InventoryEventBus.instance.Subscribe(InventoryEventType.ItemRemoved, this);
+            InventoryEventBus.instance.Subscribe(InventoryEventType.ItemUpdated, this);
+            InventoryEventBus.instance.Subscribe(InventoryEventType.InventoryCleared, this);
+
+            // 初始化金币显示
+            RefreshGoldDisplay();
         }
 
         private void OnDestroy()
@@ -85,6 +99,12 @@ namespace Game1
             if (ProgressManager.instance != null)
             {
                 ProgressManager.instance.onProgressChanged -= OnProgressChanged;
+            }
+
+            // 取消背包事件订阅
+            if (InventoryEventBus.instance != null)
+            {
+                InventoryEventBus.instance.UnsubscribeAll(this);
             }
         }
 
@@ -168,22 +188,65 @@ namespace Game1
 
         private void Update()
         {
-            // 更新调试信息
+            // 更新调试信息（调试信息需要每帧刷新）
             GameDebug.instance?.Update();
 
-            // 更新TravelPoint平均速率（过去60秒）
-            if (travelRateText != null)
-            {
-                float travelPointRate = ProgressManager.instance.travelRate;
-                travelRateText.text = $"{travelPointRate:F1} TP/s";
-            }
+            // 节流更新TravelPoint平均速率（每500ms，替代每帧查询）
+            UpdateTravelRateThrottled();
+        }
 
-            // 更新当前金币显示（背包中GoldCoin数目）
-            if (goldText != null)
+        #region Event-Driven UI Updates
+
+        /// <summary>
+        /// IInventoryEventSubscriber 实现
+        /// 背包变更时由InventoryEventBus调用，替代每帧轮询
+        /// </summary>
+        public void OnInventoryEvent(InventoryEventData data)
+        {
+            // 仅在 GoldCoin 相关变更时更新显示
+            if (data.templateId == "Core.Item.GoldCoin" || data.eventType == InventoryEventType.InventoryCleared)
             {
-                int goldCount = InventoryDesign.instance.GetTotalAmountByTemplateId("Core.Item.GoldCoin");
-                goldText.text = $"Gold {goldCount}";
+                RefreshGoldDisplay();
             }
         }
+
+        /// <summary>
+        /// 刷新金币显示，仅在值变化时更新Text组件
+        /// </summary>
+        private void RefreshGoldDisplay()
+        {
+            if (goldText == null) return;
+
+            int goldCount = InventoryDesign.instance.GetTotalAmountByTemplateId("Core.Item.GoldCoin");
+            if (goldCount != _lastGoldAmount)
+            {
+                goldText.text = $"Gold {goldCount}";
+                _lastGoldAmount = goldCount;
+            }
+        }
+
+        /// <summary>
+        /// 节流更新TravelPoint速率文本
+        /// 每500ms更新一次，值无变化时跳过Text组件更新
+        /// </summary>
+        private void UpdateTravelRateThrottled()
+        {
+            if (travelRateText == null) return;
+
+            _travelRateUpdateTimer += Time.deltaTime;
+            if (_travelRateUpdateTimer < TRAVEL_RATE_UPDATE_INTERVAL)
+                return;
+
+            _travelRateUpdateTimer = 0f;
+
+            float travelPointRate = ProgressManager.instance.travelRate;
+            string newText = $"{travelPointRate:F1} TP/s";
+            if (travelRateText.text != newText)
+            {
+                travelRateText.text = newText;
+            }
+        }
+
+        #endregion
     }
 }

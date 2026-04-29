@@ -1,0 +1,51 @@
+<PrestigeUpgrades>
+  <PrestigeConfig>
+    <!-- 基础轮回点数公式常数 -->
+    <basePrestigePoints>100</basePrestigePoints>
+    <pointsPerLevel>50</pointsPerLevel>
+
+    <!-- 基础资源保留率（每级升级加成增加） -->
+    <baseGoldRetention>0</baseGoldRetention>
+    <baseExpRetention>0</baseExpRetention>
+
+    <!-- 轮回等级上限 -->
+    <maxPrestigeLevel>100</maxPrestigeLevel>
+  </PrestigeConfig>
+
+  <PrestigeUpgrade>
+    <id>Core.Prestige.ResourceRetention</id>
+    <nameTextId>Core.Prestige.ResourceRetention.Name</nameTextId>
+    <descTextId>Core.Prestige.ResourceRetention.Desc</descTextId>
+    <cost>100</cost>
+    <type>ResourceRetention</type>
+    <effectValue>0.1</effectValue>
+    <maxLevel>10</maxLevel>
+  </PrestigeUpgrade>
+  <PrestigeUpgrade>
+    <id>Core.Prestige.PointBonus</id>
+    <nameTextId>Core.Prestige.PointBonus.Name</nameTextId>
+    <descTextId>Core.Prestige.PointBonus.Desc</descTextId>
+    <cost>150</cost>
+    <type>PrestigePointBonus</type>
+    <effectValue>0.1</effectValue>
+    <maxLevel>10</maxLevel>
+  </PrestigeUpgrade>
+  <PrestigeUpgrade>
+    <id>Core.Prestige.StartingEquipment</id>
+    <nameTextId>Core.Prestige.StartingEquipment.Name</nameTextId>
+    <descTextId>Core.Prestige.StartingEquipment.Desc</descTextId>
+    <cost>500</cost>
+    <type>StartingEquipment</type>
+    <effectValue>1</effectValue>
+    <maxLevel>1</maxLevel>
+  </PrestigeUpgrade>
+  <PrestigeUpgrade>
+    <id>Core.Prestige.SkillUnlock</id>
+    <nameTextId>Core.Prestige.SkillUnlock.Name</nameTextId>
+    <descTextId>Core.Prestige.SkillUnlock.Desc</descTextId>
+    <cost>300</cost>
+    <type>SkillUnlock</type>
+    <effectValue>1</effectValue>
+    <maxLevel>5</maxLevel>
+  </PrestigeUpgrade>
+</PrestigeUpgrades>

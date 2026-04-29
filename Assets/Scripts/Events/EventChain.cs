@@ -379,25 +379,7 @@ namespace Game1
             {
                 foreach (var moduleId in choice.addModuleIds)
                 {
-                    // 根据moduleId创建模块并添加
-                    // moduleId格式与IModule.moduleId一致
-                    IModule module = moduleId switch
-                    {
-                        "idle_reward" => new IdleRewardModule(),
-                        _ => null
-                    };
-
-                    if (module != null)
-                    {
-                        // 先初始化模块（如果需要）
-                        if (module is IdleRewardModule idleModule)
-                        {
-                            idleModule.Initialize(player);
-                        }
-                        // 再添加到玩家
-                        player.AddModule(module);
-                    }
-                    else
+                    if (!Game1.Modules.ModuleFactory.CreateAndAddToPlayer(moduleId, player))
                     {
                         Debug.LogWarning($"[EventChain] Unknown moduleId: {moduleId}");
                     }

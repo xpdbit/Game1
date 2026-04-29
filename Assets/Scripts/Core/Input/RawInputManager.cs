@@ -176,8 +176,7 @@ namespace Game1
             // 回退到 GlobalKeyboardHook 作为后备方案（BackgroundInputManager 会自动处理）。
             Debug.Log("[RawInputManager] Editor mode detected - Raw Input not supported, falling back to GlobalKeyboardHook");
             return false;
-#endif
-
+#else
             try
             {
                 // 1. 获取 Unity 窗口句柄
@@ -213,6 +212,7 @@ namespace Game1
                 Cleanup();
                 return false;
             }
+#endif
         }
 
         /// <summary>
@@ -325,7 +325,6 @@ namespace Game1
             if (hwnd != IntPtr.Zero)
             {
                 // 检查是否是我们的进程
-                uint processId;
                 GetWindowThreadProcessId(hwnd, IntPtr.Zero);
                 return hwnd;
             }

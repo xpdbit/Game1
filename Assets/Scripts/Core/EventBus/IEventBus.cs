@@ -17,6 +17,17 @@ namespace Game1.Core.EventBus
         EventTriggered,
         SaveCompleted,
         LoadCompleted,
+        // Achievement system event types
+        EnemyDefeated,
+        CombatWon,
+        BossDefeated,
+        DistanceTraveled,
+        ItemsCollected,
+        TeamMembersChanged,
+        PrestigesPerformed,
+        LocationsDiscovered,
+        PetsMaxHappiness,
+        EventsCompleted,
     }
 
     /// <summary>

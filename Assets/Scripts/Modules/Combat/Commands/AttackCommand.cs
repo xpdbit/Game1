@@ -37,8 +37,19 @@ namespace Game1.Modules.Combat.Commands
             CombatantData attacker = IsPlayerAction ? context.playerCombatant : context.enemyCombatant;
             CombatantData defender = IsPlayerAction ? context.enemyCombatant : context.playerCombatant;
 
-            // 计算伤害
-            _damageDealt = CalculateDamage(attacker, defender, out _wasCritical);
+            // 计算伤害（使用共享的DamageCalculator）
+            int effectiveDefense = defender.isDefending ? defender.armor / 2 : defender.armor;
+            int baseDamage = DamageCalculator.CalculateDamage(
+                attacker.damage, effectiveDefense,
+                attacker.critChance, attacker.critDamageMultiplier,
+                out _wasCritical);
+
+            // 暴击加成
+            _damageDealt = _wasCritical
+                ? UnityEngine.Mathf.FloorToInt(baseDamage * attacker.critDamageMultiplier)
+                : baseDamage;
+
+            _damageDealt = Math.Max(1, _damageDealt);
             _healingDone = 0;
 
             // 应用伤害
@@ -57,32 +68,6 @@ namespace Game1.Modules.Combat.Commands
             // 恢复防御者状态
             defender.hp = _defenderSnapshot.hp;
             defender.isDefending = _defenderSnapshot.isDefending;
-        }
-
-        private int CalculateDamage(CombatantData attacker, CombatantData defender, out bool isCritical)
-        {
-            isCritical = false;
-
-            // 检查是否暴击
-            if (UnityEngine.Random.value < attacker.critChance)
-            {
-                isCritical = true;
-            }
-
-            // 计算基础伤害
-            float baseDamage = attacker.damage;
-
-            // 暴击加成
-            if (isCritical)
-            {
-                baseDamage *= attacker.critDamageMultiplier;
-            }
-
-            // 护甲减伤
-            float armorReduction = defender.isDefending ? defender.armor * 0.5f : defender.armor;
-            float finalDamage = System.Math.Max(1, baseDamage - armorReduction);
-
-            return UnityEngine.Mathf.RoundToInt(finalDamage);
         }
 
         private CombatantData CloneCombatant(CombatantData source)

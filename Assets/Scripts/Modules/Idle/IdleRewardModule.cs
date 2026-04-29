@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Game1.Modules.PendingEvent;
+using Game1.Core.EventBus;
 
 namespace Game1
 {
@@ -9,6 +10,9 @@ namespace Game1
     /// </summary>
     public interface IIdleRewardModule : IModule
     {
+        void Initialize(PlayerActor player);
+        void Tick(float deltaTime);
+        float CalculateOfflineReward(float offlineSeconds);
         float GetCurrentRewardRate();
     }
 
@@ -137,6 +141,7 @@ namespace Game1
         public void OnActivate()
         {
             _isActive = true;
+            EventBus.instance.Publish(Game1.Core.EventBus.EventType.ModuleActivated, this, null);
         }
 
         public void OnDeactivate()

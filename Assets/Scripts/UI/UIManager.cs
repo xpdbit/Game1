@@ -306,7 +306,16 @@ namespace Game1
             if (!panel.isOpen) return;
 
             panel.OnClose();
-            _panelStack.Clear(); // 简化：关闭面板时清空堆栈
+
+            // 精确移除：只从堆栈中移除该面板，不清空整个堆栈
+            var items = _panelStack.ToArray(); // 从栈顶到栈底
+            _panelStack.Clear();
+            for (int i = items.Length - 1; i >= 0; i--)
+            {
+                if (items[i] != panelId)
+                    _panelStack.Push(items[i]);
+            }
+
             onPanelClosed?.Invoke(panelId);
 
             Debug.Log($"[UIManager] Closed: {panelId}");
@@ -332,12 +341,16 @@ namespace Game1
         {
             if (_panelStack.Count <= 1) return;
 
-            _panelStack.Pop(); // 移除当前
+            string currentId = _panelStack.Pop(); // 移除当前面板
             string previousId = _panelStack.Peek();
 
-            // 关闭当前面板（简化实现）
-            CloseAllPanels();
-            OpenPanel(previousId);
+            // 只关闭当前面板，不清空整个堆栈
+            if (_panels.TryGetValue(currentId, out var currentPanel) && currentPanel.isOpen)
+                currentPanel.OnClose();
+
+            // 重新打开上一个面板（如果已关闭）
+            if (!string.IsNullOrEmpty(previousId) && _panels.TryGetValue(previousId, out var previousPanel) && !previousPanel.isOpen)
+                previousPanel.OnOpen();
         }
 
         /// <summary>

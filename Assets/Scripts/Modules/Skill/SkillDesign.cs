@@ -385,7 +385,12 @@ namespace Game1
             if (skill.currentLevel >= skill.maxLevel)
                 return SkillResult.Failure("技能已达最大等级");
 
-            // TODO: 检查升级费用
+            var player = GameLoopManager.instance?.player;
+            int upgradeCost = skill.currentLevel * 100;
+            if (player == null || player.carryItems.gold < upgradeCost)
+                return SkillResult.Failure("金币不足");
+
+            player.carryItems.gold -= upgradeCost;
 
             skill.currentLevel++;
 
@@ -484,7 +489,10 @@ namespace Game1
             // 检查消耗
             if (template.baseCost > 0)
             {
-                // TODO: 检查并消耗资源
+                var player = GameLoopManager.instance?.player;
+                if (player == null || player.carryItems.gold < template.baseCost)
+                    return SkillResult.Failure("金币不足");
+                player.carryItems.gold -= template.baseCost;
             }
 
             // 创建技能数据
@@ -531,9 +539,13 @@ namespace Game1
                     // 消耗生命换取金币
                     int healthCost = skill.cost;
                     int goldGain = healthCost * 10;
-                    caster.hp -= healthCost;
-                    // TODO: 增加金币
-                    return SkillResult.Success($"消耗 {healthCost} HP 获得 {goldGain} 金币", goldGain);
+                    int actualCost = Mathf.Min(healthCost, caster.hp);
+                    caster.hp -= actualCost;
+                    int actualGoldGain = actualCost * 10;
+                    var player = GameLoopManager.instance?.player;
+                    if (player != null)
+                        player.carryItems.gold += actualGoldGain;
+                    return SkillResult.Success($"消耗 {actualCost} HP 获得 {actualGoldGain} 金币", actualGoldGain);
             }
 
             return SkillResult.Success("技能执行成功");

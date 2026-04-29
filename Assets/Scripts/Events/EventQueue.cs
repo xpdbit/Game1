@@ -77,17 +77,27 @@ namespace Game1
         /// </summary>
         public EventResult ProcessNext()
         {
-            if (_pendingEvents.Count == 0)
-                return null;
+            while (_pendingEvents.Count > 0)
+            {
+                _currentEvent = _pendingEvents.Dequeue();
 
-            _currentEvent = _pendingEvents.Dequeue();
-            _eventHistory.Add(_currentEvent);
+                // 检查条件 - 如果不能触发则跳过此事件
+                if (!_currentEvent.CanTrigger())
+                {
+                    Debug.Log($"[EventQueue] Skipping event {_currentEvent.eventId}: conditions not met");
+                    _currentEvent = null;
+                    continue;
+                }
 
-            var result = _currentEvent.Execute();
-            onEventTriggered?.Invoke(_currentEvent);
-            onEventCompleted?.Invoke(result);
+                _eventHistory.Add(_currentEvent);
+                var result = _currentEvent.Execute();
+                onEventTriggered?.Invoke(_currentEvent);
+                onEventCompleted?.Invoke(result);
 
-            return result;
+                return result;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -177,7 +187,22 @@ namespace Game1
 
         public virtual bool CanTrigger()
         {
-            // TODO: 根据条件判断
+            // 根据条件判断：
+            // 1. 必须有敌人才能触发战斗事件
+            if (eventType == GameEventType.Combat)
+            {
+                return enemyCount > 0 && enemyStrength > 0;
+            }
+            // 2. 交易事件需要正收益
+            if (eventType == GameEventType.Trade)
+            {
+                return true; // 交易总是可触发
+            }
+            // 3. 发现事件需要探索条件
+            if (eventType == GameEventType.Discovery)
+            {
+                return true;
+            }
             return true;
         }
 

@@ -4,9 +4,7 @@ using UnityEngine;
 namespace Game1
 {
     /// <summary>
-    /// 游戏调试信息管理器
-    /// 提供运行时调试信息显示接口
-    /// </summary>
+    /// 游戏调试信息管理�?    /// 提供运行时调试信息显示接�?    /// </summary>
     public class GameDebug
     {
         #region Singleton
@@ -76,8 +74,7 @@ namespace Game1
         }
 
         /// <summary>
-        /// 是否显示活跃度信息
-        /// </summary>
+        /// 是否显示活跃度信�?        /// </summary>
         public bool showActivityInfo
         {
             get => _showActivityInfo;
@@ -155,7 +152,7 @@ namespace Game1
             }
 
             // 积压事件
-            int pendingCount = GameMain.instance?.eventQueue?.pendingCount ?? 0;
+            int pendingCount = GameMain.instance?.EventQueue?.pendingCount ?? 0;
             if (pendingCount > 0)
                 _sb.AppendLine($"积压事件: {pendingCount}");
 
@@ -170,16 +167,15 @@ namespace Game1
                 }
             }
 
-            // 活跃度信息
-            if (_showActivityInfo)
+            // 活跃度信�?            if (_showActivityInfo)
             {
                 var activityModule = Modules.Activity.ActivityMonitorModule.instance;
                 if (activityModule != null)
                 {
                     _sb.AppendLine($"活跃点数: {activityModule.GetCurrentActivity()}");
                     _sb.AppendLine($"衰减活跃: {activityModule.GetDecayedActivity()}");
-                    _sb.AppendLine($"历史峰值: {activityModule.peakActivity}");
-                    _sb.AppendLine($"活跃率: {activityModule.activityRate:P1}");
+                    _sb.AppendLine($"历史峰�? {activityModule.peakActivity}");
+                    _sb.AppendLine($"活跃�? {activityModule.activityRate:P1}");
                 }
             }
 
@@ -218,3 +214,4 @@ namespace Game1
         }
     }
 }
+

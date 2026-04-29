@@ -6,6 +6,7 @@ using Game1.Modules.Travel;
 using Game1.Modules.Combat;
 using Game1.Modules.Activity;
 using Game1.Modules.PendingEvent;
+using Game1.Modules.Achievement;
 
 namespace Game1
 {
@@ -80,8 +81,8 @@ namespace Game1
 
         private void OnDestroy()
         {
-            // 退出时先同步所有模块数据到存档文件，再保存
-            SyncAllSaveData();
+            // 退出时先标记所有文件为脏，再保存
+            _saveManager?.MarkAllDirty();
             _saveManager?.SaveAll();
 
             _backgroundInput?.Dispose();
@@ -128,6 +129,9 @@ namespace Game1
 
             _saveManager = GameMain.instance.Container.Resolve<SaveManager>();
 
+            // 注册保存前同步回调 - SaveManager在写入磁盘前触发，确保存档数据最新
+            _saveManager.OnBeforeSave += SyncAllSaveData;
+
             // 3.2 初始化战斗模块（需要在加载存档数据之前，以便ApplyLoadedSaveData可以恢复战斗数据）
             _combatModule = new CombatModule();
             _combatModule.Initialize(_player);
@@ -135,6 +139,9 @@ namespace Game1
 
             // 3.3 注册所有职能存档文件到SaveManager
             RegisterSaveFiles();
+
+            // 3.4 初始化成就系统（在注册存档文件之后、加载存档之前）
+            AchievementManager.Initialize();
 
             // 4. 加载所有职能存档文件
             _saveManager.LoadAll();
@@ -172,7 +179,8 @@ namespace Game1
                 new PendingEventSaveFile(),
                 new PrestigeSaveFile(),
                 new ActivitySaveFile(),
-                new PetSaveFile()
+                new PetSaveFile(),
+                new AchievementSaveFile()
             );
         }
 
@@ -365,6 +373,19 @@ namespace Game1
                 };
                 EventTreeRunner.instance.RestoreState(eventTreeData);
                 Debug.Log("[GameLoopManager] Restored EventTreeRunner state");
+            }
+
+            // 15. 成就数据
+            var achievementFile = _saveManager.GetFile<AchievementSaveFile>();
+            if (achievementFile != null && achievementFile.records.Count > 0)
+            {
+                var saveData = new AchievementSaveData
+                {
+                    version = achievementFile.Version,
+                    records = achievementFile.records
+                };
+                AchievementManager.Import(saveData);
+                Debug.Log($"[GameLoopManager] Restored {achievementFile.records.Count} achievement records");
             }
         }
 
@@ -559,6 +580,17 @@ namespace Game1
                     eventTreeFile.isRunning = false;
                 }
             }
+
+            // 13. 成就数据
+            var achievementFile = _saveManager.GetFile<AchievementSaveFile>();
+            if (achievementFile != null)
+            {
+                var exported = AchievementManager.Export();
+                achievementFile.records = exported.records;
+            }
+
+            // 标记所有已同步的文件为脏（由OnBeforeSave触发，仅存盘前执行）
+            _saveManager.MarkAllDirty();
         }
 
         /// <summary>
@@ -589,7 +621,7 @@ namespace Game1
             // 3. 事件处理
             _eventQueue.Tick(deltaTime);
 
-            // 4. 更新游戏时间和输入次数（直接写入PlayerSaveFile）
+            // 4. 更新游戏时间和输入次数（直接写入PlayerSaveFile并标记脏）
             _totalGameTime += deltaTime;
             var playerFile = _saveManager.GetFile<PlayerSaveFile>();
             if (playerFile != null)
@@ -597,12 +629,10 @@ namespace Game1
                 playerFile.playTime = (long)_totalGameTime;
                 var (totalKeystrokes, _, _) = _backgroundInput?.GetInputStatistics() ?? (0, 0, 1f);
                 playerFile.totalInputCount = totalKeystrokes;
+                _saveManager.MarkDirty<PlayerSaveFile>();
             }
 
-            // 5. 同步所有模块数据到各自的存档文件
-            SyncAllSaveData();
-
-            // 6. 自动存档（SaveManager.Tick内部调用SaveAll）
+            // 5. 自动存档（SaveManager.Tick内部调用OnBeforeSave→SyncAllSaveData + SaveDirtyFiles）
             _saveManager.Tick(deltaTime);
 
             // 6. 更新调试信息显示

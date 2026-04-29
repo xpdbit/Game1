@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Game1.Events.Effect;
 
 namespace Game1.Events
 {
@@ -60,6 +61,7 @@ namespace Game1.Events
         private bool _isDialogActive = false;
         private EventTreeTemplate _currentTemplate;
         private EventTreeNode _currentNode;
+        private List<string> _pendingEffectDescriptions = new();
 
         // 事件
         public event Action<EventTreeTemplate> onTreeStarted;
@@ -154,6 +156,21 @@ namespace Game1.Events
 
             // 记录历史
             EventTreeRunner.instance.SelectChoice(choiceId);
+
+            // 执行效果
+            var effects = choice.GetUnifiedEffects();
+            if (effects != null && effects.Count > 0)
+            {
+                var player = GameMain.instance?.GetPlayerActor();
+                if (player != null)
+                {
+                    _pendingEffectDescriptions = EffectExecutor.Execute(effects, player);
+                    foreach (var desc in _pendingEffectDescriptions)
+                    {
+                        UnityEngine.Debug.Log($"[EventTree] Effect: {desc}");
+                    }
+                }
+            }
 
             // 获取下一个节点
             if (!string.IsNullOrEmpty(choice.nextNodeId))
@@ -300,11 +317,19 @@ namespace Game1.Events
             // 转换为 ChoiceOption
             var options = ConvertToChoiceOptions(node.choices);
 
+            // 处理效果描述
+            string description = node.description;
+            if (_pendingEffectDescriptions.Count > 0)
+            {
+                description += "\n\n" + string.Join("\n", _pendingEffectDescriptions);
+                _pendingEffectDescriptions.Clear();
+            }
+
             // 显示对话框
             var dialogData = new UI.Dialog.DialogEventData
             {
                 title = node.title,
-                description = node.description,
+                description = description,
                 options = options,
                 animationType = UI.Dialog.DialogAnimationType.Typewriter
             };
@@ -328,10 +353,18 @@ namespace Game1.Events
                 ChoiceOption.Create("continue", "继续", ChoiceType.Normal)
             };
 
+            // 处理效果描述
+            string description = node.description;
+            if (_pendingEffectDescriptions.Count > 0)
+            {
+                description += "\n\n" + string.Join("\n", _pendingEffectDescriptions);
+                _pendingEffectDescriptions.Clear();
+            }
+
             var dialogData = new UI.Dialog.DialogEventData
             {
                 title = node.title,
-                description = node.description,
+                description = description,
                 options = options,
                 animationType = UI.Dialog.DialogAnimationType.Typewriter
             };
@@ -381,8 +414,61 @@ namespace Game1.Events
 
         private bool CheckConditions(List<EventTreeCondition> conditions)
         {
-            // TODO: 实现条件检查逻辑
+            var player = GameLoopManager.instance?.player;
+            if (player == null)
+            {
+                UnityEngine.Debug.LogWarning("[EventTreeDialogRunner] PlayerActor not available, conditions default to true");
+                return true;
+            }
+
+            foreach (var condition in conditions)
+            {
+                if (!EvaluateCondition(condition, player))
+                    return false;
+            }
             return true;
+        }
+
+        private bool EvaluateCondition(EventTreeCondition condition, PlayerActor player)
+        {
+            if (condition == null) return true;
+
+            // 解析预期值
+            int expectedValue = 0;
+            if (!string.IsNullOrEmpty(condition.value))
+                int.TryParse(condition.value, out expectedValue);
+
+            switch (condition.type.ToLowerInvariant())
+            {
+                case "gold":
+                    return condition.comparison switch
+                    {
+                        "greater" or ">" => player.carryItems.gold > expectedValue,
+                        "less" or "<" => player.carryItems.gold < expectedValue,
+                        "equals" or "==" or "=" => player.carryItems.gold == expectedValue,
+                        _ => player.carryItems.gold >= expectedValue
+                    };
+
+                case "item":
+                    var itemCount = InventoryDesign.instance.GetTotalAmountByTemplateId(condition.key);
+                    return condition.comparison switch
+                    {
+                        "greater" or ">" => itemCount > expectedValue,
+                        "less" or "<" => itemCount < expectedValue,
+                        "equals" or "==" or "=" => itemCount == expectedValue,
+                        _ => itemCount >= expectedValue
+                    };
+
+                case "module":
+                    return player.carryItems.ownedModuleIds.Contains(condition.key);
+
+                case "flag":
+                    return player.HasFlag(condition.key, condition.value ?? "true");
+
+                default:
+                    UnityEngine.Debug.LogWarning($"[EventTreeDialogRunner] Unknown condition type: {condition.type}");
+                    return true;
+            }
         }
 
         private EventTreeChoice FindChoice(EventTreeNode node, string choiceId)

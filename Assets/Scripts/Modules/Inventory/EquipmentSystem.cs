@@ -211,8 +211,9 @@ namespace Game1
             int cost = GetEnhanceCost(template, level);
 
             // 检查玩家金币是否足够
-            // TODO: 需要从PlayerActor获取金币
-            // 这里暂时简化处理
+            var player = GameLoopManager.instance?.player;
+            if (player == null || player.carryItems.gold < cost)
+                return InventoryOperationResult.Fail("金币不足");
 
             // 执行强化
             // equipment.enhancedLevel = level; // 需要在ItemInstance中添加增强等级字段

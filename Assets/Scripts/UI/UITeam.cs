@@ -29,6 +29,14 @@ namespace Game1
         private Dictionary<int, UITeamMember> _membersById = new();
         private Action<TeamEventData> _onTeamChanged;
 
+        private ITeamQueries _teamQueries;
+
+        public ITeamQueries teamQueries
+        {
+            get => _teamQueries ?? TeamQueriesAdapter.instance;
+            set => _teamQueries = value;
+        }
+
         public UITeamMember[] members => _members.ToArray();
 
         #region Unity Lifecycle
@@ -84,7 +92,7 @@ namespace Game1
         {
             Clear();
 
-            var members = TeamManager.GetAllMembers().ToList();
+            var members = teamQueries.GetAllMembers().ToList();
 
             // 按等级排序
             members.Sort((a, b) => b.level.CompareTo(a.level));
@@ -166,12 +174,12 @@ namespace Game1
         {
             if (teamCountText != null)
             {
-                teamCountText.text = $"{TeamManager.GetMemberCount()}/{TeamManager.RemainingSlots() + TeamManager.GetMemberCount()}";
+                teamCountText.text = $"{teamQueries.memberCount}/{teamQueries.RemainingSlots() + teamQueries.memberCount}";
             }
 
             if (totalPowerText != null)
             {
-                totalPowerText.text = $"战力: {TeamManager.GetTotalCombatPower()}";
+                totalPowerText.text = $"战力: {teamQueries.GetTotalCombatPower()}";
             }
         }
 
@@ -243,7 +251,7 @@ namespace Game1
             if (uIListItems == null)
                 return;
 
-            var member = TeamManager.GetMember(data.memberId);
+            var member = teamQueries.GetMember(data.memberId);
             if (member != null)
             {
                 Append(member);

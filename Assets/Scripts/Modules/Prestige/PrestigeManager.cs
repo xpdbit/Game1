@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 namespace Game1
@@ -40,6 +41,29 @@ namespace Game1
         public bool isPurchased;
         public int currentLevel;
         public int maxLevel;
+
+        /// <summary>
+        /// 从XML元素解析升级配置
+        /// </summary>
+        public static PrestigeUpgrade ParseFromXml(XmlElement element)
+        {
+            var upgrade = new PrestigeUpgrade
+            {
+                id = element.SelectSingleNode("id")?.InnerText ?? string.Empty,
+                nameTextId = element.SelectSingleNode("nameTextId")?.InnerText ?? string.Empty,
+                descTextId = element.SelectSingleNode("descTextId")?.InnerText ?? string.Empty,
+                cost = int.Parse(element.SelectSingleNode("cost")?.InnerText ?? "0"),
+                effectValue = float.Parse(element.SelectSingleNode("effectValue")?.InnerText ?? "0"),
+                maxLevel = int.Parse(element.SelectSingleNode("maxLevel")?.InnerText ?? "1")
+            };
+
+            // 解析type枚举
+            var typeStr = element.SelectSingleNode("type")?.InnerText ?? string.Empty;
+            if (!string.IsNullOrEmpty(typeStr) && Enum.TryParse<PrestigeUpgradeType>(typeStr, out var parsedType))
+                upgrade.type = parsedType;
+
+            return upgrade;
+        }
     }
 
     /// <summary>
@@ -69,16 +93,16 @@ namespace Game1
         #endregion
 
         #region Configuration
-        // 基础轮回点数公式
-        private const float BASE_PRESTIGE_POINTS = 100f;
-        private const float PRESTIGE_POINTS_PER_LEVEL = 50f;
+        // 基础轮回点数公式（可由XML覆盖）
+        private int _basePrestigePoints = 100;
+        private int _prestigePointsPerLevel = 50;
 
-        // 资源保留基础值
-        private const float BASE_GOLD_RETENTION = 0f;
-        private const float BASE_EXP_RETENTION = 0f;
+        // 资源保留基础值（可由XML覆盖）
+        private float _baseGoldRetention = 0f;
+        private float _baseExpRetention = 0f;
 
-        // 轮回等级上限
-        private const int MAX_PRESTIGE_LEVEL = 100;
+        // 轮回等级上限（可由XML覆盖）
+        private int _maxPrestigeLevel = 100;
         #endregion
 
         #region Private Fields
@@ -222,11 +246,76 @@ namespace Game1
         }
 
         /// <summary>
-        /// 加载升级配置
+        /// 加载升级配置（优先从XML加载，失败时使用硬编码默认值）
         /// </summary>
         private void LoadUpgrades()
         {
-            // 资源保留升级线
+            var loadFromXml = LoadUpgradesFromXml();
+            if (!loadFromXml)
+                LoadUpgradesDefault();
+        }
+
+        /// <summary>
+        /// 从XML配置文件加载配置和升级
+        /// </summary>
+        private bool LoadUpgradesFromXml()
+        {
+            try
+            {
+                var textAsset = UnityEngine.Resources.Load<UnityEngine.TextAsset>("Data/Prestige/Prestige");
+                if (textAsset == null)
+                {
+                    Debug.LogWarning("[PrestigeManager] Prestige XML not found, using hardcoded defaults");
+                    return false;
+                }
+
+                var doc = new XmlDocument();
+                doc.LoadXml(textAsset.text);
+
+                // 1. 加载配置常数（可选，向后兼容）
+                var configNode = doc.SelectSingleNode("/PrestigeUpgrades/PrestigeConfig");
+                if (configNode != null && configNode.NodeType == XmlNodeType.Element)
+                {
+                    LoadConfigFromXml((XmlElement)configNode);
+                }
+
+                // 2. 加载升级
+                var nodes = doc.SelectNodes("/PrestigeUpgrades/PrestigeUpgrade");
+                if (nodes == null || nodes.Count == 0)
+                {
+                    Debug.LogWarning("[PrestigeManager] Prestige XML has no upgrades, using hardcoded defaults");
+                    return false;
+                }
+
+                int count = 0;
+                foreach (XmlNode node in nodes)
+                {
+                    if (node.NodeType == XmlNodeType.Element)
+                    {
+                        var upgrade = PrestigeUpgrade.ParseFromXml((XmlElement)node);
+                        if (!string.IsNullOrEmpty(upgrade.id))
+                        {
+                            AddUpgrade(upgrade);
+                            count++;
+                        }
+                    }
+                }
+
+                Debug.Log($"[PrestigeManager] Loaded {count} upgrades from XML");
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[PrestigeManager] Failed to load XML: {ex.Message}, using hardcoded defaults");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 硬编码默认升级（向后兼容）
+        /// </summary>
+        private void LoadUpgradesDefault()
+        {
             AddUpgrade(new PrestigeUpgrade
             {
                 id = "Core.Prestige.ResourceRetention",
@@ -238,7 +327,6 @@ namespace Game1
                 maxLevel = 10
             });
 
-            // 轮回点数加成升级线
             AddUpgrade(new PrestigeUpgrade
             {
                 id = "Core.Prestige.PointBonus",
@@ -250,7 +338,6 @@ namespace Game1
                 maxLevel = 10
             });
 
-            // 初始装备升级
             AddUpgrade(new PrestigeUpgrade
             {
                 id = "Core.Prestige.StartingEquipment",
@@ -262,7 +349,6 @@ namespace Game1
                 maxLevel = 1
             });
 
-            // 技能解锁升级
             AddUpgrade(new PrestigeUpgrade
             {
                 id = "Core.Prestige.SkillUnlock",
@@ -273,6 +359,45 @@ namespace Game1
                 effectValue = 1,
                 maxLevel = 5
             });
+
+            Debug.Log("[PrestigeManager] Loaded 4 upgrades from hardcoded defaults");
+        }
+
+        /// <summary>
+        /// 从XML加载配置常数，覆盖硬编码默认值
+        /// </summary>
+        private void LoadConfigFromXml(XmlElement configElement)
+        {
+            try
+            {
+                if (configElement == null) return;
+
+                var basePoints = configElement.SelectSingleNode("basePrestigePoints")?.InnerText;
+                if (!string.IsNullOrEmpty(basePoints))
+                    _basePrestigePoints = int.Parse(basePoints);
+
+                var perLevel = configElement.SelectSingleNode("pointsPerLevel")?.InnerText;
+                if (!string.IsNullOrEmpty(perLevel))
+                    _prestigePointsPerLevel = int.Parse(perLevel);
+
+                var goldRet = configElement.SelectSingleNode("baseGoldRetention")?.InnerText;
+                if (!string.IsNullOrEmpty(goldRet))
+                    _baseGoldRetention = float.Parse(goldRet);
+
+                var expRet = configElement.SelectSingleNode("baseExpRetention")?.InnerText;
+                if (!string.IsNullOrEmpty(expRet))
+                    _baseExpRetention = float.Parse(expRet);
+
+                var maxLevel = configElement.SelectSingleNode("maxPrestigeLevel")?.InnerText;
+                if (!string.IsNullOrEmpty(maxLevel))
+                    _maxPrestigeLevel = int.Parse(maxLevel);
+
+                Debug.Log($"[PrestigeManager] Loaded config: basePoints={_basePrestigePoints}, perLevel={_prestigePointsPerLevel}, maxLevel={_maxPrestigeLevel}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[PrestigeManager] Failed to parse config XML: {ex.Message}, using hardcoded defaults");
+            }
         }
 
         /// <summary>
@@ -292,8 +417,7 @@ namespace Game1
         public bool CanPrestige()
         {
             // 至少需要达到一定等级才能轮回
-            // TODO: 从PlayerActor获取等级
-            return true;
+            return _playerActor != null && GetPlayerLevel() >= 10;
         }
 
         /// <summary>
@@ -337,21 +461,18 @@ namespace Game1
         }
 
         /// <summary>
-        /// 计算轮回点数
+        /// 计算轮回点数（使用XML配置的公式常数）
         /// </summary>
         private int CalculatePrestigePoints()
         {
             // 基础点数 + (等级 * 每级点数) * (1 + 加成)
-            float basePoints = BASE_PRESTIGE_POINTS;
-
-            // 获取点数加成升级的效果
             float bonus = 0;
             if (_upgrades.TryGetValue("Core.Prestige.PointBonus", out var upgrade))
             {
                 bonus = upgrade.effectValue * upgrade.currentLevel;
             }
 
-            return (int)((basePoints + PRESTIGE_POINTS_PER_LEVEL * GetPlayerLevel()) * (1 + bonus));
+            return (int)((_basePrestigePoints + _prestigePointsPerLevel * GetPlayerLevel()) * (1 + bonus));
         }
 
         /// <summary>
@@ -412,9 +533,9 @@ namespace Game1
             switch (upgrade.type)
             {
                 case PrestigeUpgradeType.ResourceRetention:
-                    // 每级+10%资源保留
-                    _goldRetentionRate = BASE_GOLD_RETENTION + upgrade.effectValue * upgrade.currentLevel;
-                    _expRetentionRate = BASE_EXP_RETENTION + upgrade.effectValue * upgrade.currentLevel;
+                    // 每级+effectValue资源保留（使用XML配置的基础值）
+                    _goldRetentionRate = _baseGoldRetention + upgrade.effectValue * upgrade.currentLevel;
+                    _expRetentionRate = _baseExpRetention + upgrade.effectValue * upgrade.currentLevel;
                     break;
 
                 case PrestigeUpgradeType.PrestigePointBonus:
@@ -497,8 +618,8 @@ namespace Game1
         {
             _prestigeCount = 0;
             _prestigePoints = 0;
-            _goldRetentionRate = BASE_GOLD_RETENTION;
-            _expRetentionRate = BASE_EXP_RETENTION;
+            _goldRetentionRate = _baseGoldRetention;
+            _expRetentionRate = _baseExpRetention;
             _retainedSkills.Clear();
 
             foreach (var upgrade in _upgrades.Values)

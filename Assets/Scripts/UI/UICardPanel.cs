@@ -44,6 +44,11 @@ namespace Game1
         public bool autoRefreshOnEvent = true;
         public int cardsPerRow = 4;
         public float cardSpacing = 10f;
+
+        [Header("抽卡动画")]
+        public CardAnimationController cardAnimationController;
+        public RectTransform gachaResultCardAnchor;
+        public GameObject gachaResultCardPrefab;
         #endregion
 
         #region Private Fields
@@ -58,6 +63,9 @@ namespace Game1
 
         // 当前选中卡牌
         private UICardItem _selectedCard = null;
+
+        // 待出售卡牌（用于确认流程，两次点击确认）
+        private UICardItem _pendingSellCard = null;
         #endregion
 
         #region Unity Lifecycle
@@ -75,45 +83,63 @@ namespace Game1
 
             // 排序按钮
             if (sortButton != null)
+            {
                 sortButton.onClick.RemoveAllListeners();
                 sortButton.onClick.AddListener(OnSortButtonClicked);
+            }
 
             // 筛选按钮
             if (filterButton != null)
+            {
                 filterButton.onClick.RemoveAllListeners();
                 filterButton.onClick.AddListener(OnFilterButtonClicked);
+            }
 
             // 抽卡按钮
             if (noviceGachaButton != null)
+            {
                 noviceGachaButton.onClick.RemoveAllListeners();
                 noviceGachaButton.onClick.AddListener(() => OnGachaClicked(GachaType.Novice));
+            }
 
             if (standardGachaButton != null)
+            {
                 standardGachaButton.onClick.RemoveAllListeners();
                 standardGachaButton.onClick.AddListener(() => OnGachaClicked(GachaType.Standard));
+            }
 
             if (premiumGachaButton != null)
+            {
                 premiumGachaButton.onClick.RemoveAllListeners();
                 premiumGachaButton.onClick.AddListener(() => OnGachaClicked(GachaType.Premium));
+            }
 
             if (limitedGachaButton != null)
+            {
                 limitedGachaButton.onClick.RemoveAllListeners();
                 limitedGachaButton.onClick.AddListener(() => OnGachaClicked(GachaType.Limited));
+            }
 
             // 卡牌详情关闭
             if (closeDetailButton != null)
+            {
                 closeDetailButton.onClick.RemoveAllListeners();
                 closeDetailButton.onClick.AddListener(() => HideCardDetail());
+            }
 
             // 装备按钮
             if (equipButton != null)
+            {
                 equipButton.onClick.RemoveAllListeners();
                 equipButton.onClick.AddListener(OnEquipButtonClicked);
+            }
 
             // 出售按钮
             if (sellButton != null)
+            {
                 sellButton.onClick.RemoveAllListeners();
                 sellButton.onClick.AddListener(OnSellButtonClicked);
+            }
 
             // 默认隐藏详情面板
             if (cardDetailPanel != null)
@@ -385,15 +411,21 @@ namespace Game1
         {
             int cost = CardDesign.instance.GetGachaCost(type);
 
-            // TODO: 检查玩家金币是否足够
-            // 目前简化处理：直接抽
+            // 检查玩家金币是否足够
+            var player = GameMain.instance?.GetPlayerActor();
+            if (player == null || player.carryItems.gold < cost)
+            {
+                Debug.LogWarning($"[UICardPanel] Not enough gold for gacha! Cost: {cost}, Available: {player?.carryItems.gold ?? 0}");
+                return;
+            }
+
             var result = CardDesign.instance.DrawCards(type, 1);
 
             if (result.success && result.cards.Count > 0)
             {
                 Debug.Log($"[UICardPanel] Gacha {type} result: {result.cards[0].id} (Rarity: {result.cards[0].GetRarityName()})");
 
-                // 播放抽卡动画（TODO：后续完善）
+                // 播放抽卡动画
                 ShowGachaResult(result.cards[0]);
 
                 Refresh();
@@ -423,10 +455,19 @@ namespace Game1
             var template = CardDesign.instance.GetTemplate(_selectedCard.cardData.id);
             int sellPrice = template?.sellPrice ?? 0;
 
-            // TODO: 确认出售 UI 对话框
+            // 两次点击确认出售流程
+            if (_pendingSellCard != _selectedCard)
+            {
+                // 第一次点击：设置待确认状态
+                _pendingSellCard = _selectedCard;
+                Debug.Log($"[UICardPanel] Sell confirmation required for card {_selectedCard.cardData.id}. Click sell again to confirm (price: {sellPrice} gold)");
+                return;
+            }
+
+            // 第二次点击：确认出售
+            _pendingSellCard = null;
             Debug.Log($"[UICardPanel] Sell card {_selectedCard.cardData.id} for {sellPrice} gold");
 
-            // 简化处理：直接移除
             CardDesign.instance.DeactivateCard(_selectedCard.cardData.id);
             Remove(_selectedCard);
             HideCardDetail();
@@ -434,13 +475,114 @@ namespace Game1
         }
 
         /// <summary>
-        /// 显示抽卡结果（简化版本）
+        /// 显示抽卡结果（带动画版本）
         /// </summary>
         private void ShowGachaResult(CardData cardData)
         {
-            // TODO: 实现抽卡动画效果
-            // 可以使用DOTween或粒子系统实现
-            Debug.Log($"[UICardPanel] Gacha animation for: {cardData.id}");
+            StartCoroutine(ShowGachaResultCoroutine(cardData));
+        }
+
+        private System.Collections.IEnumerator ShowGachaResultCoroutine(CardData cardData)
+        {
+            // 如果没有动画控制器或锚点，直接显示结果
+            if (cardAnimationController == null || gachaResultCardAnchor == null)
+            {
+                Debug.Log($"[UICardPanel] Gacha animation skipped - missing controller or anchor");
+                yield break;
+            }
+
+            // 创建临时卡牌对象进行动画
+            GameObject cardObj = null;
+            if (gachaResultCardPrefab != null)
+            {
+                cardObj = Instantiate(gachaResultCardPrefab, gachaResultCardAnchor);
+            }
+            else
+            {
+                // 创建简单卡牌对象
+                cardObj = new GameObject("GachaCard");
+                cardObj.transform.SetParent(gachaResultCardAnchor);
+                cardObj.AddComponent<UnityEngine.UI.Image>();
+            }
+
+            var rect = cardObj.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+            }
+
+            // 播放卡牌揭示动画
+            yield return StartCoroutine(cardAnimationController.PlayCardReveal(rect, cardData.rarity, null));
+
+            // 等待一段时间后移除临时对象
+            yield return new UnityEngine.WaitForSeconds(1f);
+
+            if (cardObj != null)
+            {
+                Destroy(cardObj);
+            }
+
+            Debug.Log($"[UICardPanel] Gacha animation completed for: {cardData.id}");
+        }
+
+        /// <summary>
+        /// 抽卡动画协程：卡片从中心缩放出现
+        /// </summary>
+        private System.Collections.IEnumerator GachaAnimationCoroutine(CardData cardData)
+        {
+            if (cardDetailPanel == null)
+                yield break;
+
+            // 显示详情面板作为抽卡结果展示
+            cardDetailPanel.SetActive(true);
+
+            // 更新详情文本
+            if (detailNameText != null)
+                detailNameText.text = GetDisplayName(cardData);
+
+            if (detailDescText != null)
+                detailDescText.text = cardData.descTextId;
+
+            if (detailRarityText != null)
+                detailRarityText.text = cardData.GetRarityName();
+
+            if (detailAttrText != null)
+                detailAttrText.text = $"属性倍率: {cardData.attributeMultiplier:F2}";
+
+            // 动画：缩放从0到1，带有反弹效果
+            float duration = 0.5f;
+            float elapsed = 0f;
+            RectTransform rect = cardDetailPanel.GetComponent<RectTransform>();
+            Vector3 originalScale = rect.localScale;
+            rect.localScale = Vector3.zero;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                // 使用EaseOutBack效果实现反弹
+                float scale = EaseOutBack(t);
+                rect.localScale = originalScale * scale;
+
+                yield return null;
+            }
+
+            // 确保最终缩放正确
+            rect.localScale = originalScale;
+
+            Debug.Log($"[UICardPanel] Gacha animation complete for: {cardData.id} ({cardData.GetRarityName()})");
+        }
+
+        /// <summary>
+        /// EaseOutBack缓动函数
+        /// </summary>
+        private float EaseOutBack(float t)
+        {
+            const float c1 = 1.70158f;
+            const float c3 = c1 + 1f;
+            return 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
         }
 
         #endregion

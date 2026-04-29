@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Game1.Modules.Combat;
 using Game1;
+using Game1.Core.EventBus;
 
 namespace Game1.Modules.Travel
 {
@@ -216,6 +217,7 @@ namespace Game1.Modules.Travel
                 _worldMap.nextLocation?.travelTime ?? 10f
             );
             SetStatus(TravelStatus.Traveling);
+            EventBus.instance.Publish(Game1.Core.EventBus.EventType.TravelStarted, this, null);
         }
 
         /// <summary>
@@ -310,6 +312,7 @@ namespace Game1.Modules.Travel
             }
 
             onTravelCompleted?.Invoke();
+            EventBus.instance.Publish(Game1.Core.EventBus.EventType.TravelCompleted, this, _player?.travelState.progress ?? 0f);
         }
 
         /// <summary>

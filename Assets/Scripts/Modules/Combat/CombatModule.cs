@@ -11,6 +11,11 @@ namespace Game1.Modules.Combat
     public interface ICombatModule : IModule
     {
         /// <summary>
+        /// 初始化战斗模块
+        /// </summary>
+        void Initialize(PlayerActor player);
+
+        /// <summary>
         /// 执行单目标战斗
         /// </summary>
         CombatResult ExecuteCombat(PlayerActor player, int enemyHp, int enemyArmor, int enemyDamage, string enemyName = "敌人");
@@ -69,6 +74,20 @@ namespace Game1.Modules.Combat
         private PlayerActor _player;
         private CombatStatistics _statistics = new();
         private bool _isActive = true;
+        private List<TemporaryBonus> _activeBonuses = new();
+        #endregion
+
+        #region Temporary Bonus System
+        /// <summary>
+        /// 临时加成数据
+        /// </summary>
+        private struct TemporaryBonus
+        {
+            public float remainingTime;
+            public float critBonus;
+            public float damageBonus;
+            public float defenseBonus;
+        }
         #endregion
 
         #region Properties
@@ -96,20 +115,28 @@ namespace Game1.Modules.Combat
         #region IModule Members
 
         /// <summary>
-        /// 获取战斗相关加成
+        /// 获取战斗相关加成（含临时加成）
         /// </summary>
         public string GetBonus(string bonusType)
         {
+            // 计算临时加成总和
+            float tempCrit = 0f, tempDamage = 0f, tempDefense = 0f;
+            foreach (var bonus in _activeBonuses)
+            {
+                tempCrit += bonus.critBonus;
+                tempDamage += bonus.damageBonus;
+                tempDefense += bonus.defenseBonus;
+            }
+
             switch (bonusType)
             {
                 case "combat_crit":
-                    return _critBonusMultiplier.ToString();
+                    return (_critBonusMultiplier + tempCrit).ToString();
                 case "combat_damage":
-                    return _damageBonusMultiplier.ToString();
+                    return (_damageBonusMultiplier + tempDamage).ToString();
                 case "combat_defense":
-                    return _defenseBonusMultiplier.ToString();
+                    return (_defenseBonusMultiplier + tempDefense).ToString();
                 case "combat_rate":
-                    // 返回战斗相关的基础值，不包含加成（避免递归）
                     return "1.0";
                 default:
                     return "0";
@@ -117,11 +144,25 @@ namespace Game1.Modules.Combat
         }
 
         /// <summary>
-        /// Tick - 战斗系统不需要每帧Tick，但实现接口
+        /// Tick - 检查临时加成到期
         /// </summary>
         public void Tick(float deltaTime)
         {
-            // 战斗系统不需要每帧更新，主要在事件触发时工作
+            // 检查临时加成到期
+            for (int i = _activeBonuses.Count - 1; i >= 0; i--)
+            {
+                var bonus = _activeBonuses[i];
+                bonus.remainingTime -= deltaTime;
+                if (bonus.remainingTime <= 0f)
+                {
+                    _activeBonuses.RemoveAt(i);
+                    Debug.Log($"[CombatModule] Temporary bonus expired");
+                }
+                else
+                {
+                    _activeBonuses[i] = bonus;
+                }
+            }
         }
 
         /// <summary>
@@ -329,8 +370,14 @@ namespace Game1.Modules.Combat
         /// </summary>
         public void ApplyTemporaryBonus(float duration, float critBonus, float damageBonus, float defenseBonus)
         {
-            // TODO: 实现临时加成逻辑，可以使用计时器在Tick中检查
-            Debug.Log($"[CombatModule] Applied temporary bonus for {duration}s");
+            _activeBonuses.Add(new TemporaryBonus
+            {
+                remainingTime = duration,
+                critBonus = critBonus,
+                damageBonus = damageBonus,
+                defenseBonus = defenseBonus
+            });
+            Debug.Log($"[CombatModule] Applied temporary bonus: crit+{critBonus} damage+{damageBonus} defense+{defenseBonus} for {duration}s");
         }
 
         #endregion

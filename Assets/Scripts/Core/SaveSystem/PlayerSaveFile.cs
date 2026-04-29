@@ -12,6 +12,7 @@ namespace Game1
         public string actorId;
         public string actorName;
         public int level;
+        public int exp;
         public int gold;
         public long totalInputCount;
         public long playTime;
@@ -25,6 +26,7 @@ namespace Game1
             sb.Append("<actorId>").Append(XmlEscape.EscapeXml(actorId ?? string.Empty)).Append("</actorId>");
             sb.Append("<actorName>").Append(XmlEscape.EscapeXml(actorName ?? string.Empty)).Append("</actorName>");
             sb.Append("<level>").Append(level).Append("</level>");
+            sb.Append("<exp>").Append(exp).Append("</exp>");
             sb.Append("<gold>").Append(gold).Append("</gold>");
             sb.Append("<totalInputCount>").Append(totalInputCount).Append("</totalInputCount>");
             sb.Append("<playTime>").Append(playTime).Append("</playTime>");
@@ -38,6 +40,7 @@ namespace Game1
             actorId = element.SelectSingleNode("actorId")?.InnerText ?? string.Empty;
             actorName = element.SelectSingleNode("actorName")?.InnerText ?? string.Empty;
             level = int.Parse(element.SelectSingleNode("level")?.InnerText ?? "0");
+            exp = int.Parse(element.SelectSingleNode("exp")?.InnerText ?? "0");
             gold = int.Parse(element.SelectSingleNode("gold")?.InnerText ?? "0");
             totalInputCount = long.Parse(element.SelectSingleNode("totalInputCount")?.InnerText ?? "0");
             playTime = long.Parse(element.SelectSingleNode("playTime")?.InnerText ?? "0");

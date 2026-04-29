@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AchievementTemplates>
+  <!-- 探索类 -->
+  <Achievement id="Core.Achievement.FirstStep" category="Exploration" isHidden="false">
+    <NameTextId>Achievement_FirstStep_Name</NameTextId>
+    <DescriptionTextId>Achievement_FirstStep_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="DistanceTraveled" targetValue="1"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="10"/>
+    </Rewards>
+  </Achievement>
+
+  <Achievement id="Core.Achievement.Explorer" category="Exploration" isHidden="false">
+    <NameTextId>Achievement_Explorer_Name</NameTextId>
+    <DescriptionTextId>Achievement_Explorer_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="DistanceTraveled" targetValue="100"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="50"/>
+    </Rewards>
+  </Achievement>
+
+  <!-- 战斗类 -->
+  <Achievement id="Core.Achievement.FirstBlood" category="Combat" isHidden="false">
+    <NameTextId>Achievement_FirstBlood_Name</NameTextId>
+    <DescriptionTextId>Achievement_FirstBlood_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="EnemiesDefeated" targetValue="1"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="10"/>
+    </Rewards>
+  </Achievement>
+
+  <Achievement id="Core.Achievement.Slayer" category="Combat" isHidden="false">
+    <NameTextId>Achievement_Slayer_Name</NameTextId>
+    <DescriptionTextId>Achievement_Slayer_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="EnemiesDefeated" targetValue="100"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Item" configId="Core.Item.GoldCoin" amount="50"/>
+    </Rewards>
+  </Achievement>
+
+  <!-- 收集类 -->
+  <Achievement id="Core.Achievement.Rich" category="Collection" isHidden="false">
+    <NameTextId>Achievement_Rich_Name</NameTextId>
+    <DescriptionTextId>Achievement_Rich_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="GoldEarned" targetValue="1000"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="100"/>
+    </Rewards>
+  </Achievement>
+
+  <!-- 团队类 -->
+  <Achievement id="Core.Achievement.FullParty" category="Team" isHidden="false">
+    <NameTextId>Achievement_FullParty_Name</NameTextId>
+    <DescriptionTextId>Achievement_FullParty_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="TeamMembers" targetValue="4"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="200"/>
+    </Rewards>
+  </Achievement>
+
+  <!-- 隐藏成就 -->
+  <Achievement id="Core.Achievement.SecretAchievement" category="Hidden" isHidden="true" prerequisiteIds="Core.Achievement.Slayer,Core.Achievement.Rich">
+    <NameTextId>Achievement_Secret_Name</NameTextId>
+    <DescriptionTextId>Achievement_Secret_Description</DescriptionTextId>
+    <Conditions>
+      <Condition type="BossesDefeated" targetValue="1"/>
+    </Conditions>
+    <Rewards>
+      <Reward type="Gold" amount="500"/>
+    </Rewards>
+  </Achievement>
+</AchievementTemplates>

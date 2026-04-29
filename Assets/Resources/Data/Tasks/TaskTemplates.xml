@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TaskTemplates>
+  <!-- 每日任务 -->
+  <Task id="Core.Task.Daily.EarnGold" category="Daily" conditionType="GoldEarned" targetValue="100" nameTextId="Task_DailyEarnGold" descriptionTextId="Task_DailyEarnGold_Desc" isActive="true">
+    <Reward type="Gold" amount="10" />
+  </Task>
+  <Task id="Core.Task.Daily.DefeatEnemies" category="Daily" conditionType="EnemiesDefeated" targetValue="5" nameTextId="Task_DailyDefeat" descriptionTextId="Task_DailyDefeat_Desc" isActive="true">
+    <Reward type="Gold" amount="15" />
+  </Task>
+  <Task id="Core.Task.Daily.Travel" category="Daily" conditionType="DistanceTraveled" targetValue="10" nameTextId="Task_DailyTravel" descriptionTextId="Task_DailyTravel_Desc" isActive="true">
+    <Reward type="Gold" amount="10" />
+  </Task>
+  <Task id="Core.Task.Daily.CollectItems" category="Daily" conditionType="ItemsCollected" targetValue="3" nameTextId="Task_DailyCollect" descriptionTextId="Task_DailyCollect_Desc" isActive="true">
+    <Reward type="Gold" amount="12" />
+  </Task>
+  <Task id="Core.Task.Daily.WinCombats" category="Daily" conditionType="CombatWon" targetValue="2" nameTextId="Task_DailyCombat" descriptionTextId="Task_DailyCombat_Desc" isActive="true">
+    <Reward type="Item" configId="Core.Item.GoldCoin" amount="2" />
+  </Task>
+
+  <!-- 每周任务 -->
+  <Task id="Core.Task.Weekly.KillBosses" category="Weekly" conditionType="BossesDefeated" targetValue="3" nameTextId="Task_WeeklyBoss" descriptionTextId="Task_WeeklyBoss_Desc" isActive="true">
+    <Reward type="Gold" amount="100" />
+  </Task>
+  <Task id="Core.Task.Weekly.CollectGold" category="Weekly" conditionType="GoldEarned" targetValue="1000" nameTextId="Task_WeeklyRich" descriptionTextId="Task_WeeklyRich_Desc" isActive="true">
+    <Reward type="Item" configId="Core.Item.GoldCoin" amount="5" />
+  </Task>
+  <Task id="Core.Task.Weekly.Explore" category="Weekly" conditionType="LocationsDiscovered" targetValue="5" nameTextId="Task_WeeklyExplore" descriptionTextId="Task_WeeklyExplore_Desc" isActive="true">
+    <Reward type="Experience" amount="50" />
+  </Task>
+  <Task id="Core.Task.Weekly.TeamPower" category="Weekly" conditionType="LevelsGained" targetValue="10" nameTextId="Task_WeeklyLevels" descriptionTextId="Task_WeeklyLevels_Desc" isActive="true">
+    <Reward type="Gold" amount="200" />
+  </Task>
+</TaskTemplates>

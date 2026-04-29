@@ -28,6 +28,8 @@ namespace Game1
             public int attack = 3;      // 攻击力
             public int defense = 5;     // 护甲值
             public float speed = 1f;    // 速度
+            public int exp;              // 当前经验值
+            public int expToNextLevel = 100; // 升级所需经验
 
             // 暴击/闪避属性
             public float critChance = 0.1f;       // 暴击率 10%
@@ -47,6 +49,45 @@ namespace Game1
             public int currentLoad;
         }
         public CarryItems carryItems = new();
+        #endregion
+
+        #region Flags
+        /// <summary>
+        /// 游戏标志字典，用于条件检查和叙事分支
+        /// </summary>
+        public Dictionary<string, string> flags = new();
+
+        /// <summary>
+        /// 设置标志
+        /// </summary>
+        public void SetFlag(string key, string value = "true")
+        {
+            flags[key] = value;
+        }
+
+        /// <summary>
+        /// 获取标志值（不存在时返回null）
+        /// </summary>
+        public string GetFlag(string key)
+        {
+            return flags.TryGetValue(key, out var val) ? val : null;
+        }
+
+        /// <summary>
+        /// 检查标志是否存在且值匹配
+        /// </summary>
+        public bool HasFlag(string key, string expectedValue = "true")
+        {
+            return flags.TryGetValue(key, out var val) && val == expectedValue;
+        }
+
+        /// <summary>
+        /// 移除标志
+        /// </summary>
+        public void RemoveFlag(string key)
+        {
+            flags.Remove(key);
+        }
         #endregion
 
         #region State
@@ -75,6 +116,50 @@ namespace Game1
         public float GetTotalBonus(string bonusType)
         {
             return modules.GetTotalBonus(bonusType);
+        }
+
+        /// <summary>
+        /// 经验值常量
+        /// </summary>
+        public const int EXP_BASE = 100;
+        public const float EXP_SCALE = 1.5f;
+
+        /// <summary>
+        /// 添加经验值，累积到升级阈值时自动升级。
+        /// 返回本次总共升了多少级。
+        /// </summary>
+        public int AddExp(int amount)
+        {
+            if (amount <= 0) return 0;
+
+            stats.exp += amount;
+            int levelsGained = 0;
+
+            while (stats.exp >= stats.expToNextLevel)
+            {
+                stats.exp -= stats.expToNextLevel;
+                LevelUp();
+                levelsGained++;
+            }
+
+            return levelsGained;
+        }
+
+        /// <summary>
+        /// 升级：等级+1，重新计算升级所需经验，基础属性增长
+        /// </summary>
+        public void LevelUp()
+        {
+            level++;
+            stats.expToNextLevel = Mathf.RoundToInt(EXP_BASE * Mathf.Pow(EXP_SCALE, level - 1));
+
+            // 基础属性成长
+            stats.maxHp += 5;
+            stats.currentHp = stats.maxHp; // 升级回满血
+            stats.attack += 1;
+            stats.defense += 1;
+
+            Debug.Log($"[PlayerActor] Level Up! Now level {level}, expToNextLevel={stats.expToNextLevel}");
         }
 
         /// <summary>
@@ -143,6 +228,8 @@ namespace Game1
             carryItems.gold = saveFile.gold;
             carryItems.maxCapacity = 100;
 
+            stats.exp = saveFile.exp;
+            stats.expToNextLevel = Mathf.RoundToInt(EXP_BASE * Mathf.Pow(EXP_SCALE, level - 1));
             stats.currentHp = stats.maxHp;
 
             Debug.Log($"[PlayerActor] Applied save file data: ID={id}, Name={actorName}, Level={level}, Gold={carryItems.gold}");
@@ -158,6 +245,7 @@ namespace Game1
                 actorId = id,
                 actorName = actorName,
                 level = level,
+                exp = stats.exp,
                 gold = carryItems.gold,
                 offlineAccumulatedTime = 0f
             };
@@ -191,6 +279,10 @@ namespace Game1
             level = saveData.level;
             carryItems.gold = saveData.gold;
             carryItems.maxCapacity = 100; // 默认容量
+
+            // 恢复经验值
+            stats.exp = saveData.exp;
+            stats.expToNextLevel = Mathf.RoundToInt(EXP_BASE * Mathf.Pow(EXP_SCALE, level - 1));
 
             // 重置状态
             stats.currentHp = stats.maxHp;
@@ -240,6 +332,7 @@ namespace Game1
                 actorId = id,
                 actorName = actorName,
                 level = level,
+                exp = stats.exp,
                 gold = carryItems.gold,
                 offlineAccumulatedTime = 0f,
                 timestamp = DateTime.Now.Ticks
@@ -324,19 +417,6 @@ namespace Game1
             currentState = State.Idle;
             progress = 0f;
         }
-    }
-
-    /// <summary>
-    /// 模块接口
-    /// </summary>
-    public interface IModule
-    {
-        string moduleId { get; }
-        string moduleName { get; }
-        string GetBonus(string bonusType);
-        void Tick(float deltaTime);
-        void OnActivate();
-        void OnDeactivate();
     }
 
     /// <summary>

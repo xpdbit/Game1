@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 using Game1.Modules.Travel;
@@ -10,8 +11,7 @@ using Game1.Core.EventBus;
 namespace Game1
 {
     /// <summary>
-    /// 游戏主入口
-    /// 单例模式，管理所有子系统
+    /// 游戏主入�?    /// 单例模式，管理所有子系统
     /// 同时作为VContainer的LifetimeScope
     /// </summary>
     public class GameMain : LifetimeScope
@@ -21,27 +21,39 @@ namespace Game1
         #endregion
 
         [Header("配置")]
-        public GameConfig config = new();
+        [SerializeField] private GameConfig _config = new();
+        public GameConfig Config => _config;
 
         [Header("UI引用")]
-        public UIManager uIManager;
+        [SerializeField, FormerlySerializedAs("uIManager")] private UIManager _uiManager;
+        public UIManager UIManager => _uiManager;
 
         [Header("游戏循环")]
-        public GameLoopManager gameLoopManager;
+        [SerializeField] private GameLoopManager _gameLoopManager;
+        public GameLoopManager GameLoopManager => _gameLoopManager;
 
         [Header("旅行系统")]
-        public TravelManager travelManager;
-        public ProgressManager progressManager;
+        [SerializeField] private TravelManager _travelManager;
+        public TravelManager TravelManager => _travelManager;
+        [SerializeField] private ProgressManager _progressManager;
+        public ProgressManager ProgressManager => _progressManager;
 
         [Header("事件系统")]
-        public EventQueue eventQueue;
-        public EventChainManager eventChainManager;
+        [SerializeField] private EventQueue _eventQueue;
+        public EventQueue EventQueue => _eventQueue;
+        [SerializeField] private EventChainManager _eventChainManager;
+        public EventChainManager EventChainManager => _eventChainManager;
 
         [Header("NPC系统")]
-        public NPCManager npcManager;
+        [SerializeField] private NPCManager _npcManager;
+        public NPCManager NpcManager => _npcManager;
 
         [Header("战斗系统")]
-        public CombatSystem combatSystem;
+        [SerializeField] private CombatSystem _combatSystem;
+        public CombatSystem CombatSystem => _combatSystem;
+
+        // 缓存的UIManager引用（避免FindObjectOfType）
+        private UIManager _cachedUIManager;
 
         // 事件
         public event System.Action onPlayerInput;
@@ -50,7 +62,7 @@ namespace Game1
         {
             instance = this;
 
-            // 初始化管理器（按依赖顺序）- 必须在base.Awake()之前
+            // 初始化管理器（按依赖顺序�? 必须在base.Awake()之前
             InitializeManagers();
 
             // 初始化物品系统
@@ -72,12 +84,11 @@ namespace Game1
         }
 
         /// <summary>
-        /// 等待GameLoopManager初始化完成后开始游戏
-        /// </summary>
+        /// 等待GameLoopManager初始化完成后开始游�?        /// </summary>
         private IEnumerator StartGameWhenReady()
         {
             // 等待GameLoopManager完成初始化（注册存档文件、加载存档等）
-            while (gameLoopManager == null || !gameLoopManager.IsInitialized)
+            while (_gameLoopManager == null || !_gameLoopManager.IsInitialized)
             {
                 yield return null;
             }
@@ -87,10 +98,10 @@ namespace Game1
 
         private void Update()
         {
-            // 处理输入（增加进度点）- 使用Input System
+            // 处理输入（增加进度点�? 使用Input System
             if (Keyboard.current.anyKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame)
             {
-                travelManager?.OnPlayerInteract();
+                _travelManager?.OnPlayerInteract();
                 onPlayerInput?.Invoke();
             }
         }
@@ -99,7 +110,7 @@ namespace Game1
         {
             // Register existing singleton managers via RegisterInstance
             // InitializeManagers() runs before this, so singletons are already initialized
-            builder.RegisterInstance(gameLoopManager).As<GameLoopManager>();
+            builder.RegisterInstance(_gameLoopManager).As<GameLoopManager>();
             builder.RegisterInstance(TravelManager.instance).As<ITravelManager>();
             builder.RegisterInstance(CombatSystem.instance).As<ICombatSystem>();
             builder.RegisterInstance(EventBus.instance).As<IEventBus>();
@@ -113,33 +124,36 @@ namespace Game1
         private void InitializeManagers()
         {
             // GameLoopManager必须首先创建，确保PlayerActor唯一实例
-            if (gameLoopManager == null)
-                gameLoopManager = gameObject.AddComponent<GameLoopManager>();
+            if (_gameLoopManager == null)
+                _gameLoopManager = gameObject.AddComponent<GameLoopManager>();
 
             // 旅行管理器
-            if (travelManager == null)
-                travelManager = TravelManager.instance;
+            if (_travelManager == null)
+                _travelManager = TravelManager.instance;
 
             // 进度管理器
-            if (progressManager == null)
-                progressManager = ProgressManager.instance;
+            if (_progressManager == null)
+                _progressManager = ProgressManager.instance;
 
             // 事件队列 - 使用GameLoopManager已创建的实例
             // 注意：EventQueue在GameLoopManager.InitializeSystems()中创建
             // GameLoopManager先于TravelManager初始化，确保一致性
-            eventQueue ??= new EventQueue();
+            _eventQueue ??= new EventQueue();
 
             // 事件链管理器
-            if (eventChainManager == null)
-                eventChainManager = EventChainManager.instance;
+            if (_eventChainManager == null)
+                _eventChainManager = EventChainManager.instance;
 
             // NPC管理器
-            if (npcManager == null)
-                npcManager = NPCManager.instance;
+            if (_npcManager == null)
+                _npcManager = NPCManager.instance;
 
             // 战斗系统
-            if (combatSystem == null)
-                combatSystem = CombatSystem.instance;
+            if (_combatSystem == null)
+                _combatSystem = CombatSystem.instance;
+
+            // 缓存UIManager引用
+            _cachedUIManager = _uiManager;
 
             // 卡牌系统（CardDesign在Game1命名空间）
             CardDesign.instance.Initialize();
@@ -151,15 +165,14 @@ namespace Game1
             Game1.Modules.PendingEvent.PendingEventDesign.instance.Initialize();
 
             // 设置旅行管理器的事件队列引用
-            travelManager?.SetEventQueue(eventQueue);
+            _travelManager?.SetEventQueue(_eventQueue);
 
             // 订阅事件树存档请求
             EventTreeRunner.instance.onTreeSaveRequested += OnEventTreeSaveRequested;
         }
 
         /// <summary>
-        /// 事件树存档请求处理
-        /// </summary>
+        /// 事件树存档请求处�?        /// </summary>
         private void OnEventTreeSaveRequested(EventTreeRunSaveData data)
         {
             var saveManager = GetService<SaveManager>();
@@ -175,20 +188,19 @@ namespace Game1
         }
 
         /// <summary>
-        /// 初始化玩家
-        /// </summary>
+        /// 初始化玩�?        /// </summary>
         private void InitializePlayer()
         {
-            // PlayerActor由GameLoopManager创建并拥有，这里获取引用确保一致
-            if (gameLoopManager != null)
+            // PlayerActor由GameLoopManager创建并拥有，这里获取引用
+            if (_gameLoopManager != null)
             {
                 // 等待GameLoopManager初始化完成
             }
 
             // 初始化旅行管理器（使用GameLoopManager中的PlayerActor）
-            if (gameLoopManager?.player != null)
+            if (_gameLoopManager?.player != null)
             {
-                travelManager?.Initialize(gameLoopManager.player);
+                _travelManager?.Initialize(_gameLoopManager.player);
             }
             else
             {
@@ -197,8 +209,7 @@ namespace Game1
         }
 
         /// <summary>
-        /// 开始游戏
-        /// </summary>
+        /// 开始游�?        /// </summary>
         private void StartGame()
         {
             // 获取存档管理器
@@ -209,14 +220,14 @@ namespace Game1
             if (worldFile != null && !string.IsNullOrEmpty(worldFile.currentMapSeed))
             {
                 // 恢复旅行
-                travelManager?.ImportFromSaveData(worldFile);
+                _travelManager?.ImportFromSaveData(worldFile);
                 Debug.Log("[GameMain] Restored journey from save");
             }
             else
             {
                 // 开始新旅程
                 string seed = System.DateTime.Now.Ticks.ToString();
-                travelManager?.StartNewJourney(seed);
+                _travelManager?.StartNewJourney(seed);
                 Debug.Log("[GameMain] Started new journey");
             }
 
@@ -228,7 +239,7 @@ namespace Game1
         /// </summary>
         public PlayerActor GetPlayerActor()
         {
-            return gameLoopManager?.player;
+            return _gameLoopManager?.player;
         }
 
         /// <summary>
@@ -245,7 +256,13 @@ namespace Game1
         public void GameOver()
         {
             Debug.Log("[GameMain] Game Over!");
-            // TODO: 显示游戏结束界面
+            // TODO: 显示游戏结束界面（需要UI GameOverPanel实现）
+            // 暂停游戏（使用缓存的UIManager引用）
+            if (_cachedUIManager != null)
+            {
+                _cachedUIManager.PauseGame();
+                Debug.Log("[GameMain] Game paused for game over screen");
+            }
         }
 
         /// <summary>
@@ -259,7 +276,7 @@ namespace Game1
             var worldFile = saveManager?.GetFile<WorldSaveFile>();
             if (worldFile != null)
             {
-                var worldData = travelManager?.ExportToWorldSaveFile();
+                var worldData = _travelManager?.ExportToWorldSaveFile();
                 if (worldData != null)
                 {
                     worldFile.currentMapSeed = worldData.currentMapSeed;
@@ -318,3 +335,4 @@ namespace Game1
         public int playerDamage = 3;
     }
 }
+

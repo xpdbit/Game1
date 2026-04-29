@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Game1;
+using Game1.Core.EventBus;
+using Game1.Modules.Combat.State;
 
 namespace Game1.Modules.Combat
 {
@@ -86,6 +88,7 @@ namespace Game1.Modules.Combat
         public int expReward;
         public List<CombatLogEntry> combatLog = new();
         public List<EnemyKillInfo> kills = new();
+        public List<MemberParticipation> memberParticipations = new();
         public string endMessage;
     }
 
@@ -114,7 +117,7 @@ namespace Game1.Modules.Combat
         #region Multi-Enemy Combat
 
         /// <summary>
-        /// 执行多敌战斗
+        /// 执行多敌战斗（使用状态机驱动）
         /// </summary>
         /// <param name="player">玩家数据</param>
         /// <param name="enemies">敌人列表</param>
@@ -125,194 +128,57 @@ namespace Game1.Modules.Combat
             List<EnemyCombatantData> enemies,
             List<TeamMemberData> playerTeam = null)
         {
-            var result = new MultiEnemyCombatResult();
-
             if (enemies == null || enemies.Count == 0)
             {
-                result.endMessage = "没有敌人";
-                return result;
+                return new MultiEnemyCombatResult { endMessage = "没有敌人" };
             }
 
-            // 过滤活着的敌人
             var aliveEnemies = enemies.FindAll(e => !e.IsDead);
             if (aliveEnemies.Count == 0)
             {
-                result.endMessage = "所有敌人都已死亡";
-                return result;
+                return new MultiEnemyCombatResult { endMessage = "所有敌人都已死亡" };
             }
 
-            // 初始化玩家属性
-            int playerHp = player.stats.currentHp;
-            int playerMaxHp = player.stats.maxHp;
-            int playerArmor = player.stats.defense;
-            int playerDamage = player.stats.attack;
-            float playerCritChance = player.stats.critChance;
-            float playerCritMultiplier = player.stats.critDamageMultiplier;
-            float playerDodgeChance = player.stats.dodgeChance;
+            // 创建状态机集成器
+            var integration = new CombatStateMachineIntegration();
 
-            // 初始化敌人属性
-            foreach (var enemy in aliveEnemies)
+            // 订阅动画派发事件
+            integration.OnAnimationDispatch += (log, isPlayerTurn) =>
             {
-                enemy.maxHp = enemy.hp;
-                enemy.critChance = 0.05f;
-                enemy.critMultiplier = 1.5f;
-                if (enemy.dodgeChance <= 0f) enemy.dodgeChance = 0.05f;
-            }
+                CombatAnimationDispatcher.instance?.DispatchFromCombatLog(
+                    log, player.actorName, log.defenderName, isPlayerTurn);
+            };
 
-            int round = 0;
-            int maxRounds = 50; // 防止无限循环（多敌人需要更多回合）
+            // 初始化战斗
+            integration.Initialize(player, enemies, playerTeam);
 
-            // 当前目标索引（玩家每次攻击一个目标）
-            int currentTargetIndex = 0;
-
-            while (playerHp > 0 && aliveEnemies.Count > 0 && round < maxRounds)
+            // 设置职业映射（用于计算职业加成）
+            if (playerTeam != null && playerTeam.Count > 0)
             {
-                round++;
-
-                // === 玩家回合：攻击当前目标 ===
-                var currentTarget = aliveEnemies[currentTargetIndex];
-
-                // 检查敌人是否闪避
-                bool dodged = UnityEngine.Random.value < currentTarget.dodgeChance;
-
-                if (!dodged)
+                var jobMapping = new Dictionary<string, JobType>();
+                foreach (var member in playerTeam)
                 {
-                    // 计算伤害
-                    int damageToEnemy = CalculateDamage(playerDamage, currentTarget.armor,
-                        playerCritChance, playerCritMultiplier, out bool isCrit);
-
-                    if (isCrit)
-                    {
-                        damageToEnemy = Mathf.FloorToInt(damageToEnemy * playerCritMultiplier);
-                    }
-
-                    currentTarget.TakeDamage(damageToEnemy);
-                    result.totalDamageDealt += damageToEnemy;
-
-                    result.combatLog.Add(new CombatLogEntry
-                    {
-                        round = round,
-                        attackerName = player.actorName,
-                        defenderName = currentTarget.name,
-                        damageDealt = damageToEnemy,
-                        defenderHpAfter = currentTarget.hp,
-                        wasCritical = isCrit
-                    });
-
-                    // 检查敌人是否死亡
-                    if (currentTarget.IsDead)
-                    {
-                        result.kills.Add(new EnemyKillInfo
-                        {
-                            name = currentTarget.name,
-                            roundKilled = round
-                        });
-                        Debug.Log($"[CombatSystem] {currentTarget.name} 被击败于第 {round} 回合");
-                    }
+                    jobMapping[member.name] = member.job;
                 }
-                else
-                {
-                    // 闪避
-                    result.combatLog.Add(new CombatLogEntry
-                    {
-                        round = round,
-                        attackerName = player.actorName,
-                        defenderName = currentTarget.name,
-                        damageDealt = 0,
-                        defenderHpAfter = currentTarget.hp,
-                        wasCritical = false
-                    });
-                }
-
-                // 移动到下一个存活敌人
-                currentTargetIndex = GetNextAliveEnemyIndex(aliveEnemies, currentTargetIndex);
-
-                // 如果所有敌人都死了，退出循环
-                if (currentTargetIndex < 0)
-                    break;
-
-                // === 敌人回合：每个敌人依次攻击（带死亡检查） ===
-                foreach (var enemy in aliveEnemies)
-                {
-                    if (enemy.IsDead) continue;
-
-                    // 玩家闪避判定
-                    if (UnityEngine.Random.value < playerDodgeChance)
-                    {
-                        result.combatLog.Add(new CombatLogEntry
-                        {
-                            round = round,
-                            attackerName = enemy.name,
-                            defenderName = player.actorName,
-                            damageDealt = 0,
-                            defenderHpAfter = playerHp,
-                            wasCritical = false
-                        });
-                        // 如果玩家死于闪避（不可能，但保持一致性继续）
-                        continue;
-                    }
-
-                    // 计算敌人伤害
-                    int damageToPlayer = CalculateDamage(enemy.damage, playerArmor,
-                        enemy.critChance, enemy.critMultiplier, out bool isCrit);
-
-                    if (isCrit)
-                    {
-                        damageToPlayer = Mathf.FloorToInt(damageToPlayer * enemy.critMultiplier);
-                    }
-
-                    playerHp -= damageToPlayer;
-                    if (playerHp < 0) playerHp = 0;
-
-                    result.playerDamageTaken += damageToPlayer;
-
-                    result.combatLog.Add(new CombatLogEntry
-                    {
-                        round = round,
-                        attackerName = enemy.name,
-                        defenderName = player.actorName,
-                        damageDealt = damageToPlayer,
-                        defenderHpAfter = playerHp,
-                        wasCritical = isCrit
-                    });
-
-                    // 关键修复：玩家在敌人反击中死亡时立即结束战斗
-                    if (playerHp <= 0)
-                    {
-                        break;
-                    }
-                }
-
-                // 移除死亡敌人
-                aliveEnemies.RemoveAll(e => e.IsDead);
-
-                // 重新计算当前目标索引
-                if (aliveEnemies.Count > 0 && currentTargetIndex >= aliveEnemies.Count)
-                {
-                    currentTargetIndex = 0;
-                }
+                integration.SetMemberJobMapping(jobMapping);
             }
 
-            // 判断胜负
-            result.playerVictory = aliveEnemies.Count == 0 && playerHp > 0;
+            // 运行状态机直到战斗结束
+            while (integration.Tick())
+            {
+                // 继续直到战斗结束
+            }
+
+            // 获取结果
+            var result = integration.result;
 
             // 更新玩家HP
-            player.stats.currentHp = playerHp;
+            player.stats.currentHp = integration.GetPlayerHp();
 
-            // 计算奖励
+            // 发布金币变化事件
             if (result.playerVictory)
             {
-                result.goldReward = CalculateMultiEnemyGoldReward(enemies);
-                result.expReward = result.kills.Count * 10; // 使用击杀数而非存活数
-                result.endMessage = $"击败了 {result.kills.Count} 个敌人！获得 {result.goldReward} 金币。";
-            }
-            else if (playerHp <= 0)
-            {
-                result.endMessage = "被敌人击败了...";
-            }
-            else
-            {
-                result.endMessage = "战斗陷入僵局...";
+                EventBus.instance?.Publish(Game1.Core.EventBus.EventType.GoldChanged, this, result.goldReward);
             }
 
             return result;
@@ -507,6 +373,7 @@ namespace Game1.Modules.Combat
             {
                 result.goldReward = CalculateGoldReward(enemyHp, enemyArmor, enemyDamage);
                 result.endMessage = $"击败了{enemyName}！获得{result.goldReward}金币。";
+                EventBus.instance?.Publish(Game1.Core.EventBus.EventType.GoldChanged, this, result.goldReward);
             }
             else if (playerHp <= 0)
             {
@@ -521,30 +388,12 @@ namespace Game1.Modules.Combat
         }
 
         /// <summary>
-        /// 计算伤害（百分比减伤公式：防御力提供递减减伤）
-        /// 公式：damage = attack * (1 - defense / (defense + 100))
-        /// 100防御 = 50%减伤，200防御 = 67%减伤
+        /// 计算伤害（委派到共享的DamageCalculator）
+        /// 公式：damage = max(1, floor(attack * (1 - defense / (defense + 100))))
         /// </summary>
-        /// <param name="attack">攻击力</param>
-        /// <param name="defense">防御力</param>
-        /// <param name="critChance">暴击率 (0~1)</param>
-        /// <param name="critMultiplier">暴击伤害倍率</param>
-        /// <param name="isCrit">是否暴击</param>
-        /// <returns>最终伤害值</returns>
         public int CalculateDamage(int attack, int defense, float critChance, float critMultiplier, out bool isCrit)
         {
-            float reduction = defense / (defense + 100f);
-            int baseDamage = Mathf.Max(1, Mathf.FloorToInt(attack * (1f - reduction)));
-
-            // 暴击判定（使用暴击率而非等级）
-            if (critChance > 0f && UnityEngine.Random.value < critChance)
-            {
-                isCrit = true;
-                return baseDamage; // 暴击伤害由调用方乘以倍率
-            }
-
-            isCrit = false;
-            return baseDamage;
+            return DamageCalculator.CalculateDamage(attack, defense, critChance, critMultiplier, out isCrit);
         }
 
         /// <summary>

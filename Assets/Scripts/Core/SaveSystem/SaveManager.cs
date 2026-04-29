@@ -17,11 +17,18 @@ namespace Game1
         private const string SAVE_DIRECTORY = "Save";
 
         private readonly Dictionary<Type, ISaveFile> _saveFiles = new();
+        private readonly HashSet<Type> _dirtyFiles = new();
         private ISaveBackend _backend;
         private readonly MigrationManager _migrationManager;
 
+        /// <summary>
+        /// 保存前同步回调（由GameLoopManager设置，可为null）
+        /// 在每次写磁盘前调用，确保存档文件持有最新模块数据
+        /// </summary>
+        public event Action? OnBeforeSave;
+
         private float _autoSaveTimer = 0f;
-        private float _autoSaveInterval = 1f;
+        private float _autoSaveInterval = 5f; // 5秒自动保存间隔（从1秒优化减少磁盘I/O）
 
         // ====== 属性 ======
 
@@ -336,17 +343,80 @@ namespace Game1
             }
         }
 
+        // ====== 脏标记跟踪 ======
+
+        /// <summary>
+        /// 标记指定类型的存档文件为脏（数据已变更，需要持久化）
+        /// </summary>
+        public void MarkDirty<T>() where T : class, ISaveFile
+        {
+            _dirtyFiles.Add(typeof(T));
+        }
+
+        /// <summary>
+        /// 标记所有已注册的存档文件为脏
+        /// </summary>
+        public void MarkAllDirty()
+        {
+            foreach (var kvp in _saveFiles)
+            {
+                _dirtyFiles.Add(kvp.Key);
+            }
+        }
+
         // ====== 自动保存 ======
 
         /// <summary>
+        /// 保存所有标记为脏的文件，避免不必要的磁盘I/O
+        /// 保存前先触发同步回调（OnBeforeSave），确保存档数据最新
+        /// 注意：OnBeforeSave由GameLoopManager设置，会同步模块数据并标记脏文件
+        /// </summary>
+        private void SaveDirtyFiles()
+        {
+            // 先触发同步回调（同步模块数据并标记脏文件）
+            try
+            {
+                OnBeforeSave?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveManager] OnBeforeSave callback failed: {ex.Message}");
+            }
+
+            // 无脏文件时跳过磁盘I/O
+            if (_dirtyFiles.Count == 0)
+                return;
+
+            foreach (var kvp in _saveFiles)
+            {
+                if (!_dirtyFiles.Contains(kvp.Key))
+                    continue;
+
+                try
+                {
+                    EnsureSaveDirectory();
+                    var xmlContent = kvp.Value.ToXml();
+                    var bytes = Encoding.UTF8.GetBytes(xmlContent);
+                    _backend.Save(kvp.Value.FileName, bytes);
+                    _dirtyFiles.Remove(kvp.Key);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[SaveManager] Failed to save {kvp.Key.Name}: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
         /// Tick（自动存档检测）
+        /// 保存频率5秒，仅保存标记为脏的文件
         /// </summary>
         public void Tick(float deltaTime)
         {
             _autoSaveTimer += deltaTime;
             if (_autoSaveTimer >= _autoSaveInterval)
             {
-                SaveAll();
+                SaveDirtyFiles();
                 _autoSaveTimer = 0f;
             }
         }

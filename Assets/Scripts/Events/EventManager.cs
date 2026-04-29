@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using Game1.Events.Effect;
 
 namespace Game1
 {
@@ -91,9 +92,15 @@ namespace Game1
         public string name;                    // 事件名称
         public GameEventType type;            // 事件类型
         public string description;             // 事件描述
-        public List<Effect> effects;           // 效果列表
+        public List<Effect> effects;           // 效果列表（旧版，保持向后兼容）
+        public List<UnifiedEffect> unifiedEffects = new(); // 统一效果列表
         public float triggerChance = 1.0f;    // 触发概率
         public bool isRepeatable = true;      // 是否可重复触发
+
+        /// <summary>
+        /// 获取统一效果列表
+        /// </summary>
+        public List<UnifiedEffect> GetUnifiedEffects() => unifiedEffects;
 
         /// <summary>
         /// 从 XML 元素解析
@@ -142,6 +149,11 @@ namespace Game1
                     if (effectNode is XmlElement effectElement)
                     {
                         template.effects.Add(Effect.ParseFromXml(effectElement));
+
+                        // 同时解析为UnifiedEffect
+                        var unified = EffectParser.ParseSingleEffect(effectElement);
+                        if (unified != null)
+                            template.unifiedEffects.Add(unified);
                     }
                 }
             }

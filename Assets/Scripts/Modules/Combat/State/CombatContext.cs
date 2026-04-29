@@ -175,4 +175,39 @@ namespace Game1.Modules.Combat.State
         public int healingDone;
         public bool wasCritical;
     }
+
+    /// <summary>
+    /// 队伍成员参与数据
+    /// </summary>
+    [Serializable]
+    public class MemberParticipation
+    {
+        public int memberId;
+        public string name;
+        public int damageDealt;
+        public int damageTaken;
+        public int healingDone;
+        public int kills;
+        public bool isDead;
+
+        public MemberParticipation()
+        {
+            damageDealt = 0;
+            damageTaken = 0;
+            healingDone = 0;
+            kills = 0;
+            isDead = false;
+        }
+
+        public MemberParticipation(int memberId, string name)
+        {
+            this.memberId = memberId;
+            this.name = name;
+            damageDealt = 0;
+            damageTaken = 0;
+            healingDone = 0;
+            kills = 0;
+            isDead = false;
+        }
+    }
 }

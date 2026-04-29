@@ -54,6 +54,7 @@ namespace Game1
     /// </summary>
     public interface IPetCompanionModule : IModule
     {
+        void Initialize(PlayerActor player);
         PetMood GetMood();
         PetState GetCurrentState();
         void TriggerHappy(float intensity = 1f);

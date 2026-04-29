@@ -264,6 +264,7 @@ namespace Game1
         public string actorId;
         public string actorName;
         public int level;
+        public int exp;
         public int gold;
         public float offlineAccumulatedTime;
 
@@ -290,6 +291,7 @@ namespace Game1
             sb.Append($"<actorId>{XmlEscape.EscapeXml(actorId)}</actorId>");
             sb.Append($"<actorName>{XmlEscape.EscapeXml(actorName)}</actorName>");
             sb.Append($"<level>{level}</level>");
+            sb.Append($"<exp>{exp}</exp>");
             sb.Append($"<gold>{gold}</gold>");
             sb.Append($"<offlineAccumulatedTime>{offlineAccumulatedTime}</offlineAccumulatedTime>");
 
@@ -337,6 +339,7 @@ namespace Game1
             actorId = element.SelectSingleNode("actorId")?.InnerText ?? string.Empty;
             actorName = element.SelectSingleNode("actorName")?.InnerText ?? string.Empty;
             level = int.Parse(element.SelectSingleNode("level")?.InnerText ?? "0");
+            exp = int.Parse(element.SelectSingleNode("exp")?.InnerText ?? "0");
             gold = int.Parse(element.SelectSingleNode("gold")?.InnerText ?? "0");
             offlineAccumulatedTime = float.Parse(element.SelectSingleNode("offlineAccumulatedTime")?.InnerText ?? "0");
 

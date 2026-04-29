@@ -535,7 +535,9 @@ namespace Game1
 
             int cost = _gachaCosts[type] * count;
 
-            // TODO: 检查玩家金币是否足够
+            var player = GameLoopManager.instance?.player;
+            if (player == null || player.carryItems.gold < cost)
+                return GachaResult.Failure("金币不足");
 
             var drawnCards = new List<CardData>();
             bool isGuaranteed = false;

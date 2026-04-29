@@ -213,6 +213,34 @@ namespace Game1
         }
 
         /// <summary>
+        /// 加载成就模板XML并返回原始XmlDocument（供外部解析）
+        /// </summary>
+        /// <param name="fileName">XML文件名（不含路径和扩展名，默认AchievementTemplates）</param>
+        /// <returns>解析后的XmlDocument，失败返回null</returns>
+        public static XmlDocument LoadAchievementTemplates(string fileName = "AchievementTemplates")
+        {
+            var xml = LoadXml($"Data/Achievements/{fileName}");
+            if (string.IsNullOrEmpty(xml))
+            {
+                Debug.LogWarning($"[ResourceManager] LoadAchievementTemplates failed: XML is null or empty for {fileName}");
+                return null;
+            }
+
+            try
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(xml);
+                Debug.Log($"[ResourceManager] LoadAchievementTemplates: Successfully loaded {fileName}");
+                return doc;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ResourceManager] LoadAchievementTemplates failed to parse: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 加载 XML 文件内容
         /// </summary>
         /// <param name="path">资源路径</param>
