@@ -1,8 +1,8 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-29
+**Generated:** 2026-04-30
 **Project:** Game1 - Unity 6 游戏开发项目
-**Commit:** 5e78657
+**Commit:** e1b455e
 **Branch:** main
 
 ## OVERVIEW
@@ -299,19 +299,28 @@ Game1/
 
 ### 非标准组织模式
 
-| 模式 | 描述 | 位置 |
-|------|------|------|
-| **废弃目录残留** | Combat/, Inventory/, Managers/ 标注废弃但目录仍存在 | Assets/Scripts/根目录 |
-| **测试代码混杂** | GamePlay目录包含AAGENTTestRunner和ASimulated*测试类 | Assets/Scripts/GamePlay/ |
-| **自实现数据绑定** | UI/DataBinding目录实现自定义数据绑定系统 | Assets/Scripts/UI/DataBinding/ |
+| 模式 | 描述 | 位置 | 状态 |
+|------|------|------|------|
+| **测试代码混杂** | GamePlay目录包含AAGENTTestRunner和ASimulated*测试类 | Assets/Scripts/Editor/GamePlaySimulator/ | 存在 |
+| **自实现数据绑定** | UI/DataBinding目录实现自定义数据绑定系统 | Assets/Scripts/UI/DataBinding/ | 存在 |
+| **双测试目录** | Unity EditMode测试 + .NET 8测试项目并存 | Assets/Tests/ + Tests/ | 存在 |
+| **配置外置** | 存档数据放在Save/目录而非Assets/Resources/ | Save/Default/*.xml | 存在 |
 
 ### TODO分布 (26个)
 
 高发区优先修复：
-- `Roguelike/MapGenerator.cs` - 4处
+- `Roguelike/MapGenerator.cs` - 4处 (Obsolete标记)
 - `UI/UICardPanel.cs` - 4处
 - `Modules/Skill/SkillDesign.cs` - 3处
-- `Modules/Travel/TravelManager.cs` - 3处
+- `Modules/Travel/TravelManager.cs` - 3处 (含Deprecated region)
+
+### Obsolete/废弃标记
+
+| 文件 | 说明 |
+|------|------|
+| `Roguelike/MapGenerator.cs` | `[Obsolete("MapGenerator is deprecated...")]` |
+| `Entities/World/WorldMap.cs` | `[Obsolete("WorldMap is deprecated...")]` |
+| `Modules/Travel/TravelManager.cs` | `#region Old Interface Compatibility (Deprecated)` |
 
 ### 测试规范
 
@@ -328,10 +337,14 @@ unity -batchmode -projectPath . -runTests -testMode EditMode
 
 3个GitHub Workflows：
 - `build.yml`: game-ci官方action，多平台矩阵(Windows64/OSX/Linux64/WebGL)
-- `ci.yml`: 自定义Unity容器，PR触发
+- `ci.yml`: 自定义Unity容器，PR触发 (使用 `gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0`)
 - `release.yml`: Release发布流水线
 
 必需Secrets: UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD, SLACK_WEBHOOK_URL
+
+### 构建输出路径
+- `build.yml` → `build/{platform}/`
+- `ci.yml` → `Build/Windows/{sha}/` 和 `Build/Release/Windows/`
 
 ## UNIQUE STYLES
 
