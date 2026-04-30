@@ -15,7 +15,7 @@ jobs:
     name: Build Windows Release
     runs-on: ubuntu-latest
     container:
-      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+      image: unityci/editor:6000.1.5f1-ubuntu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
     name: Build WebGL Release
     runs-on: ubuntu-latest
     container:
-      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+      image: unityci/editor:6000.1.5f1-ubuntu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,7 +108,7 @@ jobs:
     name: Run Release Tests
     runs-on: ubuntu-latest
     container:
-      image: registry.hub.docker.com/gerardmorchilony/unity-ci-ubuntu-with-mutiplayer:v2.0
+      image: unityci/editor:6000.1.5f1-ubuntu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -163,21 +163,21 @@ jobs:
           echo "| Release Tests | ${{ needs.test-release.result }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Send Notification on Failure
-        if: failure()
+        if: failure() && vars.SLACK_WEBHOOK_URL != ''
         uses: 8398a7/action-slack@v3
         with:
           status: failure
           author_name: 'Game1 Release'
           fields: repo,message,commit,author,workflow,job
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
 
       - name: Success Notification
-        if: success()
+        if: success() && vars.SLACK_WEBHOOK_URL != ''
         uses: 8398a7/action-slack@v3
         with:
           status: success
           author_name: 'Game1 Release'
           fields: repo,message,commit,author,workflow
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
